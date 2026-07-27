@@ -1290,9 +1290,9 @@ function openFighterInfo(side) {
   if (!fighter) return;
   const character = findCharacterForFighter(fighter);
   if (!character) return;
-  const prefix = side === "player" ? "내 정보" : "상대 정보";
-  els.enemyInfoKicker.textContent = prefix;
-  els.enemyInfoTitle.textContent = `${prefix}: ${fighter.label || `${fighter.name} — ${fighter.title}`}`;
+  els.enemyInfoKicker.hidden = false;
+  els.enemyInfoKicker.textContent = side === "player" ? "내 정보" : "상대 정보";
+  els.enemyInfoTitle.textContent = fighter.label || `${fighter.name} — ${fighter.title}`;
   els.enemyInfoBody.innerHTML = fighterInfoHtml(character, fighter);
   els.enemyInfoModal.hidden = false;
 }
@@ -1304,6 +1304,7 @@ function closeInfoModal() {
 function openBattleRecords() {
   const sections = battleRecordSections();
   if (!sections.length) return;
+  els.enemyInfoKicker.hidden = false;
   els.enemyInfoKicker.textContent = "캐릭터 기록";
   els.enemyInfoTitle.textContent = "캐릭터 기록";
   els.enemyInfoBody.innerHTML = `
