@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VERSUS</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="screen home-screen is-active" id="homeScreen" aria-label="시작 화면">
+      <div class="home-bg" aria-hidden="true"></div>
+      <div class="home-panel">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">V</span>
+          <h1>VERSUS</h1>
+        </div>
+        <nav class="main-menu" aria-label="메인 메뉴">
+          <button class="menu-button primary-menu" id="openBattleButton" type="button">FIGHT</button>
+          <button class="menu-button" id="openCodexButton" type="button">CHARACTERS</button>
+          <button class="menu-button" id="exitButton" type="button">EXIT</button>
+        </nav>
+      </div>
+    </section>
+
+    <section class="screen battle-screen" id="battleScreen" aria-label="전투 화면">
+      <header class="app-header">
+        <button class="ghost-button" id="battleBackButton" type="button">뒤로</button>
+        <div class="header-title">
+          <strong>전투</strong>
+          <span id="matchLabel">대전 준비</span>
+        </div>
+        <div class="battle-setup" aria-label="전투 설정">
+          <label>
+            내 캐릭터
+            <select id="playerSelect"></select>
+          </label>
+          <label>
+            상대 캐릭터
+            <select id="aiSelect"></select>
+          </label>
+          <label>
+            AI 성향
+            <select id="personalitySelect"></select>
+          </label>
+          <label>
+            시드
+            <input id="seedInput" inputmode="numeric" placeholder="자동">
+          </label>
+          <button class="primary-button" id="startButton" type="button">전투 시작</button>
+        </div>
+      </header>
+
+      <div class="battle-grid">
+        <aside class="status-column" aria-label="전투 상태">
+          <section class="hud-card fighter-card enemy-card">
+            <div class="card-head">
+              <div class="card-kicker">상대 상태</div>
+              <button class="mini-info-button" id="enemyInfoButton" type="button">상대 정보</button>
+            </div>
+            <h2 id="aiSideName">-</h2>
+            <p id="aiSideTitle">대기 중</p>
+            <div class="meter-list">
+              <div class="meter-row">
+                <span>HP</span>
+                <div class="meter hp"><i id="aiHpBar"></i></div>
+                <b id="aiHpText">-</b>
+              </div>
+              <div class="meter-row">
+                <span>MP</span>
+                <div class="meter mp"><i id="aiMpBar"></i></div>
+                <b id="aiMpText">-</b>
+              </div>
+            </div>
+            <div class="stat-line" id="aiStats">ATK - / DEF - / SPD -</div>
+            <div class="state-box" id="aiState">없음</div>
+            <div class="record-box" id="aiRecord" hidden></div>
+          </section>
+
+          <section class="hud-card fighter-card player-card">
+            <div class="card-head">
+              <div class="card-kicker">플레이어 상태</div>
+              <button class="mini-info-button" id="playerInfoButton" type="button">내 정보</button>
+            </div>
+            <h2 id="playerSideName">-</h2>
+            <p id="playerSideTitle">캐릭터 선택</p>
+            <div class="meter-list">
+              <div class="meter-row">
+                <span>HP</span>
+                <div class="meter hp"><i id="playerHpBar"></i></div>
+                <b id="playerHpText">-</b>
+              </div>
+              <div class="meter-row">
+                <span>MP</span>
+                <div class="meter mp"><i id="playerMpBar"></i></div>
+                <b id="playerMpText">-</b>
+              </div>
+            </div>
+            <div class="stat-line" id="playerStats">ATK - / DEF - / SPD -</div>
+            <div class="state-box" id="playerState">없음</div>
+            <div class="record-box" id="playerRecord" hidden></div>
+          </section>
+
+          <section class="hud-card compact-card">
+            <div class="card-kicker">AI</div>
+            <div class="ai-mode" id="aiModeText">-</div>
+          </section>
+        </aside>
+
+        <section class="arena-panel" aria-label="전장">
+          <div class="arena-surface">
+            <div class="turn-chip" id="turnChip">TURN -</div>
+            <div class="fighter-slot enemy-slot">
+              <div class="avatar-stage" id="aiAvatar" aria-hidden="true"></div>
+            </div>
+            <div class="fighter-slot player-slot">
+              <div class="avatar-stage" id="playerAvatar" aria-hidden="true"></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="right-column">
+          <section class="hud-card log-card" aria-label="전투 로그">
+            <div class="panel-title">
+              <div class="panel-title-left">
+                <h2>전투 로그</h2>
+                <button class="battle-record-button" id="battleRecordButton" type="button" hidden>캐릭터 기록</button>
+              </div>
+              <div class="log-controls">
+                <button id="prevLogButton" type="button">이전</button>
+                <button id="nextLogButton" type="button">다음</button>
+              </div>
+            </div>
+            <div id="battleLog"></div>
+          </section>
+
+          <section class="hud-card skills-card" aria-label="기술창">
+            <div class="panel-title skills-title">
+              <button class="passive-chip" id="passiveChip" type="button" hidden></button>
+              <span id="actionHint" hidden></span>
+            </div>
+            <div class="actions-grid" id="actionsGrid"></div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen codex-screen" id="codexScreen" aria-label="캐릭터 도감">
+      <header class="app-header">
+        <button class="ghost-button" id="codexBackButton" type="button">뒤로</button>
+        <div class="header-title">
+          <strong>캐릭터</strong>
+          <span id="codexSubtitle">도감</span>
+        </div>
+      </header>
+      <div class="codex-layout">
+        <nav class="codex-list" id="codexList" aria-label="캐릭터 목록"></nav>
+        <article class="codex-detail" id="codexDetail"></article>
+      </div>
+    </section>
+
+    <section class="info-modal" id="enemyInfoModal" hidden>
+      <button class="modal-scrim" id="enemyInfoScrim" type="button" aria-label="닫기"></button>
+      <article class="info-panel" aria-label="상대 상세 정보">
+        <header>
+          <div>
+            <span id="enemyInfoKicker">정보</span>
+            <h2 id="enemyInfoTitle">-</h2>
+          </div>
+          <button class="ghost-button" id="enemyInfoCloseButton" type="button">닫기</button>
+        </header>
+        <div id="enemyInfoBody"></div>
+      </article>
+    </section>
+
+    <section class="character-picker-modal" id="characterPickerModal" hidden>
+      <button class="modal-scrim" id="characterPickerScrim" type="button" aria-label="닫기"></button>
+      <article class="character-picker-panel" aria-label="캐릭터 선택">
+        <header>
+          <h2 id="characterPickerTitle">캐릭터 선택</h2>
+          <button class="ghost-button" id="characterPickerCloseButton" type="button">닫기</button>
+        </header>
+        <div class="character-picker-grid" id="characterPickerGrid"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
