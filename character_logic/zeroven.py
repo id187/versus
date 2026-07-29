@@ -55,7 +55,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
             return False
         if stacks >= 5:
             choice.power = (choice.power or 0) + 2
-            print("과령 5중첩 이상으로 위력이 2 증가했다.")
+            print("과령이 5 이상이라 위력이 2 증가했다.")
         choice.hit_count = battle.rng.randint(1, stacks)
         print(f"[연격] {choice.hit_count}회로 결정되었다.")
     return None

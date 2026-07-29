@@ -447,13 +447,13 @@ class Battle:
                 if text:
                     parts.append(text)
                 continue
-            parts.append(f"{name} {value}중첩")
+            parts.append(f"{name} {value}")
         parts.extend(character_logic.extra_state_parts(self, fighter))
         for status in fighter.statuses.values():
             if status.stacks == 1 and not status.stackable:
                 parts.append(f"{status.name} {status.remaining}턴")
             else:
-                parts.append(f"{status.name} {status.stacks}중첩 · {status.remaining}턴")
+                parts.append(f"{status.name} {status.stacks} · {status.remaining}턴")
         for effect in fighter.stat_effects:
             parts.append(f"{effect.stat.upper()} x{effect.multiplier:g} · {effect.remaining}턴 ({effect.source})")
         for effect in fighter.cost_effects:
@@ -838,7 +838,7 @@ class Battle:
                 continue
             if isinstance(raw, int):
                 mult = 35
-                if name in {"탄환", "집광", "과령", "권류", "통찰"}:
+                if name in {"탄환", "집광", "과령", "권의", "통찰"}:
                     mult = 70
                 value += raw * mult
             elif isinstance(raw, str):
@@ -1154,6 +1154,7 @@ class Battle:
 
     def resolve_turn(self, player_choice: Choice, ai_choice: Choice) -> None:
         order = self.action_order(player_choice, ai_choice)
+        self.print_selected_actions(order)
         for index, choice in enumerate(order):
             if self.game_over:
                 break
@@ -1161,6 +1162,11 @@ class Battle:
             self.execute_action(choice)
         if not self.game_over:
             self.end_turn()
+
+    def print_selected_actions(self, ordered_choices: list[Choice]) -> None:
+        print()
+        for choice in ordered_choices:
+            print(f"{choice.actor.name}의 선택: {choice.action.name}")
 
     def action_order(self, a: Choice, b: Choice) -> list[Choice]:
         if a.priority != b.priority:
@@ -1590,12 +1596,18 @@ class Battle:
         if max_value is not None:
             after = min(max_value, after)
         fighter.counters[name] = after
-        print(f"{fighter.name}의 {name} {before} → {after}중첩")
+        if max_value is not None:
+            if after == before and amount > 0 and before >= max_value:
+                print(f"{fighter.name}의 {name}: 이미 최대치다.")
+            else:
+                print(f"{fighter.name}의 {name} {before}/{max_value} → {after}/{max_value}")
+        else:
+            print(f"{fighter.name}의 {name} {before} → {after}")
 
     def add_vengeance(self, fighter: Fighter) -> None:
         before = int(fighter.counters.get("과령", 0))
         fighter.counters["과령"] = before + 1
-        print(f"{fighter.name}의 과령 {before} → {fighter.counters['과령']}중첩")
+        print(f"{fighter.name}의 과령 {before} → {fighter.counters['과령']}")
         if fighter.counters["과령"] >= 6 and int(fighter.counters.get("거포 강령", 0)) <= 0:
             self.trigger_vengeance_overflow(fighter, "과령 폭주")
 
@@ -1603,7 +1615,7 @@ class Battle:
         stacks = int(fighter.counters.get("과령", 0))
         fighter.counters["과령"] = 0
         self.fixed_damage(fighter, 25, reason)
-        print(f"과령 {stacks}중첩이 모두 소모되었다.")
+        print(f"과령 {stacks}을 모두 소모했다.")
 
     def end_battle(self, winner: Fighter, loser: Fighter) -> None:
         if self.game_over:

@@ -80,7 +80,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
         if hit_cap < 1:
             return False
         choice.hit_count = battle.rng.randint(1, hit_cap)
-        print(f"[연격] 광증 기준 {hit_cap}중첩으로 {choice.hit_count}회로 결정되었다.")
+        print(f"[연격] 광증 중첩 수 {hit_cap} 기준으로 {choice.hit_count}회로 결정되었다.")
     return None
 
 

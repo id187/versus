@@ -19,6 +19,12 @@ def extra_state_parts(battle: Any, fighter: Any) -> list[str]:
     return [f"{fighter.counters['탄환형태']} 형태"] if fighter.counters.get("탄환형태") else []
 
 
+def counter_state_text(fighter: Any, name: str, value: Any) -> str | None:
+    if name == "탄환":
+        return f"탄환 {int(value)}/6"
+    return None
+
+
 def setup_value(battle: Any, actor: Any, target: Any, action: Any) -> float:
     if not action.is_skill(CHARACTER_ID, 1):
         return 0.0
@@ -51,10 +57,10 @@ def on_action_start(battle: Any, choice: Any) -> bool:
         return False
     bullets = int(actor.counters.get("탄환", 0))
     if bullets <= 0:
-        print("탄환이 0중첩이라 공격 행동에 실패했다.")
+        print("탄환이 0이라 공격 행동에 실패했다.")
         return True
     actor.counters["탄환"] = bullets - 1
-    print(f"탄환 1중첩 소모: {bullets} → {bullets - 1}")
+    print(f"탄환 1 소모: {bullets}/6 → {bullets - 1}/6")
     return False
 
 
@@ -78,7 +84,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
     if action.is_skill(CHARACTER_ID, 3):
         bullets = choice.selected_bullets if choice.selected_bullets is not None else int(actor.counters.get("탄환", 0))
         choice.hit_count = battle.rng.randint(1, max(1, bullets))
-        print(f"[연격] 선택 시 탄환 {bullets}중첩, {choice.hit_count}회로 결정되었다.")
+        print(f"[연격] 선택 시 탄환 {bullets}/6, {choice.hit_count}회로 결정되었다.")
     return None
 
 

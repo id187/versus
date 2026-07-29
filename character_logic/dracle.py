@@ -35,7 +35,7 @@ def init_unique_state(fighter: Any, unique_names: set[str]) -> None:
 
 def counter_state_text(fighter: Any, name: str, value: Any) -> str | None:
     if name == DRAGON:
-        return f"{DRAGON} {int(value)}/{_max_dragon(fighter)}중첩"
+        return f"{DRAGON} {int(value)}/{_max_dragon(fighter)}"
     return None
 
 
@@ -84,7 +84,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
     if action.is_skill(CHARACTER_ID, 0) and dragon >= 4:
         bonus = floor_int(dragon * 1.5)
         choice.power = (choice.power or 0) + bonus
-        print(f"{DRAGON} {dragon}중첩으로 위력이 {bonus} 증가했다.")
+        print(f"{DRAGON} {dragon}/{_max_dragon(actor)} 기준으로 위력이 {bonus} 증가했다.")
     if action.is_skill(CHARACTER_ID, 1) and dragon < 1:
         return False
     if action.is_skill(CHARACTER_ID, 3) and (dragon < 5 or _awakening_active(actor)):
@@ -188,7 +188,7 @@ def decrement_counters(fighter: Any) -> None:
         fighter.counters.pop(AWAKENING, None)
         before = _dragon(fighter)
         fighter.counters[DRAGON] = min(BASE_MAX_DRAGON, max(0, before - AWAKENING_GAIN))
-        print(f"{AWAKENING} 종료: {DRAGON} {before} → {fighter.counters[DRAGON]}중첩")
+        print(f"{AWAKENING} 종료: {DRAGON} {before}/{AWAKENED_MAX_DRAGON} → {fighter.counters[DRAGON]}/{BASE_MAX_DRAGON}")
     else:
         fighter.counters[AWAKENING] = remaining - 1
 
@@ -381,4 +381,4 @@ def _convert_damage_record(battle: Any, actor: Any) -> None:
         return
     actor.counters[DAMAGE_RECORD] = record - gained * DAMAGE_RECORD_PER_STACK
     actor.counters[DRAGON] = current + gained
-    print(f"{actor.name}의 {DRAGON} {current} → {actor.counters[DRAGON]}중첩")
+    print(f"{actor.name}의 {DRAGON} {current}/{max_dragon} → {actor.counters[DRAGON]}/{max_dragon}")

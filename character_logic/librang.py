@@ -22,7 +22,7 @@ def init_unique_state(fighter: Any, unique_names: set[str]) -> None:
 
 def counter_state_text(fighter: Any, name: str, value: Any) -> str | None:
     if name == BALANCE:
-        return f"{BALANCE} {value}중첩"
+        return f"{BALANCE} {value}"
     return None
 
 
@@ -66,7 +66,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
         bonus = _balance(actor) * 2
         if bonus > 0:
             choice.power = (choice.power or 0) + bonus
-            print(f"{BALANCE} {_balance(actor)}중첩으로 위력이 {bonus} 증가했다.")
+            print(f"{BALANCE} 중첩 수 {_balance(actor)}로 위력이 {bonus} 증가했다.")
     if action.is_skill(CHARACTER_ID, 2) and _balance(actor) < 1:
         return False
     return None

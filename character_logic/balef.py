@@ -9,7 +9,7 @@ from .common import floor_int, skill_key
 
 
 CHARACTER_ID = "balef"
-FLOW = "권류"
+FLOW = "권의"
 TRIO_KEYS = {skill_key(CHARACTER_ID, slot) for slot in range(3)}
 
 
@@ -56,8 +56,9 @@ def on_action_start(battle: Any, choice: Any) -> bool:
     if action.is_active and action.is_attack:
         prev = choice.prev_attack_active
         if prev and prev != action.key:
-            actor.counters[FLOW] = int(actor.counters.get(FLOW, 0)) + 1
-            print(f"권류가 1중첩 증가했다. 현재 {actor.counters[FLOW]}중첩")
+            before = int(actor.counters.get(FLOW, 0))
+            actor.counters[FLOW] = before + 1
+            print(f"{actor.name}의 {FLOW} {before} → {actor.counters[FLOW]}")
     return False
 
 

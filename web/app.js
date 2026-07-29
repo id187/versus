@@ -8,6 +8,7 @@ const els = {
   battleScreen: document.querySelector("#battleScreen"),
   codexScreen: document.querySelector("#codexScreen"),
   openBattleButton: document.querySelector("#openBattleButton"),
+  openPvpButton: document.querySelector("#openPvpButton"),
   openCodexButton: document.querySelector("#openCodexButton"),
   exitButton: document.querySelector("#exitButton"),
   battleBackButton: document.querySelector("#battleBackButton"),
@@ -15,7 +16,10 @@ const els = {
   playerSelect: document.querySelector("#playerSelect"),
   aiSelect: document.querySelector("#aiSelect"),
   personalitySelect: document.querySelector("#personalitySelect"),
-  seedInput: document.querySelector("#seedInput"),
+  pveSetupFields: [...document.querySelectorAll(".pve-setup-field")],
+  pvpSetupFields: [...document.querySelectorAll(".pvp-setup-field")],
+  pvpServerInput: document.querySelector("#pvpServerInput"),
+  pvpRoomInput: document.querySelector("#pvpRoomInput"),
   startButton: document.querySelector("#startButton"),
   matchLabel: document.querySelector("#matchLabel"),
   turnChip: document.querySelector("#turnChip"),
@@ -95,6 +99,10 @@ const CHARACTER_COLORS = {
 };
 
 const RANDOM_CHARACTER_COLOR = "#ffffff";
+const PVP_SERVER_STORAGE_KEY = "versus:pvpServer";
+const PVP_ROOM_STORAGE_KEY = "versus:pvpRoom";
+const PVP_TOKEN_STORAGE_PREFIX = "versus:pvpToken:";
+const PVP_POLL_MS = 1000;
 
 const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua"]);
 const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua"]);
@@ -120,6 +128,8 @@ const DEFENSE_ACTION_NAMES = new Set(["일반 방어", "가로막는 불길", "�
 const state = {
   options: null,
   battle: null,
+  battleMode: "pve",
+  pvp: null,
   busy: false,
   selectedCodexIndex: 0,
   turnLogs: [],
@@ -140,6 +150,7 @@ init();
 
 async function init() {
   bindEvents();
+  setBattleMode("pve");
   renderEmptyBattle();
   renderEmptyActions();
   renderLog();
@@ -147,12 +158,15 @@ async function init() {
 }
 
 function bindEvents() {
-  els.openBattleButton.addEventListener("click", () => showScreen("battle"));
+  els.openBattleButton.addEventListener("click", () => openBattleMode("pve"));
+  els.openPvpButton.addEventListener("click", () => openBattleMode("pvp"));
   els.openCodexButton.addEventListener("click", () => showScreen("codex"));
   els.battleBackButton.addEventListener("click", () => showScreen("home"));
   els.codexBackButton.addEventListener("click", () => showScreen("home"));
   els.exitButton.addEventListener("click", exitApp);
-  els.startButton.addEventListener("click", startBattle);
+  els.startButton.addEventListener("click", startConfiguredBattle);
+  els.pvpServerInput.addEventListener("input", previewSelectedMatch);
+  els.pvpRoomInput.addEventListener("input", previewSelectedMatch);
   els.prevLogButton.addEventListener("click", () => moveLog(-1));
   els.nextLogButton.addEventListener("click", () => moveLog(1));
   els.enemyInfoButton.addEventListener("click", () => openFighterInfo("ai"));
@@ -170,6 +184,35 @@ function bindEvents() {
       closeInfoModal();
     }
   });
+}
+
+function openBattleMode(mode) {
+  setBattleMode(mode);
+  resetBattleScreen();
+  previewSelectedMatch();
+  showScreen("battle");
+}
+
+function resetBattleScreen() {
+  stopPvpPolling();
+  state.battle = null;
+  state.pvp = null;
+  state.busy = false;
+  document.body.classList.remove("is-waiting");
+  closeCustomSelects();
+  closeCharacterPicker();
+  closeInfoModal();
+  resetCharacterSelections();
+  clearLogs();
+  renderEmptyBattle();
+  renderEmptyActions();
+  syncSetupLock();
+}
+
+function resetCharacterSelections() {
+  els.playerSelect.value = "random";
+  els.aiSelect.value = "random";
+  syncAllCustomSelects();
 }
 
 function prepareSfx() {
@@ -209,6 +252,9 @@ function primeAudio() {
 }
 
 function showScreen(name) {
+  if (name !== "battle") {
+    stopPvpPolling();
+  }
   for (const screen of [els.homeScreen, els.battleScreen, els.codexScreen]) {
     screen.classList.remove("is-active");
   }
@@ -222,6 +268,27 @@ function showScreen(name) {
     stopBgm();
     els.homeScreen.classList.add("is-active");
   }
+}
+
+function setBattleMode(mode) {
+  state.battleMode = mode === "pvp" ? "pvp" : "pve";
+  const isPvp = state.battleMode === "pvp";
+  if (!isPvp) {
+    stopPvpPolling();
+    state.pvp = null;
+  }
+  els.battleScreen.classList.toggle("is-pvp", isPvp);
+  els.battleScreen.classList.toggle("is-pve", !isPvp);
+  for (const field of els.pveSetupFields) {
+    field.hidden = isPvp;
+  }
+  for (const field of els.pvpSetupFields) {
+    field.hidden = !isPvp;
+  }
+  els.startButton.textContent = isPvp ? "PvP 입장" : "전투 시작";
+  loadStoredPvpInputs();
+  syncSetupLock();
+  previewSelectedMatch();
 }
 
 async function loadOptions() {
@@ -251,9 +318,14 @@ async function loadOptions() {
 async function applyStartupHash() {
   const hash = window.location.hash.toLowerCase();
   if (hash === "#battle-start") {
+    setBattleMode("pve");
     showScreen("battle");
     await startBattle();
+  } else if (hash === "#pvp") {
+    setBattleMode("pvp");
+    showScreen("battle");
   } else if (hash === "#battle") {
+    setBattleMode("pve");
     showScreen("battle");
   } else if (hash === "#codex") {
     showScreen("codex");
@@ -311,6 +383,7 @@ function syncCharacterPickerButton(api) {
   const selectedName = selectedText(select);
   button.style.setProperty("--character-color", character ? characterColor(character.id) : RANDOM_CHARACTER_COLOR);
   button.setAttribute("aria-label", `${label}: ${selectedName}`);
+  button.disabled = select.disabled;
   button.innerHTML = `
     <span class="character-picker-button-copy">
       <strong>${escapeHtml(selectedName)}</strong>
@@ -412,6 +485,10 @@ function enhanceSelect(select) {
 function syncCustomSelect(select, button, list) {
   const selected = select.options[select.selectedIndex];
   button.textContent = selected?.textContent || "-";
+  button.disabled = select.disabled;
+  if (button.disabled) {
+    list.hidden = true;
+  }
   list.innerHTML = "";
   [...select.options].forEach((option) => {
     const item = document.createElement("button");
@@ -474,14 +551,70 @@ function setMatchLabel(player, ai, personality) {
 
 function previewSelectedMatch() {
   const player = selectedText(els.playerSelect);
-  const ai = selectedText(els.aiSelect);
+  if (state.battleMode === "pvp") {
+    const room = normalizeRoomCode(els.pvpRoomInput.value);
+    const roomLabel = room || "방 코드";
+    setMatchLabel(player, roomLabel, "PvP");
+    els.aiModeText.textContent = "PvP";
+    return;
+  }
   const personality = selectedText(els.personalitySelect);
-  setMatchLabel(player, ai, personality);
+  setMatchLabel(player, "???", personality);
   els.aiModeText.textContent = personality;
+}
+
+function startConfiguredBattle() {
+  return state.battleMode === "pvp" ? startPvpEntry() : startBattle();
+}
+
+async function startPvpEntry() {
+  if (state.busy) return;
+  const server = normalizePvpServer(els.pvpServerInput.value);
+  const room = normalizeRoomCode(els.pvpRoomInput.value);
+  if (!server || !room) {
+    pushTurnLog("PvP 준비", ["서버 주소와 방 코드를 입력해 주세요."], false);
+    return;
+  }
+  primeAudio();
+  stopBgm(300);
+  setBusy(true);
+  clearLogs();
+  try {
+    const token = loadStoredPvpToken(server, room);
+    state.pvp = {
+      server,
+      room,
+      token,
+      playerIndex: els.playerSelect.value,
+      lastLogSerial: 0,
+      pollTimer: null,
+      pollErrorShown: false,
+    };
+    saveStoredPvpInputs(server, room);
+    const data = await pvpApi("/api/pvp/join", {
+      roomCode: room,
+      playerIndex: els.playerSelect.value,
+      token,
+    });
+    state.pvp.token = data.token;
+    saveStoredPvpToken(server, room, data.token);
+    if (data.noticeLog?.length) {
+      pushTurnLog("PvP 준비", data.noticeLog, false);
+    }
+    await handlePvpState(data, { animateLog: false });
+    startPvpPolling();
+  } catch (error) {
+    stopPvpPolling();
+    pushTurnLog("오류", [`PvP 입장 실패: ${error.message}`], false);
+  } finally {
+    setBusy(false);
+  }
 }
 
 async function startBattle() {
   if (state.busy) return;
+  stopPvpPolling();
+  state.pvp = null;
   primeAudio();
   stopBgm(300);
   setBusy(true);
@@ -491,7 +624,6 @@ async function startBattle() {
       playerIndex: els.playerSelect.value,
       aiIndex: els.aiSelect.value,
       personalityId: els.personalitySelect.value,
-      seed: parseSeed(els.seedInput.value),
     };
     const data = await api("/api/new", payload);
     state.battle = data;
@@ -507,6 +639,9 @@ async function startBattle() {
 }
 
 async function chooseAction(actionNumber) {
+  if (state.battleMode === "pvp") {
+    return choosePvpAction(actionNumber);
+  }
   if (state.busy || !state.battle || state.battle.is_over) return;
   primeAudio();
   setBusy(true);
@@ -527,6 +662,92 @@ async function chooseAction(actionNumber) {
     pushTurnLog("오류", [`행동 처리 실패: ${error.message}`], false);
   } finally {
     setBusy(false);
+  }
+}
+
+async function choosePvpAction(actionNumber) {
+  if (
+    state.busy ||
+    !state.pvp ||
+    !state.battle ||
+    state.battle.is_over ||
+    state.battle.selectionLocked ||
+    !state.battle.started
+  ) {
+    return;
+  }
+  primeAudio();
+  setBusy(true);
+  try {
+    const data = await pvpApi("/api/pvp/action", {
+      roomCode: state.pvp.room,
+      token: state.pvp.token,
+      action: actionNumber,
+      sinceLogSerial: state.pvp.lastLogSerial,
+    });
+    if (data.noticeLog?.length) {
+      pushTurnLog("PvP 준비", data.noticeLog, false);
+    }
+    await handlePvpState(data, { animateLog: true });
+  } catch (error) {
+    pushTurnLog("오류", [`PvP 행동 처리 실패: ${error.message}`], false);
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function handlePvpState(data, options = {}) {
+  if (!state.pvp) return;
+  const previousTurn = state.battle?.turn || data.logTurn || data.turn || 0;
+  const hasNewLog = data.log?.length && Number(data.logSerial || 0) > Number(state.pvp.lastLogSerial || 0);
+  if (hasNewLog) {
+    state.pvp.lastLogSerial = Number(data.logSerial || 0);
+    const title = !data.started
+      ? "PvP 준비"
+      : Number(data.logTurn || 0) > 0
+        ? `TURN ${data.logTurn || previousTurn}`
+        : "PvP 전투 시작";
+    await pushTurnLog(title, data.log, Boolean(options.animateLog), {
+      settleEffects: Boolean(data.is_over || data.gameOver),
+      syncState: Boolean(options.animateLog),
+    });
+  }
+  state.battle = data;
+  renderBattle(data, { animateDefeat: Boolean(options.animateLog && (data.is_over || data.gameOver)) });
+  if (data.is_over || data.gameOver) {
+    stopPvpPolling();
+    playResultBgm(data);
+  }
+}
+
+function startPvpPolling() {
+  if (!state.pvp) return;
+  stopPvpPolling();
+  state.pvp.pollTimer = window.setInterval(pollPvpState, PVP_POLL_MS);
+}
+
+function stopPvpPolling() {
+  if (state.pvp?.pollTimer) {
+    window.clearInterval(state.pvp.pollTimer);
+    state.pvp.pollTimer = null;
+  }
+}
+
+async function pollPvpState() {
+  if (state.busy || !state.pvp || state.battleMode !== "pvp") return;
+  try {
+    const data = await pvpApi("/api/pvp/state", {
+      roomCode: state.pvp.room,
+      token: state.pvp.token,
+      sinceLogSerial: state.pvp.lastLogSerial,
+    });
+    state.pvp.pollErrorShown = false;
+    await handlePvpState(data, { animateLog: true });
+  } catch (error) {
+    if (state.pvp && !state.pvp.pollErrorShown) {
+      state.pvp.pollErrorShown = true;
+      pushTurnLog("오류", [`PvP 상태 확인 실패: ${error.message}`], false);
+    }
   }
 }
 
@@ -565,7 +786,26 @@ function renderBattle(data, options = {}) {
   els.aiModeText.textContent = data.personality.name;
   els.enemyInfoButton.disabled = false;
   els.playerInfoButton.disabled = false;
+  renderPvpStatus(data);
+  syncSetupLock();
   syncDefeatPortraits(data, options.animateDefeat);
+}
+
+function renderPvpStatus(data) {
+  if (!data?.pvp) return;
+  els.aiModeText.textContent = "PvP";
+  if (data.roomCode) {
+    setMatchLabel(data.player.name, data.ai.name, `PvP ${data.roomCode}`);
+  }
+  if (!data.started) {
+    els.turnChip.textContent = "PvP 대기";
+    els.actionHint.textContent = "상대 입장 대기";
+    renderEmptyActions("상대 입장 대기");
+  } else if (data.selectionLocked) {
+    els.actionHint.textContent = data.opponentReady ? "턴 처리 중" : "상대 선택 대기";
+  } else if (!data.is_over && !data.gameOver) {
+    els.actionHint.textContent = "행동 선택";
+  }
 }
 
 function renderFighter(side, fighter) {
@@ -672,7 +912,7 @@ function renderActions(actions, isOver) {
 
 function createPassiveSlot(passive) {
   const slot = document.createElement("div");
-  const disabled = !passive || state.busy;
+  const disabled = !passive || state.busy || Boolean(state.battle?.selectionLocked);
   slot.className = `action-button passive-action${disabled ? " is-disabled" : ""}`;
   slot.tabIndex = disabled ? -1 : 0;
   slot.setAttribute("role", "button");
@@ -973,7 +1213,7 @@ function effectFromLogLine(line, context) {
     return makeLogEffect(multiplier >= 1 ? "buff" : "debuff", match[1], match[1], match[2]);
   }
 
-  match = line.match(/^(.+?)의 (.+?) (\d+)\s*(?:→|->)\s*(\d+)중첩/);
+  match = line.match(/^(.+?)의 (.+?) (\d+)(?:\/\d+)?\s*(?:→|->)\s*(\d+)(?:\/\d+)?(?:중첩)?/);
   if (match) {
     const [, targetName, stackName, beforeText, afterText] = match;
     const before = Number(beforeText);
@@ -997,7 +1237,7 @@ function effectFromLogLine(line, context) {
     return makeLogEffect("stack-gain", context.actorName, context.actorName, `${stackName}+${amountText}`);
   }
 
-  match = line.match(/^(.+?) (\d+)중첩 소모:/);
+  match = line.match(/^(.+?) (\d+)(?:중첩)? 소모:/);
   if (match && context.actorName) {
     const [, stackName, amountText] = match;
     context.lastStackOwner = context.actorName;
@@ -1021,7 +1261,7 @@ function effectFromLogLine(line, context) {
     return makeLogEffect("stack-spend", context.actorName, context.actorName, `${stackName} 전부`);
   }
 
-  match = line.match(/^(.+?) (\d+)중첩(?:을|이) 모두 소모/);
+  match = line.match(/^(.+?) (\d+)(?:중첩)?(?:을|이) 모두 소모/);
   if (match) {
     const [, stackName] = match;
     const targetName = context.lastStackName === stackName ? context.lastStackOwner : context.actorName;
@@ -1535,10 +1775,34 @@ function skillTileHtml(skill) {
 function setBusy(isBusy) {
   state.busy = isBusy;
   document.body.classList.toggle("is-waiting", isBusy);
-  els.startButton.disabled = isBusy;
+  syncSetupLock();
   if (state.battle) {
     renderActions(state.battle.actions || [], state.battle.is_over);
   }
+}
+
+function syncSetupLock() {
+  const pvpLocked = isPvpSetupLocked();
+  const startLocked = state.busy || pvpLocked;
+  els.startButton.disabled = startLocked;
+  els.playerSelect.disabled = pvpLocked;
+  els.pvpServerInput.disabled = pvpLocked;
+  els.pvpRoomInput.disabled = pvpLocked;
+  for (const picker of state.characterPickers) {
+    picker.select.disabled = picker.select === els.playerSelect ? pvpLocked : false;
+    picker.button.disabled = picker.select.disabled;
+  }
+  if (pvpLocked) {
+    closeCustomSelects();
+    closeCharacterPicker();
+  }
+}
+
+function isPvpSetupLocked() {
+  if (state.battleMode !== "pvp" || !state.pvp || !state.battle) {
+    return false;
+  }
+  return !Boolean(state.battle.is_over || state.battle.gameOver);
 }
 
 async function exitApp() {
@@ -1561,7 +1825,7 @@ async function exitApp() {
   document.body.innerHTML = '<main class="exit-screen">VERSUS 종료</main>';
 }
 
-async function api(path, body) {
+async function api(path, body, baseUrl = "") {
   const init = body === undefined
     ? undefined
     : {
@@ -1569,7 +1833,7 @@ async function api(path, body) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       };
-  const response = await fetch(path, init);
+  const response = await fetch(`${baseUrl}${path}`, init);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(data.error || data.message || `${response.status} ${response.statusText}`);
@@ -1577,11 +1841,74 @@ async function api(path, body) {
   return data;
 }
 
-function parseSeed(value) {
+function pvpApi(path, body) {
+  if (!state.pvp?.server) {
+    throw new Error("PvP 서버 주소가 없습니다.");
+  }
+  return api(path, body, state.pvp.server);
+}
+
+function normalizePvpServer(value) {
   const trimmed = value.trim();
-  if (!trimmed) return null;
-  const seed = Number(trimmed);
-  return Number.isFinite(seed) ? seed : null;
+  if (!trimmed) return "";
+  const withProtocol = /^[a-z][a-z\d+\-.]*:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+  try {
+    const url = new URL(withProtocol);
+    url.hash = "";
+    url.search = "";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function normalizeRoomCode(value) {
+  return value.trim().replace(/\s+/g, "").toUpperCase();
+}
+
+function loadStoredPvpInputs() {
+  try {
+    if (!els.pvpServerInput.value) {
+      els.pvpServerInput.value = localStorage.getItem(PVP_SERVER_STORAGE_KEY) || "";
+    }
+    if (!els.pvpRoomInput.value) {
+      els.pvpRoomInput.value = localStorage.getItem(PVP_ROOM_STORAGE_KEY) || "";
+    }
+  } catch {
+    // Local storage can be unavailable in restricted browser shells.
+  }
+}
+
+function saveStoredPvpInputs(server, room) {
+  try {
+    localStorage.setItem(PVP_SERVER_STORAGE_KEY, server);
+    localStorage.setItem(PVP_ROOM_STORAGE_KEY, room);
+  } catch {
+    // The typed values still remain in the current session.
+  }
+}
+
+function pvpTokenStorageKey(server, room) {
+  return `${PVP_TOKEN_STORAGE_PREFIX}${server}|${room}`;
+}
+
+function loadStoredPvpToken(server, room) {
+  try {
+    return localStorage.getItem(pvpTokenStorageKey(server, room)) || "";
+  } catch {
+    return "";
+  }
+}
+
+function saveStoredPvpToken(server, room, token) {
+  if (!token) return;
+  try {
+    localStorage.setItem(pvpTokenStorageKey(server, room), token);
+  } catch {
+    // Rejoining still works during this tab session through state.pvp.token.
+  }
 }
 
 function selectedText(select) {

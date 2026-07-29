@@ -21,6 +21,12 @@ def init_unique_state(fighter: Any, unique_names: set[str]) -> None:
         fighter.counters["잔기"] = 8
 
 
+def counter_state_text(fighter: Any, name: str, value: Any) -> str | None:
+    if name == "잔기":
+        return f"잔기 {int(value)}/8"
+    return None
+
+
 def extra_state_parts(battle: Any, fighter: Any) -> list[str]:
     parts: list[str] = []
     if fighter.counters.get("죽을 힘을 다해", 0) == 1:
@@ -94,10 +100,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
         lives = int(actor.counters.get("잔기", 0))
         power_add = max(0, 9 - lives)
         choice.power = (choice.power or 0) + power_add
-        print(f"잔기 {lives}중첩으로 위력이 {power_add} 증가했다.")
-    if action.is_skill(CHARACTER_ID, 3):
-        if int(actor.counters.get("잔기", 0)) >= 8:
-            return False
+        print(f"잔기 {lives}/8 기준으로 위력이 {power_add} 증가했다.")
     return None
 
 
@@ -116,10 +119,13 @@ def apply_non_attack_effects(battle: Any, choice: Any) -> bool:
         return True
     if action.is_skill(CHARACTER_ID, 2):
         actor.counters["길동무 잔기"] = int(actor.counters.get("잔기", 0))
-        print(f"현재 잔기 {actor.counters['길동무 잔기']}중첩을 길동무 기준으로 기록했다.")
+        print(f"현재 잔기 {actor.counters['길동무 잔기']}/8을 길동무 기준으로 기록했다.")
         return True
     if action.is_skill(CHARACTER_ID, 3):
-        battle.add_counter(actor, "잔기", 1, max_value=8)
+        if int(actor.counters.get("잔기", 0)) >= 8:
+            print(f"{actor.name}의 잔기: 이미 최대치다.")
+        else:
+            battle.add_counter(actor, "잔기", 1, max_value=8)
         return True
     return False
 
@@ -166,7 +172,7 @@ def consume_defeat_escape(battle: Any, fighter: Any) -> tuple[int, int, int, int
 
 def print_defeat_escape(battle: Any, fighter: Any, revive: tuple[int, int, int, int]) -> None:
     before_lives, after_lives, previous_desperation, new_desperation = revive
-    print(f"{fighter.name}의 잔기 {before_lives} → {after_lives}중첩")
+    print(f"{fighter.name}의 잔기 {before_lives}/8 → {after_lives}/8")
     print(f"{fighter.name} HP 회복 0 → {fighter.hp} (잔기)")
     if previous_desperation == 1 and new_desperation == 2:
         print(f"{fighter.name}의 ATK가 죽을 힘을 다해 반동으로 x0.5가 된다.")
@@ -217,7 +223,9 @@ def ai_score(
 
     elif action.is_skill(CHARACTER_ID, 3):
         missing_lives = max(0, 8 - lives)
-        if missing_lives > 0 and not life_loss_expected:
+        if missing_lives <= 0:
+            value -= 1200
+        elif not life_loss_expected:
             value += missing_lives * 260
         if life_loss_expected:
             value -= 900
@@ -236,6 +244,4 @@ def ai_score(
 
 
 def would_condition_fail(battle: Any, actor: Any, target: Any, action: Any) -> bool | None:
-    if action.is_skill(CHARACTER_ID, 3):
-        return int(actor.counters.get("잔기", 0)) >= 8
     return None

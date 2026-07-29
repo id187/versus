@@ -25,7 +25,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
     if action.is_skill(CHARACTER_ID, 0):
         stacks = int(actor.counters.get("상흔", 0))
         choice.power = (choice.power or 0) + stacks
-        print(f"상흔 {stacks}중첩으로 위력이 {stacks} 증가했다.")
+        print(f"상흔 중첩 수 {stacks}로 위력이 {stacks} 증가했다.")
     if action.is_skill(CHARACTER_ID, 2):
         if battle.record.attack_damage_taken.get(actor.side, 0) <= 0:
             return False

@@ -244,10 +244,18 @@ p {
 
 .battle-setup {
   display: grid;
-  grid-template-columns: repeat(4, minmax(112px, 1fr)) 104px;
+  grid-template-columns: repeat(3, minmax(112px, 1fr)) 104px;
   gap: 8px;
   align-items: end;
   min-width: 0;
+}
+
+.battle-setup .primary-button {
+  width: 100%;
+}
+
+.battle-screen.is-pvp .battle-setup {
+  grid-template-columns: minmax(112px, 0.9fr) minmax(180px, 1.35fr) minmax(112px, 0.9fr) 104px;
 }
 
 label {
@@ -307,6 +315,14 @@ input {
   border-right: 2px solid var(--text);
   border-bottom: 2px solid var(--text);
   transform: translateY(-65%) rotate(45deg);
+}
+
+.custom-select-button:disabled,
+.character-picker-button:disabled,
+input:disabled,
+select:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
 }
 
 .custom-select-list {
@@ -2166,8 +2182,7 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(104px, 1fr)) 96px;
   }
 
-  .battle-setup label:nth-of-type(3),
-  .battle-setup label:nth-of-type(4) {
+  .battle-screen.is-pve .battle-setup .personality-setup-field {
     display: none;
   }
 
@@ -2203,8 +2218,11 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .battle-setup label:nth-of-type(3),
-  .battle-setup label:nth-of-type(4) {
+  .battle-screen.is-pvp .battle-setup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .battle-screen.is-pve .battle-setup .personality-setup-field {
     display: grid;
   }
 
@@ -2290,12 +2308,12 @@ button:focus-visible {
     gap: 6px;
   }
 
-  .battle-setup label:nth-of-type(3) {
+  .battle-screen.is-pve .battle-setup .personality-setup-field {
     display: grid;
   }
 
-  .battle-setup label:nth-of-type(4) {
-    display: none;
+  .battle-screen.is-pvp .battle-setup {
+    grid-template-columns: minmax(92px, 0.78fr) minmax(160px, 1.44fr) minmax(84px, 0.78fr) 88px;
   }
 
   .battle-grid {
@@ -2635,12 +2653,12 @@ button:focus-visible {
     gap: 6px;
   }
 
-  .battle-setup label:nth-of-type(3) {
+  .battle-screen.is-pve .battle-setup .personality-setup-field {
     display: grid;
   }
 
-  .battle-setup label:nth-of-type(4) {
-    display: none;
+  .battle-screen.is-pvp .battle-setup {
+    grid-template-columns: minmax(100px, 0.84fr) minmax(170px, 1.4fr) minmax(90px, 0.78fr) 92px;
   }
 
   .match-personality {

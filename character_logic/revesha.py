@@ -42,7 +42,7 @@ def on_hit_after_defense(battle: Any, choice: Any, total_damage: int) -> None:
     action = choice.action
     if action.is_skill(CHARACTER_ID, 0):
         insight = int(actor.counters.get("통찰", 0))
-        battle.heal(actor, insight // 2, "날이 뒤집힌 검")
+        battle.heal(actor, insight * 2, "날이 뒤집힌 검")
     elif action.is_skill(CHARACTER_ID, 2):
         forbidden_key = target.last_successful_action_key
         if forbidden_key:
@@ -121,7 +121,7 @@ def ai_score(
             value += 180
 
     if action.is_skill(CHARACTER_ID, 0) and insight > 0:
-        value += min(actor.max_hp - actor.hp, insight // 2) * 36
+        value += min(actor.max_hp - actor.hp, insight * 2) * 36
     if action.is_skill(CHARACTER_ID, 2) and target.last_successful_action_key:
         repeated = history[-3:].count(target.last_successful_action_key)
         value += 420 + repeated * 260

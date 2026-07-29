@@ -38,7 +38,7 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
     burn = target.statuses.get("화상")
     stacks = burn.stacks if burn else 0
     choice.power = (choice.power or 0) + stacks
-    print(f"화상 {stacks}중첩으로 위력이 {stacks} 증가했다.")
+    print(f"화상 중첩 수 {stacks}로 위력이 {stacks} 증가했다.")
     return None
 
 

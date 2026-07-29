@@ -75,7 +75,7 @@ def attack_damage_multipliers(battle: Any, choice: Any) -> list[float]:
     if focus < 1:
         return []
     actor.counters["집광"] = 0
-    print(f"집광 {focus}중첩을 모두 소모해 피해 배율이 증가했다.")
+    print(f"집광 {focus}을 모두 소모해 피해 배율이 증가했다.")
     return [1 + focus * 0.05]
 
 

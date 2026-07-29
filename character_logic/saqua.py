@@ -23,7 +23,7 @@ def init_unique_state(fighter: Any, unique_names: set[str]) -> None:
 
 def counter_state_text(fighter: Any, name: str, value: Any) -> str | None:
     if name == FLOW:
-        return f"{FLOW} {int(value)}/{MAX_FLOW}중첩"
+        return f"{FLOW} {int(value)}/{MAX_FLOW}"
     return None
 
 
@@ -63,21 +63,8 @@ def modify_accuracy_actor_after_target(battle: Any, choice: Any, target: Any, ac
     actor.counters[FLOW] = 0
     choice.guaranteed_hit = True
     if _is_real_fighter(battle, actor):
-        print(f"{FLOW} {flow}중첩을 모두 소모해 명중 판정을 통과한다.")
+        print(f"{FLOW} {flow}/{MAX_FLOW}를 모두 소모해 명중 판정을 통과한다.")
     return 100.0
-
-
-def apply_condition_effects(battle: Any, choice: Any) -> bool | None:
-    if choice.action.is_skill(CHARACTER_ID, 0) and int(choice.actor.counters.get(FLOW, 0)) == 0:
-        choice.power = (choice.power or 0) + 4
-        print(f"{FLOW} 0중첩으로 위력이 4 증가했다.")
-    return None
-
-
-def estimated_power(battle: Any, actor: Any, target: Any, action: Any, power: int) -> int:
-    if action.is_skill(CHARACTER_ID, 0) and _flow_after_hit_check(actor, action) == 0:
-        power += 4
-    return power
 
 
 def attack_damage_multipliers(battle: Any, choice: Any) -> list[float]:
@@ -103,6 +90,8 @@ def on_hit_after_defense(battle: Any, choice: Any, total_damage: int) -> None:
     actor = choice.actor
     target = battle.opponent(actor)
     action = choice.action
+    if action.is_skill(CHARACTER_ID, 0) and int(actor.counters.get(FLOW, 0)) == 0:
+        battle.heal(actor, int(total_damage * 0.5), action.name)
     if action.is_skill(CHARACTER_ID, 3):
         battle.add_stat_effect(target, "def", 0.5, 4, action.name)
         battle.add_stat_effect(target, "spd", 0.5, 4, action.name)
@@ -163,7 +152,7 @@ def ai_score(
 
     if action.is_skill(CHARACTER_ID, 0):
         if _flow_after_hit_check(actor, action) == 0:
-            value += 480
+            value += min(actor.max_hp - actor.hp, expected_damage * 0.5) * 2.2
         if flow == 0:
             value += 180
         elif flow == 1:
