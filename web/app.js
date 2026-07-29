@@ -161,7 +161,7 @@ function bindEvents() {
   els.openBattleButton.addEventListener("click", () => openBattleMode("pve"));
   els.openPvpButton.addEventListener("click", () => openBattleMode("pvp"));
   els.openCodexButton.addEventListener("click", () => showScreen("codex"));
-  els.battleBackButton.addEventListener("click", () => showScreen("home"));
+  els.battleBackButton.addEventListener("click", leaveBattleScreen);
   els.codexBackButton.addEventListener("click", () => showScreen("home"));
   els.exitButton.addEventListener("click", exitApp);
   els.startButton.addEventListener("click", startConfiguredBattle);
@@ -184,6 +184,7 @@ function bindEvents() {
       closeInfoModal();
     }
   });
+  window.addEventListener("pagehide", notifyPvpLeaveOnPageHide);
 }
 
 function openBattleMode(mode) {
@@ -268,6 +269,19 @@ function showScreen(name) {
     stopBgm();
     els.homeScreen.classList.add("is-active");
   }
+}
+
+function leaveBattleScreen() {
+  const request = currentPvpLeaveRequest();
+  showScreen("home");
+  if (request) {
+    state.battle = null;
+    state.pvp = null;
+    state.busy = false;
+    document.body.classList.remove("is-waiting");
+    syncSetupLock();
+  }
+  notifyPvpLeave(request);
 }
 
 function setBattleMode(mode) {
@@ -552,9 +566,7 @@ function setMatchLabel(player, ai, personality) {
 function previewSelectedMatch() {
   const player = selectedText(els.playerSelect);
   if (state.battleMode === "pvp") {
-    const room = normalizeRoomCode(els.pvpRoomInput.value);
-    const roomLabel = room || "방 코드";
-    setMatchLabel(player, roomLabel, "PvP");
+    setMatchLabel(player, "???", "PvP");
     els.aiModeText.textContent = "PvP";
     return;
   }
@@ -690,6 +702,10 @@ async function choosePvpAction(actionNumber) {
     }
     await handlePvpState(data, { animateLog: true });
   } catch (error) {
+    if (isPvpSessionEndedError(error)) {
+      forceHomeAfterPvpClose();
+      return;
+    }
     pushTurnLog("오류", [`PvP 행동 처리 실패: ${error.message}`], false);
   } finally {
     setBusy(false);
@@ -698,6 +714,10 @@ async function choosePvpAction(actionNumber) {
 
 async function handlePvpState(data, options = {}) {
   if (!state.pvp) return;
+  if (data.closed || data.forceHome) {
+    forceHomeAfterPvpClose();
+    return;
+  }
   const previousTurn = state.battle?.turn || data.logTurn || data.turn || 0;
   const hasNewLog = data.log?.length && Number(data.logSerial || 0) > Number(state.pvp.lastLogSerial || 0);
   if (hasNewLog) {
@@ -733,6 +753,72 @@ function stopPvpPolling() {
   }
 }
 
+function currentPvpLeaveRequest() {
+  if (!shouldNotifyPvpLeave()) return null;
+  return {
+    server: state.pvp.server,
+    body: {
+      roomCode: state.pvp.room,
+      token: state.pvp.token,
+    },
+  };
+}
+
+function shouldNotifyPvpLeave() {
+  return state.battleMode === "pvp"
+    && Boolean(state.pvp?.server && state.pvp?.room && state.pvp?.token && state.battle)
+    && !Boolean(state.battle.is_over || state.battle.gameOver);
+}
+
+async function notifyPvpLeave(request = currentPvpLeaveRequest()) {
+  if (!request) return;
+  try {
+    await api("/api/pvp/leave", request.body, request.server);
+  } catch {
+    // Leaving the screen should not trap the player if the tunnel is already gone.
+  }
+}
+
+function notifyPvpLeaveOnPageHide() {
+  const request = currentPvpLeaveRequest();
+  if (!request) return;
+  const payload = JSON.stringify(request.body);
+  const url = `${request.server}/api/pvp/leave`;
+  if (navigator.sendBeacon) {
+    try {
+      navigator.sendBeacon(url, new Blob([payload], { type: "text/plain;charset=UTF-8" }));
+      return;
+    } catch {
+      // Fall through to keepalive fetch.
+    }
+  }
+  try {
+    fetch(url, {
+      method: "POST",
+      body: payload,
+      keepalive: true,
+    });
+  } catch {
+    // Best effort only while the page is unloading.
+  }
+}
+
+function forceHomeAfterPvpClose() {
+  stopPvpPolling();
+  state.battle = null;
+  state.pvp = null;
+  state.busy = false;
+  document.body.classList.remove("is-waiting");
+  syncSetupLock();
+  showScreen("home");
+}
+
+function isPvpSessionEndedError(error) {
+  const message = String(error?.message || "");
+  return message.includes("PvP")
+    && (message.includes("\uBC29") || message.includes("\uC778\uC99D") || /room|token/i.test(message));
+}
+
 async function pollPvpState() {
   if (state.busy || !state.pvp || state.battleMode !== "pvp") return;
   try {
@@ -744,6 +830,10 @@ async function pollPvpState() {
     state.pvp.pollErrorShown = false;
     await handlePvpState(data, { animateLog: true });
   } catch (error) {
+    if (isPvpSessionEndedError(error)) {
+      forceHomeAfterPvpClose();
+      return;
+    }
     if (state.pvp && !state.pvp.pollErrorShown) {
       state.pvp.pollErrorShown = true;
       pushTurnLog("오류", [`PvP 상태 확인 실패: ${error.message}`], false);
@@ -794,9 +884,7 @@ function renderBattle(data, options = {}) {
 function renderPvpStatus(data) {
   if (!data?.pvp) return;
   els.aiModeText.textContent = "PvP";
-  if (data.roomCode) {
-    setMatchLabel(data.player.name, data.ai.name, `PvP ${data.roomCode}`);
-  }
+  setMatchLabel(data.player.name, data.started ? data.ai.name : "???", "PvP");
   if (!data.started) {
     els.turnChip.textContent = "PvP 대기";
     els.actionHint.textContent = "상대 입장 대기";
@@ -1833,7 +1921,15 @@ async function api(path, body, baseUrl = "") {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       };
-  const response = await fetch(`${baseUrl}${path}`, init);
+  let response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, init);
+  } catch (error) {
+    if (baseUrl) {
+      throw new Error("PvP 서버에 연결할 수 없습니다. 서버 주소, cloudflared 창, VERSUS 서버 상태를 확인해 주세요.");
+    }
+    throw error;
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(data.error || data.message || `${response.status} ${response.statusText}`);

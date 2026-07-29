@@ -38,6 +38,7 @@ class PvpRoom:
         self.battle: Battle | None = None
         self.pending_actions: dict[int, Any] = {}
         self.rematch_ready: set[int] = set()
+        self.closed_reason: str | None = None
         self.last_log: list[str] = []
         self.last_log_serial = 0
         self.last_log_turn = 0
@@ -64,6 +65,16 @@ class PvpRoom:
 
     def is_rematch_lobby(self) -> bool:
         return bool(self.battle and self.battle.game_over and self.rematch_ready)
+
+    def close(self, reason: str = "상대가 방을 나갔습니다.") -> None:
+        if self.closed_reason:
+            return
+        self.closed_reason = reason
+        self.pending_actions.clear()
+        self.rematch_ready.clear()
+        self.last_log_serial += 1
+        self.last_log_turn = self.battle.turn if self.battle is not None else 0
+        self.last_log = [reason]
 
 
 class GameStore:
@@ -233,7 +244,7 @@ class GameStore:
         with self.lock:
             code = self.normalize_pvp_room_code(payload.get("roomCode"))
             room = self.pvp_rooms.get(code)
-            if room is None:
+            if room is None or room.closed_reason:
                 room = PvpRoom(code)
                 self.pvp_rooms[code] = room
 
@@ -274,9 +285,21 @@ class GameStore:
             state.update({"ok": True, "token": room.tokens[slot]})
             return state
 
+    def pvp_leave(self, payload: dict[str, Any]) -> dict[str, Any]:
+        with self.lock:
+            room, _slot = self.require_pvp_room(payload)
+            battle = room.battle
+            if battle is None or room.is_rematch_lobby() or not battle.game_over:
+                room.close()
+            return {"ok": True}
+
     def pvp_choose_action(self, payload: dict[str, Any]) -> dict[str, Any]:
         with self.lock:
             room, slot = self.require_pvp_room(payload)
+            if room.closed_reason:
+                state = self.pvp_state_unlocked(room, slot, int(payload.get("sinceLogSerial") or 0))
+                state.update({"ok": True, "token": room.tokens[slot]})
+                return state
             battle = room.battle
             if battle is None:
                 raise ValueError("아직 상대가 입장하지 않았습니다.")
@@ -388,6 +411,30 @@ class GameStore:
         }
         if room.last_log_serial > since_log_serial:
             data["log"] = room.last_log
+
+        if room.closed_reason:
+            own_character = self.characters[room.character_indices[slot]] if room.character_indices[slot] is not None else None
+            data.update(
+                {
+                    "started": False,
+                    "closed": True,
+                    "forceHome": True,
+                    "closedReason": room.closed_reason,
+                    "turn": battle.turn if battle is not None else 0,
+                    "is_over": False,
+                    "gameOver": False,
+                    "result": None,
+                    "winner": None,
+                    "loser": None,
+                    "player": character_preview_state(own_character, "player"),
+                    "ai": empty_fighter_state("ai", "상대 대기", "PvP 종료"),
+                    "actions": [],
+                    "selectionLocked": False,
+                    "opponentReady": False,
+                    "waitingForOpponent": False,
+                }
+            )
+            return data
 
         if battle is None or rematch_lobby:
             own_character = self.characters[room.character_indices[slot]] if room.character_indices[slot] is not None else None
@@ -773,6 +820,8 @@ class VersusHandler(BaseHTTPRequestHandler):
                 self.send_json(STORE.pvp_state(payload))
             elif path == "/api/pvp/action":
                 self.send_json(STORE.pvp_choose_action(payload))
+            elif path == "/api/pvp/leave":
+                self.send_json(STORE.pvp_leave(payload))
             elif path == "/api/exit":
                 if not self.is_local_request():
                     self.send_json({"ok": False, "error": "Exit is only available locally."}, status=403)
