@@ -10,13 +10,17 @@ from . import (
     charinel,
     cryne,
     dethus,
+    dracle,
     gandrick,
+    happyrin,
     karossy,
+    librang,
     melague,
     neroko,
     nihfle,
     plote,
     revesha,
+    saqua,
     serpen,
     toxiche,
     zeroven,
@@ -39,6 +43,10 @@ MODULES = (
     dethus,
     zeroven,
     neroko,
+    happyrin,
+    librang,
+    dracle,
+    saqua,
 )
 LOGICS = {module.CHARACTER_ID: module for module in MODULES}
 GLOBAL_HIDDEN_COUNTERS = {"고요한 밤"}
@@ -140,6 +148,8 @@ def on_action_start_after_paralysis(battle: Any, choice: Any) -> bool:
 def on_action_start_after_common(battle: Any, choice: Any) -> bool:
     if plote.on_action_start_status(battle, choice):
         return True
+    if happyrin.on_action_start_status(battle, choice):
+        return True
     return bool(_call(choice.actor, "on_action_start", battle, choice, default=False))
 
 
@@ -170,6 +180,19 @@ def apply_condition_effects(battle: Any, choice: Any) -> bool:
 
 def modify_attack_power(battle: Any, choice: Any, power: int) -> int:
     value = _call(choice.actor, "modify_attack_power", battle, choice, power, default=power)
+    return int(value)
+
+
+def modify_attack_damage(battle: Any, choice: Any, target: Any, damage: int) -> int:
+    value = damage
+    actor_logic = logic_for(choice.actor)
+    actor_fn = getattr(actor_logic, "modify_attack_damage_as_actor", None) if actor_logic else None
+    if actor_fn is not None:
+        value = int(actor_fn(battle, choice, target, value))
+    target_logic = logic_for(target)
+    target_fn = getattr(target_logic, "modify_attack_damage", None) if target_logic else None
+    if target_fn is not None:
+        value = int(target_fn(battle, choice, target, value))
     return int(value)
 
 
@@ -252,6 +275,11 @@ def modify_stats(battle: Any, fighter: Any, atk: float, df: float, spd: float) -
 
 def on_fixed_damage_to_opponent(battle: Any, actor: Any, target: Any, amount: int) -> None:
     _call(actor, "on_fixed_damage_to_opponent", battle, actor, target, amount)
+
+
+def modify_fixed_damage_to_opponent(battle: Any, actor: Any, target: Any, amount: int) -> int:
+    value = _call(actor, "modify_fixed_damage_to_opponent", battle, actor, target, amount, default=amount)
+    return int(value)
 
 
 def consume_defeat_escape(battle: Any, fighter: Any) -> Any | None:

@@ -88,6 +88,10 @@ def ai_score(
         value += incoming * 0.9 + counts["attack"] * 180
     if action.is_skill(CHARACTER_ID, 2):
         value += burn_stacks * 70
+        if burn_stacks > 0 and counts["attack"] <= counts["defense"] + counts["meditation"]:
+            value += burn_stacks * 115 + (counts["defense"] + counts["meditation"]) * 360
+        if burn_stacks >= 5 and counts["attack"] == 0:
+            value += 680
         if incoming > 0 and counts["attack"] >= counts["defense"] + counts["meditation"]:
             value -= min(850, incoming * 16)
         if burn_stacks <= 0:

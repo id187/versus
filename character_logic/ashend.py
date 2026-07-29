@@ -131,11 +131,15 @@ def ai_score(
         value += incoming * 2.1 + attack_read * 420
         if incoming > 0:
             value += 760
+        if attack_read >= 2 and actor.counters.get("재가 되어 회피", 0) <= 0:
+            value += 620
         if ambush_ready:
             value -= 220
     if action.is_skill(CHARACTER_ID, 2):
         if dust is not None:
             value += dust_remaining * 340 + expected_damage * 1.1
+            if ambush_ready:
+                value += 900 + expected_damage * 0.8
             if expected_damage >= target.hp:
                 value += 2600
         else:

@@ -136,5 +136,11 @@ def ai_score(
         if expected_damage + fixed * hit_rate >= target.hp:
             value += 3000
         elif insight < 3:
-            value -= 300
+            value -= 1800
+        else:
+            value += (insight - 2) * 620
+            if insight >= 5:
+                value += 720
+    elif action.is_skill(CHARACTER_ID, 3):
+        value -= 2600
     return value

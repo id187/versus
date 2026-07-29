@@ -65,3 +65,68 @@ def apply_non_attack_effects(battle: Any, choice: Any) -> bool:
 def decrement_counters(fighter: Any) -> None:
     if fighter.counters.get("신려탈피", 0) > 0:
         fighter.counters["신려탈피"] -= 1
+
+
+def ai_score(
+    battle: Any,
+    actor: Any,
+    target: Any,
+    action: Any,
+    expected_damage: float,
+    hit_rate: float,
+) -> float:
+    value = 0.0
+    paralyzed = "마비" in target.statuses
+    shedding = int(actor.counters.get("신려탈피", 0))
+    counts = battle.recent_kind_counts(target)
+    incoming = battle.estimate_best_incoming_damage(target, actor)
+    defense_read = counts["defense"] * 1.35 + counts["meditation"] * 0.25
+
+    if action.is_common_action("meditation"):
+        if not paralyzed and actor.mp < 48:
+            value += 420 + max(0, 48 - actor.mp) * 12
+        if actor.mp >= 85:
+            value -= 320
+
+    if action.is_skill(CHARACTER_ID, 0):
+        if not paralyzed:
+            value += 720 * hit_rate
+            if actor.mp >= 42:
+                value += 300
+        else:
+            value -= 180
+        if shedding > 0:
+            value += 220
+
+    elif action.is_skill(CHARACTER_ID, 1):
+        if shedding <= 0 and not paralyzed:
+            value += 760
+            if actor.mp >= 54:
+                value += 520
+            if actor.mp < 34:
+                value -= 420
+        else:
+            value -= 220
+        if incoming >= actor.hp * 0.65:
+            value -= 360
+
+    elif action.is_skill(CHARACTER_ID, 2):
+        if paralyzed:
+            heal_value = min(actor.max_hp - actor.hp, expected_damage * 0.7)
+            value += 1250 + heal_value * 8
+        elif counts["defense"] + counts["meditation"] > counts["attack"]:
+            value += 420
+        elif actor.mp < 55:
+            value -= 320
+        if actor.hp < actor.max_hp * 0.55:
+            value += 260
+
+    elif action.is_skill(CHARACTER_ID, 3):
+        if defense_read >= 1.2:
+            value += 1450 + defense_read * 360
+        elif not paralyzed:
+            value -= 420
+        if actor.mp < 58 and not paralyzed:
+            value -= 480
+
+    return value

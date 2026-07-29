@@ -88,12 +88,16 @@ const CHARACTER_COLORS = {
   dethus: "#c9a05b",
   zeroven: "#20d6c7",
   neroko: "#f4f33a",
+  happyrin: "#ff9fba",
+  librang: "#7194dc",
+  dracle: "#e60012",
+  saqua: "#55dce8",
 };
 
 const RANDOM_CHARACTER_COLOR = "#ffffff";
 
-const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko"]);
-const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko"]);
+const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua"]);
+const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua"]);
 
 const EFFECT_CLASSES = ["hit", "miss", "defense", "heal", "buff", "debuff", "stack-gain", "stack-spend"];
 const EFFECT_SFX = {
@@ -461,11 +465,18 @@ function syncSetupFromBattle(data) {
   syncAllCustomSelects();
 }
 
+function setMatchLabel(player, ai, personality) {
+  const personalityLabel = document.createElement("span");
+  personalityLabel.className = "match-personality";
+  personalityLabel.textContent = ` · ${personality}`;
+  els.matchLabel.replaceChildren(`${player} vs ${ai}`, personalityLabel);
+}
+
 function previewSelectedMatch() {
   const player = selectedText(els.playerSelect);
   const ai = selectedText(els.aiSelect);
   const personality = selectedText(els.personalitySelect);
-  els.matchLabel.textContent = `${player} vs ${ai} · ${personality}`;
+  setMatchLabel(player, ai, personality);
   els.aiModeText.textContent = personality;
 }
 
@@ -550,7 +561,7 @@ function renderBattle(data, options = {}) {
   renderActions(data.actions || [], data.is_over);
   renderBattleRecordButton(data);
   els.turnChip.textContent = data.is_over ? `TURN ${data.turn} 종료` : `TURN ${data.turn}`;
-  els.matchLabel.textContent = `${data.player.name} vs ${data.ai.name} · ${data.personality.name}`;
+  setMatchLabel(data.player.name, data.ai.name, data.personality.name);
   els.aiModeText.textContent = data.personality.name;
   els.enemyInfoButton.disabled = false;
   els.playerInfoButton.disabled = false;
@@ -1531,6 +1542,11 @@ function setBusy(isBusy) {
 }
 
 async function exitApp() {
+  if (window.AndroidVersus?.exit) {
+    window.AndroidVersus.exit();
+    return;
+  }
+
   if (window.chrome?.webview) {
     window.chrome.webview.postMessage({ type: "exit" });
     return;

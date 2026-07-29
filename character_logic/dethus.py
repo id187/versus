@@ -32,6 +32,25 @@ def estimated_power(battle: Any, actor: Any, target: Any, action: Any, power: in
     return power
 
 
+def _recent_high_mp_skill_count(target: Any) -> int:
+    count = 0
+    history = target.selected_history
+    for key in history[-4:]:
+        previous = target.skill_by_key(key)
+        if previous and previous.mp >= 35:
+            count += 1
+    return count
+
+
+def _high_mp_skill_read(target: Any) -> float:
+    value = float(_recent_high_mp_skill_count(target))
+    if target.mp >= 70:
+        value += 1.2
+    elif target.mp >= 48:
+        value += 0.7
+    return value
+
+
 def on_hit_after_defense(battle: Any, choice: Any, total_damage: int) -> None:
     actor = choice.actor
     target = battle.opponent(actor)
@@ -66,3 +85,56 @@ def on_defense_hit(battle: Any, choice: Any, total_damage: int) -> None:
         value = floor_int(spent * 0.25)
         reduced = battle.reduce_mp(actor, value, "빠져드는 모래늪")
         battle.restore_mp(target, reduced, "빠져드는 모래늪")
+
+
+def ai_score(
+    battle: Any,
+    actor: Any,
+    target: Any,
+    action: Any,
+    expected_damage: float,
+    hit_rate: float,
+) -> float:
+    value = 0.0
+    thirst = target.statuses.get("갈증")
+    thirst_stacks = thirst.stacks if thirst else 0
+    counts = battle.recent_kind_counts(target)
+    incoming = battle.estimate_best_incoming_damage(target, actor)
+    high_mp_read = _high_mp_skill_read(target)
+    meditation_loop = counts["meditation"] >= 2
+
+    if action.is_common_action("normal_attack"):
+        value += thirst_stacks * 170
+        if meditation_loop:
+            value += 360 + thirst_stacks * 180
+
+    elif action.is_skill(CHARACTER_ID, 0):
+        if high_mp_read > 0 or counts["attack"] + counts["meditation"] > counts["defense"]:
+            value += 260 + high_mp_read * 180
+        if thirst_stacks <= 0:
+            value += 140
+
+    elif action.is_skill(CHARACTER_ID, 1):
+        value += incoming * 1.15 + counts["attack"] * 240
+        if high_mp_read >= 1.0:
+            value += 380
+
+    elif action.is_skill(CHARACTER_ID, 2):
+        if high_mp_read >= 1.0:
+            value += 780 + high_mp_read * 420
+        if target.mp >= 35:
+            value += min(700, target.mp * 8)
+        if target.mp <= 15:
+            value -= 420
+
+    elif action.is_skill(CHARACTER_ID, 3):
+        if meditation_loop:
+            value += 2100 + min(1200, target.mp * 14)
+        elif target.mp >= 72:
+            value += 1150
+        elif target.mp < 38:
+            value -= 900
+        if thirst_stacks >= 3:
+            value += thirst_stacks * 140
+
+    return value

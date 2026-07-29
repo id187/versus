@@ -174,6 +174,67 @@ def print_defeat_escape(battle: Any, fighter: Any, revive: tuple[int, int, int, 
         print("죽을 힘을 다해 반동과 선택 제한이 해제되었다.")
 
 
+def ai_score(
+    battle: Any,
+    actor: Any,
+    target: Any,
+    action: Any,
+    expected_damage: float,
+    hit_rate: float,
+) -> float:
+    value = 0.0
+    lives = int(actor.counters.get("잔기", 0))
+    desperate_state = int(actor.counters.get("죽을 힘을 다해", 0))
+    incoming = battle.estimate_best_incoming_damage(target, actor)
+    counts = battle.recent_kind_counts(target)
+    life_loss_expected = lives > 0 and incoming >= actor.hp
+    companion_ready = "길동무 잔기" in actor.counters
+
+    if action.is_skill(CHARACTER_ID, 0):
+        value += max(0, 9 - lives) * 160
+        if desperate_state == 1:
+            value += expected_damage * 0.8 + 260
+
+    elif action.is_skill(CHARACTER_ID, 1):
+        if desperate_state == 0:
+            value += 430
+            if life_loss_expected and counts["attack"] > 0:
+                value += 760
+            if actor.mp < 27:
+                value += 220
+        else:
+            value -= 280
+
+    elif action.is_skill(CHARACTER_ID, 2):
+        if companion_ready:
+            value -= 520
+        elif life_loss_expected:
+            value += 2500 + counts["attack"] * 420
+        elif counts["attack"] >= 2:
+            value += 840
+        else:
+            value += 120
+
+    elif action.is_skill(CHARACTER_ID, 3):
+        missing_lives = max(0, 8 - lives)
+        if missing_lives > 0 and not life_loss_expected:
+            value += missing_lives * 260
+        if life_loss_expected:
+            value -= 900
+        if actor.mp < 75:
+            value -= 380
+
+    elif action.is_common_action("meditation"):
+        if actor.mp < 27 and not companion_ready:
+            value += 620
+        if life_loss_expected and counts["attack"] > 0:
+            value += 460
+        if actor.mp >= 90:
+            value -= 360
+
+    return value
+
+
 def would_condition_fail(battle: Any, actor: Any, target: Any, action: Any) -> bool | None:
     if action.is_skill(CHARACTER_ID, 3):
         return int(actor.counters.get("잔기", 0)) >= 8

@@ -149,9 +149,10 @@ class TimedStatus:
     remaining: int
     stacks: int = 1
     source: str = ""
+    stackable: bool = False
 
     def copy(self) -> "TimedStatus":
-        return TimedStatus(self.name, self.remaining, self.stacks, self.source)
+        return TimedStatus(self.name, self.remaining, self.stacks, self.source, self.stackable)
 
 
 @dataclass
@@ -188,6 +189,10 @@ class Choice:
     prev_attack_active: str | None = None
     copied_from: str | None = None
     consumed_mp_extra: int = 0
+    selected_action_key: str | None = None
+    madness_replaced: bool = False
+    madness_original_action_key: str | None = None
+    guaranteed_hit: bool = False
 
     @property
     def total_cost(self) -> int:
@@ -206,6 +211,7 @@ class TurnRecord:
     freeze_removed: dict[str, bool] = field(default_factory=dict)
     defense_reduced: dict[str, int] = field(default_factory=dict)
     gained_insight: dict[str, bool] = field(default_factory=dict)
+    madness_decided: dict[str, bool] = field(default_factory=dict)
 
 
 @dataclass
@@ -444,7 +450,7 @@ class Battle:
             parts.append(f"{name} {value}중첩")
         parts.extend(character_logic.extra_state_parts(self, fighter))
         for status in fighter.statuses.values():
-            if status.stacks == 1:
+            if status.stacks == 1 and not status.stackable:
                 parts.append(f"{status.name} {status.remaining}턴")
             else:
                 parts.append(f"{status.name} {status.stacks}중첩 · {status.remaining}턴")
@@ -1118,6 +1124,7 @@ class Battle:
         cost = self.effective_cost(fighter, action)
         priority = self.effective_priority(fighter, action)
         choice = Choice(fighter, action, cost, priority, action.power, action.accuracy)
+        choice.selected_action_key = action.key
         character_logic.on_make_choice(self, fighter, action, choice)
         self.record.selected[fighter.side] = action.name
         self.record.selected_key[fighter.side] = action.key
@@ -1182,6 +1189,7 @@ class Battle:
         if failed_pre_mp:
             self.finish_action(choice, success=False, hit=False)
             return
+        action = choice.action
         if actor.mp < choice.cost:
             print(f"MP 부족으로 행동에 실패했다. MP {actor.mp}/{choice.cost}")
             self.finish_action(choice, success=False, hit=False)
@@ -1263,6 +1271,10 @@ class Battle:
                 return False
             print("→ 명중 판정 성공.")
 
+        if choice.guaranteed_hit and choice.action.is_attack:
+            print("필중 효과로 회피 판정을 통과한다.")
+            return True
+
         evasion = self.target_evasion(target, choice)
         if target.guaranteed_evasion and choice.action.is_attack:
             print("상대의 회피 판정이 반드시 성공한다.")
@@ -1335,7 +1347,9 @@ class Battle:
         for value in multipliers:
             mult *= value
         raw = power * (atk + 50) / (target_def + 50) * mult
-        return max(1, floor_int(raw))
+        damage = max(1, floor_int(raw))
+        damage = character_logic.modify_attack_damage(self, choice, target, damage)
+        return max(1, int(damage))
 
     def apply_on_hit_effects(self, choice: Choice, total_damage: int) -> None:
         actor = choice.actor
@@ -1480,14 +1494,19 @@ class Battle:
         return actual, after_damage_hp, revived
 
     def fixed_damage(self, target: Fighter, amount: int, reason: str) -> None:
+        amount = max(0, int(amount))
+        if amount <= 0:
+            return
+        opponent = self.opponent(target)
+        amount = character_logic.modify_fixed_damage_to_opponent(self, opponent, target, amount)
+        if amount <= 0:
+            return
         before = target.hp
-        actual, after_hp, revived = self.damage(target, amount, reason, attack=False, source=self.opponent(target))
-        if amount > 0:
-            print(f"{target.name}은 {reason}{josa_ro(reason)} {actual}의 고정 피해를 입었다. HP {before} → {after_hp}")
+        actual, after_hp, revived = self.damage(target, amount, reason, attack=False, source=opponent)
+        print(f"{target.name}은 {reason}{josa_ro(reason)} {actual}의 고정 피해를 입었다. HP {before} → {after_hp}")
         if revived:
             character_logic.print_defeat_escape(self, target, revived)
         if not self.game_over:
-            opponent = self.opponent(target)
             character_logic.on_fixed_damage_to_opponent(self, opponent, target, amount)
 
     def on_damage_taken(self, target: Fighter, amount: int, attack: bool, source: Fighter | None) -> None:
@@ -1520,20 +1539,33 @@ class Battle:
             print(f"{fighter.name} MP {before} → {fighter.mp} ({reason})")
         return actual
 
-    def add_status(self, fighter: Fighter, name: str, turns: int, stacks: int, source: str, stack: bool = False) -> None:
+    def add_status(
+        self,
+        fighter: Fighter,
+        name: str,
+        turns: int,
+        stacks: int,
+        source: str,
+        stack: bool = False,
+        max_stacks: int | None = None,
+    ) -> None:
         if stacks <= 0:
             return
+        applied_stacks = min(stacks, max_stacks) if max_stacks is not None else stacks
         current = fighter.statuses.get(name)
         if current:
+            current.stackable = current.stackable or stack
             if stack:
                 current.stacks += stacks
             else:
                 current.stacks = max(current.stacks, stacks)
+            if max_stacks is not None:
+                current.stacks = min(current.stacks, max_stacks)
             current.remaining = max(current.remaining, turns)
         else:
-            fighter.statuses[name] = TimedStatus(name, turns, stacks, source)
+            fighter.statuses[name] = TimedStatus(name, turns, applied_stacks, source, stack)
         status = fighter.statuses[name]
-        if status.stacks == 1:
+        if status.stacks == 1 and not status.stackable:
             print(f"{fighter.name}에게 {name} 상태가 {status.remaining}턴 동안 적용되었다.")
         else:
             print(f"{fighter.name}에게 {name} {status.stacks}중첩이 {status.remaining}턴 동안 적용되었다.")
@@ -1602,6 +1634,8 @@ class Battle:
         clone_target = target.clone()
         choice = Choice(clone_actor, action, self.effective_cost(actor, action), self.effective_priority(actor, action), action.power, action.accuracy)
         acc = self.modified_accuracy_for_estimate(choice, clone_target)
+        if choice.guaranteed_hit and action.is_attack:
+            return 1.0
         evasion = clone_target.evasion_chance
         evasion = character_logic.estimate_target_evasion(self, clone_target, action, evasion)
         return clamp(acc / 100 * (1 - evasion / 100), 0, 1)

@@ -87,9 +87,61 @@ def on_damage_taken(battle: Any, target: Any, amount: int, attack: bool, source:
     battle.add_counter(target, "상흔", 1)
 
 
+def ai_score(
+    battle: Any,
+    actor: Any,
+    target: Any,
+    action: Any,
+    expected_damage: float,
+    hit_rate: float,
+) -> float:
+    value = 0.0
+    stacks = int(actor.counters.get("상흔", 0))
+    incoming = battle.estimate_best_incoming_damage(target, actor)
+    missing_hp = actor.max_hp - actor.hp
+    desperate = actor.hp <= actor.max_hp * 0.35 or incoming >= actor.hp
+    lethal = expected_damage >= target.hp
+
+    if action.is_skill(CHARACTER_ID, 0):
+        value += min(820, stacks * 95)
+        if actor.hp <= 12:
+            value -= 900
+
+    elif action.is_skill(CHARACTER_ID, 1):
+        if actor.hp > 45:
+            value += 520 + max(0, 5 - stacks) * 90
+            if missing_hp < actor.max_hp * 0.35:
+                value += 280
+        else:
+            value -= 900
+
+    elif action.is_skill(CHARACTER_ID, 2):
+        if incoming > 0:
+            value += 650 + min(900, incoming * 14)
+        if actor.hp <= incoming:
+            value += 720
+
+    elif action.is_skill(CHARACTER_ID, 3):
+        if stacks < 5:
+            return value
+        if lethal:
+            value += 3600 + expected_damage
+        elif desperate and stacks >= 6:
+            value += 1150 + missing_hp * 4
+        elif stacks >= 9 and target.hp <= target.max_hp * 0.55:
+            value += 900
+        else:
+            value -= 4200
+            value -= max(0, 8 - stacks) * 420
+
+    return value
+
+
 def would_condition_fail(battle: Any, actor: Any, target: Any, action: Any) -> bool | None:
     if action.is_skill(CHARACTER_ID, 2):
-        return battle.record.attack_damage_taken.get(actor.side, 0) <= 0
+        if battle.record.attack_damage_taken.get(actor.side, 0) > 0:
+            return False
+        return battle.estimate_best_incoming_damage(target, actor) <= 0
     if action.is_skill(CHARACTER_ID, 3):
         return int(actor.counters.get("상흔", 0)) < 5
     return None
