@@ -79,6 +79,10 @@ function skillKey(characterId, slot) {
   return `${characterId}:${slot}`;
 }
 
+function fighterLogLine(fighter, text) {
+  return `[@${fighter.side}]${text}`;
+}
+
 function commonActionKey(kind) {
   return `common:${kind}`;
 }
@@ -800,8 +804,8 @@ class Battle {
     const target = this.opponent(actor);
     const action = choice.action;
     if (actor.hp <= 0) return;
-    this.logs.push(`[${actor.name} 행동]`);
-    this.logs.push(`${actor.name}은 ${action.name}을 사용했다.`);
+    this.logs.push(fighterLogLine(actor, `[${actor.name} 행동]`));
+    this.logs.push(fighterLogLine(actor, `${actor.name}은 ${action.name}을 사용했다.`));
     if (this.applyActionStartEffects(choice)) {
       this.finishAction(choice, false, false);
       return;
@@ -814,7 +818,7 @@ class Battle {
     }
     const beforeMp = actor.mp;
     actor.mp -= choice.totalCost;
-    if (choice.totalCost) this.logs.push(`MP ${beforeMp} -> ${actor.mp}`);
+    if (choice.totalCost) this.logs.push(fighterLogLine(actor, `MP ${beforeMp} -> ${actor.mp}`));
     if (resolvedAction.isActive && choice.totalCost > 0) {
       if (resolvedAction.isAttack) {
       this.record.activeAttackMpSpent[actor.side] = choice.cost;
@@ -932,7 +936,7 @@ class Battle {
       const result = this.damage(target, damage, `${choice.action.name} 공격 피해`, true, actor);
       const applied = result.amount;
       total += applied;
-      this.logs.push(`${target.name}에게 ${applied}의 피해. HP ${before} -> ${target.hp}`);
+      this.logs.push(fighterLogLine(target, `${target.name}에게 ${applied}의 피해. HP ${before} -> ${target.hp}`));
       if (result.revived) characterLogic.printDefeatEscape(this, target, result.revived);
       if (this.gameOver) break;
     }
@@ -1039,7 +1043,7 @@ class Battle {
       status.remaining -= 1;
       if (status.remaining <= 0 || status.stacks <= 0) {
         delete fighter.statuses[name];
-        this.logs.push(`${fighter.name}의 ${name} 효과가 사라졌다.`);
+        this.logs.push(fighterLogLine(fighter, `${fighter.name}의 ${name} 효과가 사라졌다.`));
       }
     }
     for (const effect of [...fighter.statEffects]) {
@@ -1123,7 +1127,7 @@ class Battle {
     if (value <= 0) return;
     const before = fighter.hp;
     fighter.hp = Math.min(fighter.maxHp, fighter.hp + value);
-    this.logs.push(`${fighter.name} HP 회복 ${before} -> ${fighter.hp} (${reason})`);
+    this.logs.push(fighterLogLine(fighter, `${fighter.name} HP 회복 ${before} -> ${fighter.hp} (${reason})`));
   }
 
   fixedDamage(target, amount, reason, source = null) {
@@ -1133,7 +1137,7 @@ class Battle {
     if (value <= 0) return;
     const before = target.hp;
     const result = this.damage(target, value, reason, false, opponent);
-    this.logs.push(`${target.name}은 ${reason}로 ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${result.afterHp}`);
+    this.logs.push(fighterLogLine(target, `${target.name}은 ${reason}로 ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${result.afterHp}`));
     if (result.revived) characterLogic.printDefeatEscape(this, target, result.revived);
     if (!this.gameOver && opponent !== target) characterLogic.onFixedDamageToOpponent(this, opponent, target, value);
     return result.amount;
@@ -1144,7 +1148,7 @@ class Battle {
     if (value <= 0) return;
     const before = fighter.mp;
     fighter.mp = Math.min(fighter.maxMp, fighter.mp + value);
-    this.logs.push(`${fighter.name} MP ${before} -> ${fighter.mp} (${reason})`);
+    this.logs.push(fighterLogLine(fighter, `${fighter.name} MP ${before} -> ${fighter.mp} (${reason})`));
   }
 
   reduceMp(fighter, amount, reason) {
@@ -1152,7 +1156,7 @@ class Battle {
     const before = fighter.mp;
     fighter.mp = Math.max(0, fighter.mp - value);
     const actual = before - fighter.mp;
-    if (actual > 0) this.logs.push(`${fighter.name} MP ${before} -> ${fighter.mp} (${reason})`);
+    if (actual > 0) this.logs.push(fighterLogLine(fighter, `${fighter.name} MP ${before} -> ${fighter.mp} (${reason})`));
     return actual;
   }
 
@@ -1175,9 +1179,9 @@ class Battle {
     }
     const status = fighter.statuses[name];
     if (status.stacks === 1 && !status.stackable) {
-      this.logs.push(`${fighter.name}에게 ${name} 상태가 ${status.remaining}턴 동안 적용되었다.`);
+      this.logs.push(fighterLogLine(fighter, `${fighter.name}에게 ${name} 상태가 ${status.remaining}턴 동안 적용되었다.`));
     } else {
-      this.logs.push(`${fighter.name}에게 ${name} ${status.stacks}중첩이 ${status.remaining}턴 동안 적용되었다.`);
+      this.logs.push(fighterLogLine(fighter, `${fighter.name}에게 ${name} ${status.stacks}중첩이 ${status.remaining}턴 동안 적용되었다.`));
     }
   }
 
@@ -1186,16 +1190,16 @@ class Battle {
     if (current) {
       current.multiplier = Number(multiplier);
       current.remaining = Math.max(current.remaining, Number(turns));
-      this.logs.push(`${fighter.name}의 ${stat.toUpperCase()} x${multiplier} 효과가 갱신되었다.`);
+      this.logs.push(fighterLogLine(fighter, `${fighter.name}의 ${stat.toUpperCase()} x${multiplier} 효과가 갱신되었다.`));
       return;
     }
     fighter.statEffects.push({ stat, multiplier: Number(multiplier), remaining: Number(turns), source });
-    this.logs.push(`${fighter.name}의 ${stat.toUpperCase()}이 ${turns}턴 동안 x${multiplier}가 된다.`);
+    this.logs.push(fighterLogLine(fighter, `${fighter.name}의 ${stat.toUpperCase()}이 ${turns}턴 동안 x${multiplier}가 된다.`));
   }
 
   addCostEffect(fighter, multiplier, turns, source) {
     fighter.costEffects.push({ multiplier: Number(multiplier), remaining: Number(turns), source });
-    this.logs.push(`${fighter.name}의 액티브 MP 소모량이 ${turns}턴 동안 ${multiplier}배가 된다.`);
+    this.logs.push(fighterLogLine(fighter, `${fighter.name}의 액티브 MP 소모량이 ${turns}턴 동안 ${multiplier}배가 된다.`));
   }
 
   addCounter(fighter, name, amount, maxValue = null) {
@@ -1203,8 +1207,8 @@ class Battle {
     let after = before + Number(amount || 0);
     if (maxValue != null) after = Math.min(Number(maxValue), after);
     fighter.counters[name] = after;
-    if (maxValue != null) this.logs.push(`${fighter.name}의 ${name} ${before}/${maxValue} -> ${after}/${maxValue}`);
-    else this.logs.push(`${fighter.name}의 ${name} ${before} -> ${after}`);
+    if (maxValue != null) this.logs.push(fighterLogLine(fighter, `${fighter.name}의 ${name} ${before}/${maxValue} -> ${after}/${maxValue}`));
+    else this.logs.push(fighterLogLine(fighter, `${fighter.name}의 ${name} ${before} -> ${after}`));
     return after;
   }
 
@@ -1377,6 +1381,7 @@ function fighterState(battle, fighter, sideOverride = null) {
   if (characterLogic.needsBattleLog(fighter)) characterLogic.renderBattleLog(battle, fighter, battleLog);
   return {
     side: sideOverride || fighter.side,
+    battleSide: fighter.side,
     id: fighter.data.id,
     name: fighter.name,
     title: fighter.title,

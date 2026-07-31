@@ -1,21 +1,29 @@
 "use strict";
 
-const fs = require("node:fs");
-const path = require("node:path");
-
 const EMPTY_LOGIC = Object.freeze({});
-const LOGICS = Object.create(null);
-const CHARACTER_IDS = [
-  "toxiche", "cryne", "plote", "ashend", "karossy", "nihfle", "serpen",
-  "melague", "balef", "revesha", "gandrick", "charinel", "dethus",
-  "zeroven", "neroko", "happyrin", "librang", "dracle", "saqua",
-  "queenas", "jitrom",
-];
-
-for (const id of CHARACTER_IDS) {
-  const modulePath = path.join(__dirname, `${id}.js`);
-  if (fs.existsSync(modulePath)) LOGICS[id] = require(modulePath);
-}
+const LOGICS = Object.assign(Object.create(null), {
+  toxiche: require("./toxiche"),
+  cryne: require("./cryne"),
+  plote: require("./plote"),
+  ashend: require("./ashend"),
+  karossy: require("./karossy"),
+  nihfle: require("./nihfle"),
+  serpen: require("./serpen"),
+  melague: require("./melague"),
+  balef: require("./balef"),
+  revesha: require("./revesha"),
+  gandrick: require("./gandrick"),
+  charinel: require("./charinel"),
+  dethus: require("./dethus"),
+  zeroven: require("./zeroven"),
+  neroko: require("./neroko"),
+  happyrin: require("./happyrin"),
+  librang: require("./librang"),
+  dracle: require("./dracle"),
+  saqua: require("./saqua"),
+  queenas: require("./queenas"),
+  jitrom: require("./jitrom"),
+});
 
 function logicFor(fighterOrId) {
   const id = typeof fighterOrId === "string" ? fighterOrId : fighterOrId?.characterId;

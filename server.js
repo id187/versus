@@ -554,6 +554,7 @@ const server = http.createServer(async (request, response) => {
       if (parsed.pathname === "/api/health") return sendJson(response, { ok: true, app: APP_ID, root: ROOT });
       if (parsed.pathname === "/api/options") return sendJson(response, store.options());
       if (parsed.pathname === "/api/state") return sendJson(response, store.state());
+      if (parsed.pathname.startsWith("/dataset/")) return serveDataset(response, parsed.pathname);
       return serveStatic(response, parsed.pathname);
     }
     if (request.method === "POST") {
@@ -623,6 +624,24 @@ function serveStatic(response, pathname) {
   });
 }
 
+function serveDataset(response, pathname) {
+  const relative = decodeURIComponent(pathname).replace(/^\/dataset\/+/, "");
+  const file = path.resolve(DATASET, relative);
+  const datasetRoot = path.resolve(DATASET);
+  if (!file.startsWith(`${datasetRoot}${path.sep}`)) {
+    sendJson(response, { ok: false, error: "Forbidden." }, 403);
+    return;
+  }
+  fs.readFile(file, (error, data) => {
+    if (error) {
+      sendJson(response, { ok: false, error: "Not found." }, 404);
+      return;
+    }
+    response.writeHead(200, { "content-type": contentType(file), "cache-control": "no-store" });
+    response.end(data);
+  });
+}
+
 function contentType(file) {
   const ext = path.extname(file).toLowerCase();
   return {
@@ -630,6 +649,7 @@ function contentType(file) {
     ".css": "text/css; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
     ".json": "application/json; charset=utf-8",
+    ".md": "text/markdown; charset=utf-8",
     ".png": "image/png",
     ".webp": "image/webp",
     ".jpg": "image/jpeg",

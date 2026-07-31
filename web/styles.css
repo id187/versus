@@ -2530,6 +2530,50 @@ button:focus-visible {
     overscroll-behavior-y: contain;
   }
 
+  .inscription-popover {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 6px);
+    width: min(560px, 60vw);
+    height: min(260px, calc(100dvh - 76px));
+    max-height: calc(100dvh - 76px);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: minmax(58px, auto);
+    gap: 4px;
+    padding: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    transform: none;
+  }
+
+  .inscription-option {
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 5px;
+    min-height: 58px;
+    height: auto;
+    padding: 5px 6px;
+  }
+
+  .inscription-option .inscription-gem {
+    width: 16px;
+  }
+
+  .inscription-option-copy {
+    gap: 2px;
+  }
+
+  .inscription-option-copy strong {
+    font-size: 0.72rem;
+  }
+
+  .inscription-option-copy span {
+    font-size: 0.62rem;
+    line-height: 1.12;
+  }
+
   .home-screen {
     min-height: 100dvh;
   }

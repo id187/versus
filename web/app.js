@@ -1335,10 +1335,13 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
 function compactLogEntries(lines) {
   const result = [];
   let skippingInfo = false;
-  const context = { actorName: null };
+  const context = { actorName: null, actorSide: null, lineSide: null };
   for (const rawLine of lines || []) {
-    const line = String(rawLine).trim();
+    let line = String(rawLine).trim();
     if (!line) continue;
+    const sideTag = line.match(/^\[@(PLAYER|AI)\](.*)$/);
+    context.lineSide = sideTag ? uiSideForBattleSide(sideTag[1]) : null;
+    if (sideTag) line = sideTag[2].trim();
     if (line.includes("PLAYER 정보") || line.includes("AI 정보")) {
       skippingInfo = true;
       continue;
@@ -1375,22 +1378,22 @@ function compactLogEntries(lines) {
 function statePatchFromLogLine(line, context) {
   let match = line.match(/^(?:\d+타:\s*)?(.+?)에게 \d+의 피해\.(?: .*?HP (\d+)\s*(?:→|->)\s*(\d+))?/);
   if (match?.[2]) {
-    return { fighterName: match[1], hp: Number(match[3]) };
+    return { fighterName: match[1], side: context.lineSide, hp: Number(match[3]) };
   }
 
   match = line.match(/^(.+?)(?:은|는) .+?로 \d+의 고정 피해를 입었다\. HP (\d+)\s*(?:→|->)\s*(\d+)/);
   if (match) {
-    return { fighterName: match[1], hp: Number(match[3]) };
+    return { fighterName: match[1], side: context.lineSide, hp: Number(match[3]) };
   }
 
   match = line.match(/^(.+?) HP 회복 \d+\s*(?:→|->)\s*(\d+)/);
   if (match) {
-    return { fighterName: match[1], hp: Number(match[2]) };
+    return { fighterName: match[1], side: context.lineSide, hp: Number(match[2]) };
   }
 
   match = line.match(/^(?:(.+?) )?MP \d+\s*(?:→|->)\s*(\d+)/);
   if (match) {
-    return { fighterName: match[1] || context.actorName, mp: Number(match[2]) };
+    return { fighterName: match[1] || context.actorName, side: context.lineSide || context.actorSide, mp: Number(match[2]) };
   }
 
   return null;
@@ -1398,7 +1401,7 @@ function statePatchFromLogLine(line, context) {
 
 function applyLogStatePatch(patch) {
   if (!patch || !state.battle) return;
-  const side = sideForFighterName(patch.fighterName);
+  const side = patch.side || sideForFighterName(patch.fighterName);
   const fighter = side ? state.battle[side] : null;
   if (!fighter) return;
   if (Number.isFinite(patch.hp)) {
@@ -1414,6 +1417,7 @@ function effectFromLogLine(line, context) {
   const sectionMatch = line.match(/^\[(.+?)의 행동\]$/);
   if (sectionMatch) {
     context.actorName = sectionMatch[1];
+    context.actorSide = context.lineSide || sideForFighterName(sectionMatch[1], context.actorSide);
     return null;
   }
 
@@ -1421,47 +1425,48 @@ function effectFromLogLine(line, context) {
   if (actionMatch) {
     const [, actorName, actionName] = actionMatch;
     context.actorName = actorName;
+    context.actorSide = context.lineSide || sideForFighterName(actorName, context.actorSide);
     if (DEFENSE_ACTION_NAMES.has(actionName)) {
-      return makeLogEffect("defense", actorName, actorName, "방어");
+      return makeLogEffect("defense", actorName, actorName, "방어", context.lineSide, context.actorSide);
     }
     return null;
   }
 
   if (line.includes("공격이 빗나갔다") || line.includes("공격이 회피되었다")) {
-    return makeMissEffect(context.actorName);
+    return makeMissEffect(context.actorName, context.actorSide);
   }
 
   let match = line.match(/^(.+?)의 그림자 병사 \d+이 공격 피해 (\d+)을 대신 받았다\.$/);
   if (match) {
-    return Number(match[2]) > 0 ? makeLogEffect("shadow-hit", match[1], match[1], match[2]) : null;
+    return Number(match[2]) > 0 ? makeLogEffect("shadow-hit", match[1], match[1], match[2], context.lineSide, context.actorSide) : null;
   }
 
   match = line.match(/^(?:\d+타:\s*)?(.+?)에게 (\d+)의 피해\./);
   if (match) {
-    return Number(match[2]) > 0 ? makeLogEffect("hit", match[1], context.actorName, match[2]) : null;
+    return Number(match[2]) > 0 ? makeLogEffect("hit", match[1], context.actorName, match[2], context.lineSide, context.actorSide) : null;
   }
 
   match = line.match(/^(.+?)(?:은|는) .+?로 (\d+)의 고정 피해를 입었다\./);
   if (match) {
-    return Number(match[2]) > 0 ? makeLogEffect("hit", match[1], context.actorName, match[2]) : null;
+    return Number(match[2]) > 0 ? makeLogEffect("hit", match[1], context.actorName, match[2], context.lineSide, context.actorSide) : null;
   }
 
   match = line.match(/^(.+?) HP 회복 (\d+)\s*(?:→|->)\s*(\d+)/);
   if (match) {
     const amount = Number(match[3]) - Number(match[2]);
-    return amount > 0 ? makeLogEffect("heal", match[1], match[1], `HP +${amount}`) : null;
+    return amount > 0 ? makeLogEffect("heal", match[1], match[1], `HP +${amount}`, context.lineSide, context.lineSide) : null;
   }
 
   match = line.match(/^(?:(.+?) )?MP (\d+)\s*(?:→|->)\s*(\d+)/);
   if (match) {
     const fighterName = match[1] || context.actorName;
     const amount = Number(match[3]) - Number(match[2]);
-    return fighterName && amount > 0 ? makeLogEffect("heal", fighterName, fighterName, `MP +${amount}`) : null;
+    return fighterName && amount > 0 ? makeLogEffect("heal", fighterName, fighterName, `MP +${amount}`, context.lineSide, context.lineSide || context.actorSide) : null;
   }
 
   match = line.match(/^(.+?)에게 (.+?) 상태가/);
   if (match) {
-    return makeLogEffect("debuff", match[1], context.actorName, match[2]);
+    return makeLogEffect("debuff", match[1], context.actorName, match[2], context.lineSide, context.actorSide);
   }
 
   match = line.match(/^(.+?)에게 (.+?) (\d+)중첩이/);
@@ -1469,13 +1474,13 @@ function effectFromLogLine(line, context) {
     const [, targetName, stackName, amountText] = match;
     context.lastStackOwner = targetName;
     context.lastStackName = stackName;
-    return makeLogEffect("stack-gain", targetName, context.actorName, `${stackName}+${amountText}`);
+    return makeLogEffect("stack-gain", targetName, context.actorName, `${stackName}+${amountText}`, context.lineSide, context.actorSide);
   }
 
   match = line.match(/^(.+?)의 (ATK|DEF|SPD).*x([0-9.]+)/);
   if (match) {
     const multiplier = Number(match[3]);
-    return makeLogEffect(multiplier >= 1 ? "buff" : "debuff", match[1], match[1], match[2]);
+    return makeLogEffect(multiplier >= 1 ? "buff" : "debuff", match[1], match[1], match[2], context.lineSide, context.lineSide || context.actorSide);
   }
 
   match = line.match(/^(.+?)의 (.+?) (\d+)(?:\/\d+)?\s*(?:→|->)\s*(\d+)(?:\/\d+)?(?:중첩)?/);
@@ -1486,10 +1491,10 @@ function effectFromLogLine(line, context) {
     context.lastStackOwner = targetName;
     context.lastStackName = stackName;
     if (after > before) {
-      return makeLogEffect("stack-gain", targetName, targetName, `${stackName}+${after - before}`);
+      return makeLogEffect("stack-gain", targetName, targetName, `${stackName}+${after - before}`, context.lineSide, context.lineSide || context.actorSide);
     }
     if (after < before) {
-      return makeLogEffect("stack-spend", targetName, targetName, `${stackName}-${before - after}`);
+      return makeLogEffect("stack-spend", targetName, targetName, `${stackName}-${before - after}`, context.lineSide, context.lineSide || context.actorSide);
     }
     return null;
   }
@@ -1499,7 +1504,7 @@ function effectFromLogLine(line, context) {
     const [, stackName, amountText] = match;
     context.lastStackOwner = context.actorName;
     context.lastStackName = stackName;
-    return makeLogEffect("stack-gain", context.actorName, context.actorName, `${stackName}+${amountText}`);
+    return makeLogEffect("stack-gain", context.actorName, context.actorName, `${stackName}+${amountText}`, context.actorSide, context.actorSide);
   }
 
   match = line.match(/^(.+?) (\d+)(?:중첩)? 소모:/);
@@ -1507,7 +1512,7 @@ function effectFromLogLine(line, context) {
     const [, stackName, amountText] = match;
     context.lastStackOwner = context.actorName;
     context.lastStackName = stackName;
-    return makeLogEffect("stack-spend", context.actorName, context.actorName, `${stackName}-${amountText}`);
+    return makeLogEffect("stack-spend", context.actorName, context.actorName, `${stackName}-${amountText}`, context.actorSide, context.actorSide);
   }
 
   match = line.match(/^(.+?)의 (.+?) (\d+)중첩을 소모했다\./);
@@ -1515,7 +1520,7 @@ function effectFromLogLine(line, context) {
     const [, targetName, stackName, amountText] = match;
     context.lastStackOwner = targetName;
     context.lastStackName = stackName;
-    return makeLogEffect("stack-spend", targetName, targetName, `${stackName}-${amountText}`);
+    return makeLogEffect("stack-spend", targetName, targetName, `${stackName}-${amountText}`, context.lineSide, context.lineSide || context.actorSide);
   }
 
   match = line.match(/^(.+?)을 모두 소모했다\./);
@@ -1523,7 +1528,7 @@ function effectFromLogLine(line, context) {
     const stackName = match[1];
     context.lastStackOwner = context.actorName;
     context.lastStackName = stackName;
-    return makeLogEffect("stack-spend", context.actorName, context.actorName, `${stackName} 전부`);
+    return makeLogEffect("stack-spend", context.actorName, context.actorName, `${stackName} 전부`, context.actorSide, context.actorSide);
   }
 
   match = line.match(/^(.+?) (\d+)(?:중첩)?(?:을|이) 모두 소모/);
@@ -1533,21 +1538,24 @@ function effectFromLogLine(line, context) {
     if (targetName) {
       context.lastStackOwner = targetName;
       context.lastStackName = stackName;
-      return makeLogEffect("stack-spend", targetName, targetName, `${stackName} 전부`);
+      return makeLogEffect("stack-spend", targetName, targetName, `${stackName} 전부`, context.lineSide, context.lineSide || context.actorSide);
     }
   }
 
   return null;
 }
 
-function makeLogEffect(type, targetName, sourceName, value) {
-  const side = sideForFighterName(targetName);
+function makeLogEffect(type, targetName, sourceName, value, targetSide = null, sourceSide = null) {
+  const resolvedSourceSide = sourceSide || sideForFighterName(sourceName);
+  const inferredTargetSide = !targetSide && resolvedSourceSide && (type === "hit" || type === "debuff")
+    ? oppositeSide(resolvedSourceSide)
+    : resolvedSourceSide;
+  const side = targetSide || sideForFighterName(targetName, inferredTargetSide);
   if (!side) return null;
   const target = state.battle?.[side];
-  const sourceSide = sideForFighterName(sourceName);
-  const source = sourceSide ? state.battle?.[sourceSide] : null;
+  const source = resolvedSourceSide ? state.battle?.[resolvedSourceSide] : null;
   const useSourceColor =
-    type === "hit" || type === "debuff" || (type === "stack-gain" && sourceSide && sourceSide !== side);
+    type === "hit" || type === "debuff" || (type === "stack-gain" && resolvedSourceSide && resolvedSourceSide !== side);
   const sourceId = useSourceColor ? source?.id : target?.id;
   return {
     type,
@@ -1557,9 +1565,9 @@ function makeLogEffect(type, targetName, sourceName, value) {
   };
 }
 
-function makeMissEffect(actorName) {
-  const actorSide = sideForFighterName(actorName);
-  const side = actorSide === "player" ? "ai" : actorSide === "ai" ? "player" : null;
+function makeMissEffect(actorName, preferredActorSide = null) {
+  const actorSide = sideForFighterName(actorName, preferredActorSide);
+  const side = oppositeSide(actorSide);
   if (!side) return null;
   const target = state.battle?.[side];
   return {
@@ -1723,11 +1731,23 @@ function registerEffectTimeout(timer) {
   state.effectTimers.push(timer);
 }
 
-function sideForFighterName(name) {
+function sideForFighterName(name, preferredSide = null) {
   if (!name || !state.battle) return null;
+  if (preferredSide && state.battle[preferredSide]?.name === name) return preferredSide;
   if (state.battle.player?.name === name) return "player";
   if (state.battle.ai?.name === name) return "ai";
   return null;
+}
+
+function uiSideForBattleSide(battleSide) {
+  const normalized = String(battleSide || "").toUpperCase();
+  if (String(state.battle?.player?.battleSide || "").toUpperCase() === normalized) return "player";
+  if (String(state.battle?.ai?.battleSide || "").toUpperCase() === normalized) return "ai";
+  return normalized === "PLAYER" ? "player" : normalized === "AI" ? "ai" : null;
+}
+
+function oppositeSide(side) {
+  return side === "player" ? "ai" : side === "ai" ? "player" : null;
 }
 
 function characterColor(id = "") {
