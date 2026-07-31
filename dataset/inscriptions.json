@@ -1,0 +1,62 @@
+[
+  {
+    "id": "gray",
+    "name": "Gray",
+    "color": "#aeb4bd",
+    "description": "효과 없음"
+  },
+  {
+    "id": "white",
+    "name": "White",
+    "color": "#f2f5f7",
+    "description": "액티브 공격기 위력 2 감소([연격]은 1 감소) / 일반 공격 피해 +1 / 일반 방어 경감 +1 / 명상 MP +1"
+  },
+  {
+    "id": "red",
+    "name": "Red",
+    "color": "#e96a61",
+    "description": "액티브 공격기 MP 3 증가 / 위력 3 증가([연격]은 1 증가)"
+  },
+  {
+    "id": "orange",
+    "name": "Orange",
+    "color": "#f28c38",
+    "description": "명중률 10 증가(최대 100) / ATK 0.9배"
+  },
+  {
+    "id": "yellow",
+    "name": "Yellow",
+    "color": "#f2c655",
+    "description": "체력 30% 이상시 SPD 0.7배 / 30% 미만시 SPD 1.7배 및 회피율 10%"
+  },
+  {
+    "id": "green",
+    "name": "Green",
+    "color": "#5bd477",
+    "description": "턴 종료시에 HP 2 회복 / 기본 MP 회복량 4 감소"
+  },
+  {
+    "id": "blue",
+    "name": "Blue",
+    "color": "#62b8ee",
+    "description": "시작 MP 10 증가 / 기본 MP 회복량 1 증가 / DEF 0.9배"
+  },
+  {
+    "id": "indigo",
+    "name": "Indigo",
+    "color": "#5967e8",
+    "description": "직전 턴과 동일한 행동 선택 시 자신의 소모 MP +2 / 상대의 소모 MP +5(첫 턴 제외)"
+  },
+  {
+    "id": "violet",
+    "name": "Violet",
+    "color": "#b46cff",
+    "description": "ATK와 DEF 1.1배 / 명중률 5 감소"
+  },
+  {
+    "id": "random",
+    "name": "Random",
+    "color": "#ffffff",
+    "description": "무작위 각인 선택"
+  }
+]

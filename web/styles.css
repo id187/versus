@@ -255,15 +255,41 @@ p {
 }
 
 .battle-screen.is-pvp .battle-setup {
-  grid-template-columns: minmax(112px, 0.9fr) minmax(180px, 1.35fr) minmax(112px, 0.9fr) 104px;
+  grid-template-columns: repeat(3, minmax(112px, 1fr)) 104px;
 }
 
-label {
+.battle-screen.is-pvp .pvp-setup-field {
+  grid-column: 3;
+}
+
+label,
+.setup-field {
   display: grid;
   gap: 4px;
   color: #c3cbe0;
   font-size: 0.72rem;
   font-weight: 900;
+}
+
+.setup-label {
+  min-width: 0;
+}
+
+.player-setup-field {
+  position: relative;
+  min-width: 0;
+}
+
+.player-select-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+}
+
+.opponent-setup-field .character-picker-button,
+.opponent-setup-field select {
+  width: calc(100% - 42px);
 }
 
 select,
@@ -319,10 +345,16 @@ input {
 
 .custom-select-button:disabled,
 .character-picker-button:disabled,
+.inscription-button:disabled,
 input:disabled,
 select:disabled {
   opacity: 0.58;
   cursor: not-allowed;
+}
+
+.custom-select-button:disabled::after,
+.character-picker-button:disabled::after {
+  display: none;
 }
 
 .custom-select-list {
@@ -363,7 +395,7 @@ select:disabled {
   width: 100%;
   height: 34px;
   min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--character-color) 42%, rgba(146, 164, 194, 0.36));
+  border: 1px solid color-mix(in srgb, var(--character-color) 72%, rgba(146, 164, 194, 0.28));
   border-radius: 6px;
   background: rgba(8, 12, 18, 0.86);
   color: var(--text);
@@ -371,7 +403,7 @@ select:disabled {
   text-align: left;
   font-weight: 900;
   position: relative;
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--character-color) 64%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--character-color) 92%, transparent);
 }
 
 .character-picker-button::after {
@@ -384,6 +416,16 @@ select:disabled {
   border-right: 2px solid var(--text);
   border-bottom: 2px solid var(--text);
   transform: translateY(-65%) rotate(45deg);
+}
+
+.character-picker-button.is-random {
+  border-color: rgba(255, 255, 255, 0.72);
+  color: #ffffff;
+  box-shadow: inset 3px 0 0 #ffffff;
+}
+
+.character-picker-button.is-random::after {
+  border-color: #ffffff;
 }
 
 .character-picker-button-copy {
@@ -401,6 +443,167 @@ select:disabled {
 .character-picker-button-copy strong {
   font-size: 0.98rem;
   line-height: 1;
+}
+
+.character-picker-button.is-random .character-picker-button-copy strong {
+  color: #ffffff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.34);
+}
+
+.inscription-button {
+  --inscription-color: #aeb4bd;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--inscription-color) 70%, rgba(146, 164, 194, 0.32));
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 50% 22%, color-mix(in srgb, var(--inscription-color) 22%, transparent), transparent 58%),
+    rgba(8, 12, 18, 0.88);
+  color: var(--text);
+  padding: 0;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--inscription-color) 18%, transparent),
+    0 0 12px color-mix(in srgb, var(--inscription-color) 12%, transparent);
+}
+
+.inscription-button:hover,
+.inscription-button[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--inscription-color) 92%, rgba(242, 198, 85, 0.22));
+  background:
+    radial-gradient(circle at 50% 22%, color-mix(in srgb, var(--inscription-color) 34%, transparent), transparent 60%),
+    rgba(12, 17, 25, 0.95);
+}
+
+.inscription-gem {
+  display: block;
+  width: 18px;
+  aspect-ratio: 1;
+  clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), transparent 34%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.38), transparent 42%),
+    var(--inscription-color);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.38),
+    0 0 12px color-mix(in srgb, var(--inscription-color) 62%, transparent);
+}
+
+.inscription-button[data-inscription-id="random"] .inscription-gem,
+.inscription-option[data-inscription-id="random"] .inscription-gem {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), transparent 34%),
+    linear-gradient(315deg, rgba(0, 0, 0, 0.38), transparent 42%),
+    conic-gradient(from 20deg, #ff4f66, #f2c655, #5bd477, #62b8ee, #b46cff, #ff4f66);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+    0 0 14px rgba(180, 108, 255, 0.42);
+}
+
+.inscription-popover {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 6px);
+  z-index: 45;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(78px, 1fr);
+  gap: 7px;
+  width: min(520px, calc(100vw - 24px));
+  border: 1px solid rgba(242, 198, 85, 0.5);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(20, 25, 34, 0.98), rgba(8, 11, 16, 0.98)),
+    #11151c;
+  padding: 8px;
+  box-shadow: var(--shadow);
+}
+
+.inscription-popover[hidden] {
+  display: none;
+}
+
+.inscription-option {
+  --inscription-color: #aeb4bd;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  height: 100%;
+  min-height: 78px;
+  border: 1px solid color-mix(in srgb, var(--inscription-color) 38%, rgba(146, 164, 194, 0.24));
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--inscription-color) 9%, rgba(12, 16, 22, 0.92)), rgba(7, 10, 14, 0.88)),
+    rgba(8, 12, 18, 0.9);
+  color: var(--text);
+  padding: 8px;
+  text-align: left;
+}
+
+.inscription-option[data-inscription-id="random"] {
+  border-color: transparent;
+  background:
+    linear-gradient(135deg, rgba(255, 79, 102, 0.16), rgba(242, 198, 85, 0.1) 24%, rgba(91, 212, 119, 0.12) 46%, rgba(98, 184, 238, 0.14) 68%, rgba(180, 108, 255, 0.16)) padding-box,
+    linear-gradient(rgba(8, 12, 18, 0.78), rgba(8, 12, 18, 0.78)) padding-box,
+    conic-gradient(from 20deg, #ff4f66, #f28c38, #f2c655, #5bd477, #62b8ee, #5967e8, #b46cff, #ff4f66) border-box;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 18px rgba(98, 184, 238, 0.16);
+}
+
+.inscription-option:hover,
+.inscription-option.is-selected {
+  border-color: color-mix(in srgb, var(--inscription-color) 76%, rgba(242, 198, 85, 0.24));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--inscription-color) 16%, rgba(15, 20, 28, 0.95)), rgba(8, 12, 18, 0.9)),
+    rgba(8, 12, 18, 0.94);
+}
+
+.inscription-option[data-inscription-id="random"]:hover,
+.inscription-option[data-inscription-id="random"].is-selected {
+  border-color: transparent;
+  background:
+    linear-gradient(135deg, rgba(255, 79, 102, 0.22), rgba(242, 198, 85, 0.14) 24%, rgba(91, 212, 119, 0.16) 46%, rgba(98, 184, 238, 0.2) 68%, rgba(180, 108, 255, 0.22)) padding-box,
+    linear-gradient(rgba(10, 14, 21, 0.72), rgba(10, 14, 21, 0.72)) padding-box,
+    conic-gradient(from 45deg, #ff4f66, #f28c38, #f2c655, #5bd477, #62b8ee, #5967e8, #b46cff, #ff4f66) border-box;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 0 20px rgba(180, 108, 255, 0.18);
+}
+
+.inscription-option.is-selected {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--inscription-color) 48%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--inscription-color) 18%, transparent);
+}
+
+.inscription-option .inscription-gem {
+  width: 20px;
+}
+
+.inscription-option-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.inscription-option-copy strong {
+  min-width: 0;
+  color: #f4f6fb;
+  font-size: 0.83rem;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.inscription-option-copy span {
+  min-width: 0;
+  color: #aab4c4;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .character-picker-modal {
@@ -460,13 +663,13 @@ select:disabled {
   min-width: 0;
   width: 86px;
   height: 116px;
-  border: 1px solid rgba(146, 164, 194, 0.24);
+  border: 1px solid color-mix(in srgb, var(--character-color) 42%, rgba(146, 164, 194, 0.28));
   border-radius: 6px;
   background: rgba(7, 10, 14, 0.68);
   color: var(--text);
   padding: 6px;
   font-weight: 950;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--character-color) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--character-color) 24%, transparent);
 }
 
 .character-picker-tile:hover,
@@ -923,6 +1126,14 @@ button:focus-visible {
   animation: fx-hit-slash 760ms ease-out forwards;
 }
 
+.battle-fx-shadow-hit {
+  background:
+    radial-gradient(circle at 50% 54%, color-mix(in srgb, currentColor 40%, #07030a 60%) 0%, transparent 38%),
+    repeating-conic-gradient(from 0.08turn at 50% 52%, color-mix(in srgb, currentColor 54%, transparent) 0deg 9deg, transparent 10deg 28deg);
+  filter: drop-shadow(0 0 18px currentColor);
+  animation: fx-shadow-impact 760ms ease-out forwards;
+}
+
 .battle-fx-miss {
   background:
     linear-gradient(105deg, transparent 22%, rgba(255, 255, 255, 0.56) 24%, color-mix(in srgb, currentColor 46%, transparent) 27%, transparent 34%),
@@ -994,6 +1205,11 @@ button:focus-visible {
 
 .battle-fx-value-hit {
   color: #ff4d55;
+  animation: fx-damage-drop 860ms ease-in forwards;
+}
+
+.battle-fx-value-shadow-hit {
+  color: var(--effect-color, #b1185a);
   animation: fx-damage-drop 860ms ease-in forwards;
 }
 
@@ -1081,6 +1297,20 @@ button:focus-visible {
   100% {
     opacity: 0;
     transform: translate(32px, 22px) scale(1.04);
+  }
+}
+
+@keyframes fx-shadow-impact {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) rotate(-10deg);
+  }
+  18% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2) rotate(18deg);
   }
 }
 
@@ -2182,6 +2412,14 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(104px, 1fr)) 96px;
   }
 
+  .battle-screen.is-pvp .battle-setup {
+    grid-template-columns: repeat(2, minmax(104px, 1fr)) 96px;
+  }
+
+  .battle-screen.is-pvp .pvp-setup-field {
+    grid-column: 2;
+  }
+
   .battle-screen.is-pve .battle-setup .personality-setup-field {
     display: none;
   }
@@ -2222,6 +2460,10 @@ button:focus-visible {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .battle-screen.is-pvp .pvp-setup-field {
+    grid-column: 2;
+  }
+
   .battle-screen.is-pve .battle-setup .personality-setup-field {
     display: grid;
   }
@@ -2248,6 +2490,36 @@ button:focus-visible {
   .codex-skill-strip .skill-icon {
     width: 46px;
     height: 46px;
+  }
+}
+
+@media (max-width: 520px) {
+  .inscription-popover {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(70px, 1fr);
+    gap: 6px;
+    width: min(520px, calc(100vw - 16px));
+    padding: 7px;
+  }
+
+  .inscription-option {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 6px;
+    min-height: 70px;
+    padding: 7px;
+  }
+
+  .inscription-option .inscription-gem {
+    width: 18px;
+  }
+
+  .inscription-option-copy strong {
+    font-size: 0.78rem;
+  }
+
+  .inscription-option-copy span {
+    font-size: 0.66rem;
+    line-height: 1.18;
   }
 }
 
@@ -2313,7 +2585,11 @@ button:focus-visible {
   }
 
   .battle-screen.is-pvp .battle-setup {
-    grid-template-columns: minmax(92px, 0.78fr) minmax(160px, 1.44fr) minmax(84px, 0.78fr) 88px;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) 88px;
+  }
+
+  .battle-screen.is-pvp .pvp-setup-field {
+    grid-column: 3;
   }
 
   .battle-grid {
@@ -2504,7 +2780,8 @@ button:focus-visible {
     font-size: 1rem;
   }
 
-  .battle-fx-value-hit {
+  .battle-fx-value-hit,
+  .battle-fx-value-shadow-hit {
     animation-name: fx-damage-drop-mobile;
   }
 
@@ -2658,7 +2935,11 @@ button:focus-visible {
   }
 
   .battle-screen.is-pvp .battle-setup {
-    grid-template-columns: minmax(100px, 0.84fr) minmax(170px, 1.4fr) minmax(90px, 0.78fr) 92px;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) 92px;
+  }
+
+  .battle-screen.is-pvp .pvp-setup-field {
+    grid-column: 3;
   }
 
   .match-personality {

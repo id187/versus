@@ -1,6 +1,6 @@
 # VERSUS
 
-`VERSUS`는 플레이어와 AI가 매 턴 하나의 행동을 선택해 싸우는 1:1 턴제 PvE 전투 게임입니다.
+`VERSUS`는 플레이어와 AI 또는 두 플레이어가 매 턴 하나의 행동을 선택해 싸우는 1:1 턴제 전투 게임입니다.
 
 이 문서는 배포판 기준입니다. 압축을 풀고 `VERSUS.exe`를 실행하면 로컬 서버와 게임 창이 열립니다.
 
@@ -12,29 +12,21 @@
 VERSUS.exe
 WebView2Loader.dll
 README.md
-versus.py
-web_server.py
+server.js
 dataset/
-character_logic/
 web/
 ```
 
-선택 사항:
-
-```text
-launcher/
-```
-
-`launcher/`는 `VERSUS.exe`를 다시 빌드하기 위한 C# 소스입니다. 게임 실행만 할 때는 없어도 됩니다.
+전투 엔진과 캐릭터 로직은 `web/battle-engine/`의 JavaScript로 실행됩니다. Python과 구 Python 전투 엔진은 필요하지 않습니다.
 
 ## 필요 환경
 
 - Windows 10/11
-- Python 3.10 이상
+- Node.js 18 이상
 - .NET 9 Desktop Runtime
 - Microsoft Edge WebView2 Runtime
 
-Windows 10/11에는 WebView2 Runtime이 대부분 기본 설치되어 있습니다. 실행이 되지 않으면 Python, .NET 9 Desktop Runtime, WebView2 Runtime 설치 여부를 먼저 확인하세요.
+Windows 10/11에는 WebView2 Runtime이 대부분 기본 설치되어 있습니다. 실행이 되지 않으면 Node.js, .NET 9 Desktop Runtime, WebView2 Runtime 설치 여부를 먼저 확인하세요.
 
 ## 실행
 
@@ -75,13 +67,14 @@ PowerShell에서 직접 실행할 수도 있습니다.
 ## 게임 방법
 
 1. `전투` 화면을 엽니다.
-2. 내 캐릭터, 상대 캐릭터, AI 성향을 고릅니다.
+2. 내 캐릭터, 각인, 상대 캐릭터, AI 성향을 고릅니다.
 3. `전투 시작`을 누릅니다.
 4. 매 턴 사용할 행동을 하나 선택합니다.
 5. 상대의 HP를 먼저 0으로 만들면 승리합니다.
 
 모든 캐릭터는 공통 행동 3개와 캐릭터별 액티브 스킬 4개를 사용합니다.
 
+- `각인`: 전투 전에 고르는 공통 전투 보정입니다.
 - `일반 공격`: 상대를 공격합니다.
 - `일반 방어`: 이번 턴에 입는 공격 피해를 경감합니다.
 - `명상`: MP를 회복합니다.
@@ -90,9 +83,13 @@ PowerShell에서 직접 실행할 수도 있습니다.
 
 자세한 캐릭터별 효과는 게임 안의 `캐릭터` 화면에서 확인할 수 있습니다.
 
+PvE에서 상대 AI의 각인은 전투 시작 시 무작위로 선택됩니다. PvP에서는 양쪽 플레이어가 각인을 선택하고, 같은 방 코드를 입력하면 지정 방으로 연결됩니다. 방 코드를 비우면 방 코드를 비운 플레이어끼리 무작위 매칭됩니다.
+
+`dataset/firebase.json`이 있으면 PvP 방 정보와 행동 선택은 Firebase Realtime Database를 통해 동기화됩니다. 이 경우 서로 다른 컴퓨터에서도 같은 Firebase 프로젝트를 바라보므로 서버 주소 입력 없이 방 코드만으로 연결할 수 있습니다. 방장은 JS 전투 엔진으로 턴을 판정하고 결과를 Firebase에 올립니다.
+
 ## 기본 규칙
 
-전투 시작 시 모든 캐릭터의 MP는 30이며, 최대 MP는 100입니다. 턴 종료 시 기본으로 MP를 10 회복합니다.
+전투 시작 시 모든 캐릭터의 MP는 30이며, 기본 최대 MP는 100입니다. 턴 종료 시 기본으로 MP를 10 회복하며, 각인 등으로 기본 회복량이 바뀔 수 있습니다.
 
 행동 순서는 우선도가 높은 쪽이 먼저입니다. 우선도가 같으면 SPD를 기준으로 선공 확률을 계산합니다.
 
@@ -128,54 +125,29 @@ AI 성향은 전투 시작 전에 선택할 수 있습니다.
 
 `M` 이외의 성향도 항상 같은 행동만 고르지는 않습니다. 성향별 기준에 맞는 상위 후보 중에서 가중 랜덤으로 선택합니다.
 
-## 콘솔 실행
+## Node.js 직접 실행
 
-웹 UI 대신 콘솔판으로 실행할 수도 있습니다.
-
-```powershell
-python .\versus.py
-```
-
-캐릭터와 AI를 지정해 실행하려면:
+런처 없이 서버를 직접 실행할 수 있습니다.
 
 ```powershell
-python .\versus.py --player 1 --ai 2 --personality R --seed 1
+node .\server.js
 ```
 
-자동 전투 예시:
+포트를 지정하려면:
 
 ```powershell
-python .\versus.py --player 1 --ai 2 --personality R --auto --seed 1 --max-turns 3
+node .\server.js --port 8766
 ```
-
-주요 옵션:
-
-- `--player`, `--ai`: 캐릭터 번호를 1부터 지정합니다.
-- `--personality`: `R`, `C`, `D`, `M`, `G`, `E`, `J`, `A` 중 하나를 지정합니다.
-- `--seed`: 같은 난수 결과를 재현합니다.
-- `--auto`: 플레이어도 AI가 자동으로 행동을 선택합니다.
-- `--max-turns`: 자동 전투의 최대 턴 수를 제한합니다.
-- `--line-delay`: 출력 한 줄마다 기다릴 초를 지정합니다.
-- `--fast`: 출력 지연 없이 빠르게 진행합니다.
 
 ## 문제 해결
 
 `VERSUS.exe`가 실행되지 않으면 다음을 확인하세요.
 
-- 배포판 폴더 안에 `web_server.py`, `versus.py`, `dataset/`, `character_logic/`, `web/`가 모두 있는지 확인합니다.
-- Python 3.10 이상이 설치되어 있는지 확인합니다.
+- 배포판 폴더 안에 `server.js`, `dataset/`, `web/`가 모두 있는지 확인합니다.
+- Node.js 18 이상이 설치되어 있는지 확인합니다.
+- Python은 설치하지 않아도 됩니다.
 - .NET 9 Desktop Runtime이 설치되어 있는지 확인합니다.
 - WebView2 Runtime이 설치되어 있는지 확인합니다.
 - 이미 `8765` 포트를 사용하는 프로그램이 있다면 `.\VERSUS.exe --port 8766`처럼 다른 포트로 실행합니다.
 
 런처 오류가 발생하면 같은 폴더에 `VERSUS-launcher-error.txt`가 생성될 수 있습니다.
-
-## 개발자용 빌드
-
-`launcher/` 폴더가 포함된 경우, 다음 명령으로 `VERSUS.exe`를 다시 빌드할 수 있습니다.
-
-```powershell
-dotnet publish .\launcher\VersusLauncher.csproj -c Release -o .
-```
-
-빌드 후에도 `dataset/`, `character_logic/`, `web/`, `versus.py`, `web_server.py`는 실행 폴더에 함께 있어야 합니다.

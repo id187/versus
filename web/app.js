@@ -13,12 +13,13 @@ const els = {
   exitButton: document.querySelector("#exitButton"),
   battleBackButton: document.querySelector("#battleBackButton"),
   codexBackButton: document.querySelector("#codexBackButton"),
+  inscriptionButton: document.querySelector("#inscriptionButton"),
+  inscriptionPopover: document.querySelector("#inscriptionPopover"),
   playerSelect: document.querySelector("#playerSelect"),
   aiSelect: document.querySelector("#aiSelect"),
   personalitySelect: document.querySelector("#personalitySelect"),
   pveSetupFields: [...document.querySelectorAll(".pve-setup-field")],
   pvpSetupFields: [...document.querySelectorAll(".pvp-setup-field")],
-  pvpServerInput: document.querySelector("#pvpServerInput"),
   pvpRoomInput: document.querySelector("#pvpRoomInput"),
   startButton: document.querySelector("#startButton"),
   matchLabel: document.querySelector("#matchLabel"),
@@ -80,14 +81,14 @@ const CHARACTER_COLORS = {
   toxiche: "#78e052",
   cryne: "#c33a3a",
   plote: "#ff5a2f",
-  ashend: "#9aa0aa",
+  ashend: "#a4a0b2",
   karossy: "#5eb8ff",
   nihfle: "#6db7ff",
   serpen: "#e9d16a",
-  melague: "#63d04f",
+  melague: "#8fb62d",
   balef: "#f29b38",
   revesha: "#a874ff",
-  gandrick: "#eadfbd",
+  gandrick: "#f3e6a3",
   charinel: "#f05fb8",
   dethus: "#c9a05b",
   zeroven: "#20d6c7",
@@ -96,20 +97,83 @@ const CHARACTER_COLORS = {
   librang: "#7194dc",
   dracle: "#e60012",
   saqua: "#55dce8",
+  queenas: "#b1185a",
+  jitrom: "#66ff33",
 };
 
 const RANDOM_CHARACTER_COLOR = "#ffffff";
-const PVP_SERVER_STORAGE_KEY = "versus:pvpServer";
-const PVP_ROOM_STORAGE_KEY = "versus:pvpRoom";
 const PVP_TOKEN_STORAGE_PREFIX = "versus:pvpToken:";
 const PVP_POLL_MS = 1000;
+const DEFAULT_INSCRIPTION_OPTIONS = [
+  {
+    id: "gray",
+    color: "#aeb4bd",
+    summary: "Gray",
+    detail: "효과 없음",
+  },
+  {
+    id: "white",
+    color: "#f2f5f7",
+    summary: "White",
+    detail: "액티브 공격기 위력 2 감소([연격]은 1 감소) / 일반 공격 피해 +1 / 일반 방어 경감 +1 / 명상 MP +1",
+  },
+  {
+    id: "red",
+    color: "#e96a61",
+    summary: "Red",
+    detail: "액티브 공격기 MP 3 증가 / 위력 3 증가([연격]은 1 증가)",
+  },
+  {
+    id: "orange",
+    color: "#f28c38",
+    summary: "Orange",
+    detail: "명중률 10 증가(최대 100) / ATK 0.9배",
+  },
+  {
+    id: "yellow",
+    color: "#f2c655",
+    summary: "Yellow",
+    detail: "체력 30% 이상시 SPD 0.7배 / 30% 미만시 SPD 1.7배 및 회피율 10%",
+  },
+  {
+    id: "green",
+    color: "#5bd477",
+    summary: "Green",
+    detail: "턴 종료시에 HP 2 회복 / 기본 MP 회복량 4 감소",
+  },
+  {
+    id: "blue",
+    color: "#62b8ee",
+    summary: "Blue",
+    detail: "시작 MP 10 증가 / 기본 MP 회복량 1 증가 / DEF 0.9배",
+  },
+  {
+    id: "indigo",
+    color: "#5967e8",
+    summary: "Indigo",
+    detail: "직전 턴과 동일한 행동 선택 시 자신의 소모 MP +2 / 상대의 소모 MP +5(첫 턴 제외)",
+  },
+  {
+    id: "violet",
+    color: "#b46cff",
+    summary: "Violet",
+    detail: "ATK와 DEF 1.1배 / 명중률 5 감소",
+  },
+  {
+    id: "random",
+    color: "#ffffff",
+    summary: "Random",
+    detail: "무작위 각인 선택",
+  },
+];
 
-const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua"]);
-const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua"]);
+const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom"]);
+const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom"]);
 
-const EFFECT_CLASSES = ["hit", "miss", "defense", "heal", "buff", "debuff", "stack-gain", "stack-spend"];
+const EFFECT_CLASSES = ["hit", "shadow-hit", "miss", "defense", "heal", "buff", "debuff", "stack-gain", "stack-spend"];
 const EFFECT_SFX = {
   hit: "/assets/sfx/hit.wav",
+  "shadow-hit": "/assets/sfx/hit.wav",
   miss: "/assets/sfx/miss.wav",
   defense: "/assets/sfx/defense.wav",
   heal: "/assets/sfx/heal.wav",
@@ -138,6 +202,7 @@ const state = {
   customSelects: [],
   characterPickers: [],
   activeCharacterPicker: null,
+  selectedInscriptionId: DEFAULT_INSCRIPTION_OPTIONS[0].id,
   effectTimers: [],
   sfx: new Map(),
   bgm: new Map(),
@@ -150,6 +215,7 @@ init();
 
 async function init() {
   bindEvents();
+  syncInscriptionPicker();
   setBattleMode("pve");
   renderEmptyBattle();
   renderEmptyActions();
@@ -164,8 +230,8 @@ function bindEvents() {
   els.battleBackButton.addEventListener("click", leaveBattleScreen);
   els.codexBackButton.addEventListener("click", () => showScreen("home"));
   els.exitButton.addEventListener("click", exitApp);
+  els.inscriptionButton.addEventListener("click", toggleInscriptionPopover);
   els.startButton.addEventListener("click", startConfiguredBattle);
-  els.pvpServerInput.addEventListener("input", previewSelectedMatch);
   els.pvpRoomInput.addEventListener("input", previewSelectedMatch);
   els.prevLogButton.addEventListener("click", () => moveLog(-1));
   els.nextLogButton.addEventListener("click", () => moveLog(1));
@@ -177,9 +243,11 @@ function bindEvents() {
   els.characterPickerScrim.addEventListener("click", closeCharacterPicker);
   els.characterPickerCloseButton.addEventListener("click", closeCharacterPicker);
   document.addEventListener("click", closeCustomSelectsOnOutside);
+  document.addEventListener("click", closeInscriptionPopoverOnOutside);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeCustomSelects();
+      closeInscriptionPopover();
       closeCharacterPicker();
       closeInfoModal();
     }
@@ -188,6 +256,7 @@ function bindEvents() {
 }
 
 function openBattleMode(mode) {
+  els.pvpRoomInput.value = "";
   setBattleMode(mode);
   resetBattleScreen();
   previewSelectedMatch();
@@ -201,9 +270,11 @@ function resetBattleScreen() {
   state.busy = false;
   document.body.classList.remove("is-waiting");
   closeCustomSelects();
+  closeInscriptionPopover();
   closeCharacterPicker();
   closeInfoModal();
   resetCharacterSelections();
+  resetInscriptionSelection();
   clearLogs();
   renderEmptyBattle();
   renderEmptyActions();
@@ -214,6 +285,87 @@ function resetCharacterSelections() {
   els.playerSelect.value = "random";
   els.aiSelect.value = "random";
   syncAllCustomSelects();
+}
+
+function resetInscriptionSelection() {
+  state.selectedInscriptionId = inscriptionOptions()[0].id;
+  syncInscriptionPicker();
+}
+
+function inscriptionOptions() {
+  const options = state.options?.inscriptions;
+  if (!Array.isArray(options) || !options.length) return DEFAULT_INSCRIPTION_OPTIONS;
+  return options.map((option) => ({
+    id: option.id,
+    color: option.color || "#aeb4bd",
+    summary: option.summary || option.name || option.id,
+    detail: option.detail || option.description || "효과 없음",
+  }));
+}
+
+function findInscriptionOption(id = state.selectedInscriptionId) {
+  const options = inscriptionOptions();
+  return options.find((option) => option.id === id) || options[0];
+}
+
+function toggleInscriptionPopover(event) {
+  event.stopPropagation();
+  if (els.inscriptionButton.disabled) return;
+  const shouldOpen = els.inscriptionPopover.hidden;
+  closeCustomSelects();
+  closeCharacterPicker();
+  syncInscriptionPicker();
+  els.inscriptionPopover.hidden = !shouldOpen;
+  els.inscriptionButton.setAttribute("aria-expanded", String(shouldOpen));
+}
+
+function closeInscriptionPopover() {
+  els.inscriptionPopover.hidden = true;
+  els.inscriptionButton.setAttribute("aria-expanded", "false");
+}
+
+function closeInscriptionPopoverOnOutside(event) {
+  if (els.inscriptionButton.contains(event.target) || els.inscriptionPopover.contains(event.target)) {
+    return;
+  }
+  closeInscriptionPopover();
+}
+
+function syncInscriptionPicker() {
+  const selected = findInscriptionOption();
+  els.inscriptionButton.style.setProperty("--inscription-color", selected.color);
+  els.inscriptionButton.dataset.inscriptionId = selected.id;
+  els.inscriptionButton.setAttribute("aria-label", `각인: ${selected.summary}`);
+  els.inscriptionButton.title = selected.detail;
+
+  els.inscriptionPopover.innerHTML = "";
+  for (const option of inscriptionOptions()) {
+    const item = document.createElement("button");
+    const isSelected = option.id === selected.id;
+    item.type = "button";
+    item.className = `inscription-option${isSelected ? " is-selected" : ""}`;
+    item.style.setProperty("--inscription-color", option.color);
+    item.dataset.inscriptionId = option.id;
+    item.setAttribute("aria-label", `각인: ${option.summary}. ${option.detail}`);
+    if (isSelected) {
+      item.setAttribute("aria-current", "true");
+    }
+    item.innerHTML = `
+      <span class="inscription-gem" aria-hidden="true"></span>
+      <span class="inscription-option-copy">
+        <strong>${escapeHtml(option.summary)}</strong>
+        <span>${escapeHtml(option.detail)}</span>
+      </span>
+    `;
+    item.addEventListener("click", (event) => {
+      event.stopPropagation();
+      state.selectedInscriptionId = option.id;
+      syncInscriptionPicker();
+      closeInscriptionPopover();
+      els.inscriptionButton.focus();
+    });
+    els.inscriptionPopover.append(item);
+  }
 }
 
 function prepareSfx() {
@@ -273,6 +425,7 @@ function showScreen(name) {
 
 function leaveBattleScreen() {
   const request = currentPvpLeaveRequest();
+  els.pvpRoomInput.value = "";
   showScreen("home");
   if (request) {
     state.battle = null;
@@ -300,7 +453,6 @@ function setBattleMode(mode) {
     field.hidden = !isPvp;
   }
   els.startButton.textContent = isPvp ? "PvP 입장" : "전투 시작";
-  loadStoredPvpInputs();
   syncSetupLock();
   previewSelectedMatch();
 }
@@ -308,7 +460,11 @@ function setBattleMode(mode) {
 async function loadOptions() {
   try {
     const data = await api("/api/options");
-    data.characters = sortCharacters(data.characters);
+    data.characters = sortCharacters((data.characters || []).map((character, index) => ({
+      ...character,
+      index: Number.isInteger(character.index) ? character.index : index,
+    })));
+    data.personalities = data.personalities || data.ai?.personalities || [];
     state.options = data;
 
     fillSelect(els.playerSelect, data.characters, "index", "name", true, "???");
@@ -321,6 +477,7 @@ async function loadOptions() {
     enhanceCharacterSelect(els.playerSelect, "player", "내 캐릭터");
     enhanceCharacterSelect(els.aiSelect, "ai", "상대 캐릭터");
     enhanceSelect(els.personalitySelect);
+    syncInscriptionPicker();
     previewSelectedMatch();
     renderCodex();
     await applyStartupHash();
@@ -386,6 +543,7 @@ function enhanceCharacterSelect(select, side, label) {
 
   button.addEventListener("click", (event) => {
     event.stopPropagation();
+    closeInscriptionPopover();
     openCharacterPicker(api);
   });
   select.addEventListener("change", api.sync);
@@ -396,6 +554,7 @@ function syncCharacterPickerButton(api) {
   const character = findCharacterByIndex(select.value);
   const selectedName = selectedText(select);
   button.style.setProperty("--character-color", character ? characterColor(character.id) : RANDOM_CHARACTER_COLOR);
+  button.classList.toggle("is-random", !character);
   button.setAttribute("aria-label", `${label}: ${selectedName}`);
   button.disabled = select.disabled;
   button.innerHTML = `
@@ -440,6 +599,7 @@ function renderCharacterPickerGrid(api) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `character-picker-tile${item.value === selectedValue ? " is-selected" : ""}`;
+    button.classList.toggle("is-random", !item.character);
     button.style.setProperty(
       "--character-color",
       item.character ? characterColor(item.character.id) : RANDOM_CHARACTER_COLOR,
@@ -491,6 +651,7 @@ function enhanceSelect(select) {
     event.stopPropagation();
     const shouldOpen = list.hidden;
     closeCustomSelects();
+    closeInscriptionPopover();
     list.hidden = !shouldOpen;
   });
   select.addEventListener("change", api.sync);
@@ -553,6 +714,10 @@ function syncSetupFromBattle(data) {
   if (data.personality?.id) {
     els.personalitySelect.value = data.personality.id;
   }
+  if (data.player?.inscriptionId) {
+    state.selectedInscriptionId = data.player.inscriptionId;
+    syncInscriptionPicker();
+  }
   syncAllCustomSelects();
 }
 
@@ -570,8 +735,9 @@ function previewSelectedMatch() {
     els.aiModeText.textContent = "PvP";
     return;
   }
+  const ai = selectedText(els.aiSelect);
   const personality = selectedText(els.personalitySelect);
-  setMatchLabel(player, "???", personality);
+  setMatchLabel(player, ai, personality);
   els.aiModeText.textContent = personality;
 }
 
@@ -581,12 +747,8 @@ function startConfiguredBattle() {
 
 async function startPvpEntry() {
   if (state.busy) return;
-  const server = normalizePvpServer(els.pvpServerInput.value);
+  const server = "";
   const room = normalizeRoomCode(els.pvpRoomInput.value);
-  if (!server || !room) {
-    pushTurnLog("PvP 준비", ["서버 주소와 방 코드를 입력해 주세요."], false);
-    return;
-  }
   primeAudio();
   stopBgm(300);
   setBusy(true);
@@ -598,18 +760,20 @@ async function startPvpEntry() {
       room,
       token,
       playerIndex: els.playerSelect.value,
+      playerInscriptionId: state.selectedInscriptionId,
       lastLogSerial: 0,
       pollTimer: null,
       pollErrorShown: false,
     };
-    saveStoredPvpInputs(server, room);
     const data = await pvpApi("/api/pvp/join", {
       roomCode: room,
       playerIndex: els.playerSelect.value,
+      playerInscriptionId: state.selectedInscriptionId,
       token,
     });
+    state.pvp.room = data.roomCode || room;
     state.pvp.token = data.token;
-    saveStoredPvpToken(server, room, data.token);
+    saveStoredPvpToken(server, state.pvp.room, data.token);
     if (data.noticeLog?.length) {
       pushTurnLog("PvP 준비", data.noticeLog, false);
     }
@@ -636,6 +800,7 @@ async function startBattle() {
       playerIndex: els.playerSelect.value,
       aiIndex: els.aiSelect.value,
       personalityId: els.personalitySelect.value,
+      playerInscriptionId: state.selectedInscriptionId,
     };
     const data = await api("/api/new", payload);
     state.battle = data;
@@ -718,6 +883,8 @@ async function handlePvpState(data, options = {}) {
     forceHomeAfterPvpClose();
     return;
   }
+  data.pvp = true;
+  syncSetupFromBattle(data);
   const previousTurn = state.battle?.turn || data.logTurn || data.turn || 0;
   const hasNewLog = data.log?.length && Number(data.logSerial || 0) > Number(state.pvp.lastLogSerial || 0);
   if (hasNewLog) {
@@ -766,7 +933,7 @@ function currentPvpLeaveRequest() {
 
 function shouldNotifyPvpLeave() {
   return state.battleMode === "pvp"
-    && Boolean(state.pvp?.server && state.pvp?.room && state.pvp?.token && state.battle)
+    && Boolean(state.pvp?.room && state.pvp?.token && state.battle)
     && !Boolean(state.battle.is_over || state.battle.gameOver);
 }
 
@@ -872,8 +1039,13 @@ function renderBattle(data, options = {}) {
   renderActions(data.actions || [], data.is_over);
   renderBattleRecordButton(data);
   els.turnChip.textContent = data.is_over ? `TURN ${data.turn} 종료` : `TURN ${data.turn}`;
-  setMatchLabel(data.player.name, data.ai.name, data.personality.name);
-  els.aiModeText.textContent = data.personality.name;
+  if (data.pvp) {
+    setMatchLabel(data.player.name, data.started ? data.ai.name : "???", "PvP");
+    els.aiModeText.textContent = "PvP";
+  } else {
+    setMatchLabel(data.player.name, data.ai.name, data.personality.name);
+    els.aiModeText.textContent = data.personality.name;
+  }
   els.enemyInfoButton.disabled = false;
   els.playerInfoButton.disabled = false;
   renderPvpStatus(data);
@@ -1259,7 +1431,12 @@ function effectFromLogLine(line, context) {
     return makeMissEffect(context.actorName);
   }
 
-  let match = line.match(/^(?:\d+타:\s*)?(.+?)에게 (\d+)의 피해\./);
+  let match = line.match(/^(.+?)의 그림자 병사 \d+이 공격 피해 (\d+)을 대신 받았다\.$/);
+  if (match) {
+    return Number(match[2]) > 0 ? makeLogEffect("shadow-hit", match[1], match[1], match[2]) : null;
+  }
+
+  match = line.match(/^(?:\d+타:\s*)?(.+?)에게 (\d+)의 피해\./);
   if (match) {
     return Number(match[2]) > 0 ? makeLogEffect("hit", match[1], context.actorName, match[2]) : null;
   }
@@ -1417,7 +1594,7 @@ function playLogEffect(effect) {
   if (effect.value) {
     const value = document.createElement("span");
     value.className = `battle-fx-value battle-fx-value-${effect.type}`;
-    value.textContent = effect.type === "hit" ? `-${effect.value}` : String(effect.value);
+    value.textContent = effect.type === "hit" || effect.type === "shadow-hit" ? `-${effect.value}` : String(effect.value);
     stage.append(value);
     registerEffectTimeout(window.setTimeout(() => value.remove(), 850));
   }
@@ -1873,8 +2050,8 @@ function syncSetupLock() {
   const pvpLocked = isPvpSetupLocked();
   const startLocked = state.busy || pvpLocked;
   els.startButton.disabled = startLocked;
+  els.inscriptionButton.disabled = pvpLocked;
   els.playerSelect.disabled = pvpLocked;
-  els.pvpServerInput.disabled = pvpLocked;
   els.pvpRoomInput.disabled = pvpLocked;
   for (const picker of state.characterPickers) {
     picker.select.disabled = picker.select === els.playerSelect ? pvpLocked : false;
@@ -1882,6 +2059,7 @@ function syncSetupLock() {
   }
   if (pvpLocked) {
     closeCustomSelects();
+    closeInscriptionPopover();
     closeCharacterPicker();
   }
 }
@@ -1926,7 +2104,7 @@ async function api(path, body, baseUrl = "") {
     response = await fetch(`${baseUrl}${path}`, init);
   } catch (error) {
     if (baseUrl) {
-      throw new Error("PvP 서버에 연결할 수 없습니다. 서버 주소, cloudflared 창, VERSUS 서버 상태를 확인해 주세요.");
+      throw new Error("PvP 서버에 연결할 수 없습니다. VERSUS 서버 상태를 확인해 주세요.");
     }
     throw error;
   }
@@ -1938,52 +2116,11 @@ async function api(path, body, baseUrl = "") {
 }
 
 function pvpApi(path, body) {
-  if (!state.pvp?.server) {
-    throw new Error("PvP 서버 주소가 없습니다.");
-  }
-  return api(path, body, state.pvp.server);
-}
-
-function normalizePvpServer(value) {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const withProtocol = /^[a-z][a-z\d+\-.]*:\/\//i.test(trimmed)
-    ? trimmed
-    : `https://${trimmed}`;
-  try {
-    const url = new URL(withProtocol);
-    url.hash = "";
-    url.search = "";
-    return url.toString().replace(/\/$/, "");
-  } catch {
-    return "";
-  }
+  return api(path, body, state.pvp?.server || "");
 }
 
 function normalizeRoomCode(value) {
   return value.trim().replace(/\s+/g, "").toUpperCase();
-}
-
-function loadStoredPvpInputs() {
-  try {
-    if (!els.pvpServerInput.value) {
-      els.pvpServerInput.value = localStorage.getItem(PVP_SERVER_STORAGE_KEY) || "";
-    }
-    if (!els.pvpRoomInput.value) {
-      els.pvpRoomInput.value = localStorage.getItem(PVP_ROOM_STORAGE_KEY) || "";
-    }
-  } catch {
-    // Local storage can be unavailable in restricted browser shells.
-  }
-}
-
-function saveStoredPvpInputs(server, room) {
-  try {
-    localStorage.setItem(PVP_SERVER_STORAGE_KEY, server);
-    localStorage.setItem(PVP_ROOM_STORAGE_KEY, room);
-  } catch {
-    // The typed values still remain in the current session.
-  }
 }
 
 function pvpTokenStorageKey(server, room) {
@@ -1991,6 +2128,7 @@ function pvpTokenStorageKey(server, room) {
 }
 
 function loadStoredPvpToken(server, room) {
+  if (!room) return "";
   try {
     return localStorage.getItem(pvpTokenStorageKey(server, room)) || "";
   } catch {
@@ -1999,7 +2137,7 @@ function loadStoredPvpToken(server, room) {
 }
 
 function saveStoredPvpToken(server, room, token) {
-  if (!token) return;
+  if (!room || !token) return;
   try {
     localStorage.setItem(pvpTokenStorageKey(server, room), token);
   } catch {

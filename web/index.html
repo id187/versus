@@ -32,11 +32,17 @@
           <span id="matchLabel">대전 준비</span>
         </div>
         <div class="battle-setup" aria-label="전투 설정">
-          <label>
-            내 캐릭터
-            <select id="playerSelect"></select>
-          </label>
-          <label class="pve-setup-field">
+          <div class="setup-field player-setup-field">
+            <span class="setup-label">내 캐릭터</span>
+            <div class="player-select-row">
+              <button class="inscription-button" id="inscriptionButton" type="button" aria-haspopup="true" aria-expanded="false">
+                <span class="inscription-gem" aria-hidden="true"></span>
+              </button>
+              <select id="playerSelect"></select>
+            </div>
+            <div class="inscription-popover" id="inscriptionPopover" hidden></div>
+          </div>
+          <label class="pve-setup-field opponent-setup-field">
             상대 캐릭터
             <select id="aiSelect"></select>
           </label>
@@ -45,12 +51,8 @@
             <select id="personalitySelect"></select>
           </label>
           <label class="pvp-setup-field" hidden>
-            서버 주소
-            <input id="pvpServerInput" type="url" inputmode="url" autocomplete="url" placeholder="https://...trycloudflare.com">
-          </label>
-          <label class="pvp-setup-field" hidden>
-            방 코드
-            <input id="pvpRoomInput" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="0000">
+            방 코드(선택)
+            <input id="pvpRoomInput" autocomplete="off" spellcheck="false" placeholder="비우면 무작위 매칭">
           </label>
           <button class="primary-button" id="startButton" type="button">전투 시작</button>
         </div>
