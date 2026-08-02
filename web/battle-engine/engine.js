@@ -110,13 +110,23 @@ function usesAdventurePowerMultiplier(action) {
 }
 
 function adventureRhythmAttackMultiplier(fighter, turn, direction) {
-  const kind = String(fighter?.adventureBattleRhythm?.kind || "");
+  const rhythm = fighter?.adventureBattleRhythm;
+  const kind = String(rhythm?.kind || "");
   const currentTurn = Math.max(1, Math.trunc(Number(turn || 1)));
+  const earlyTurnEnd = Math.max(1, Math.trunc(Number(rhythm?.earlyTurnEnd || (kind === "late" ? 3 : 2))));
+  const isEarly = currentTurn <= earlyTurnEnd;
   if (direction === "outgoing") {
-    if (kind === "rush") return currentTurn <= 2 ? 1.2 : 0.9;
-    if (kind === "late") return currentTurn <= 3 ? 0.85 : 1.3;
+    const multiplier = Number(isEarly
+      ? rhythm?.earlyOutgoingDamageMultiplier
+      : rhythm?.lateOutgoingDamageMultiplier);
+    if (Number.isFinite(multiplier) && multiplier >= 0) return multiplier;
   }
-  if (direction === "incoming" && kind === "wall") return currentTurn <= 2 ? 0.8 : 1.1;
+  if (direction === "incoming") {
+    const multiplier = Number(isEarly
+      ? rhythm?.earlyIncomingDamageMultiplier
+      : rhythm?.lateIncomingDamageMultiplier);
+    if (Number.isFinite(multiplier) && multiplier >= 0) return multiplier;
+  }
   return 1;
 }
 
@@ -1846,9 +1856,37 @@ function currentStateText(battle, fighter) {
     if (!Number.isFinite(multiplier) || remaining <= 0) continue;
     parts.push(`액티브 MP ×${roundStat(multiplier)}(${remaining}턴)`);
   }
-  const priorityModifierCount = Object.values(fighter.adventureSkillPriorityModifiers || {})
-    .filter((value) => Number.isFinite(Number(value)) && Number(value) !== 0).length;
-  if (priorityModifierCount > 0) parts.push(`액티브 우선도 보정 ${priorityModifierCount}개`);
+  const adventureMpRecoveryBonus = Number(fighter.adventureMpRecoveryBonus || 0);
+  if (adventureMpRecoveryBonus) parts.push(`기본 MP 회복 +${roundStat(adventureMpRecoveryBonus)}`);
+  const adventureTurnEndHpRecovery = Number(fighter.adventureTurnEndHpRecovery || 0);
+  if (adventureTurnEndHpRecovery) parts.push(`턴 종료 HP 회복 +${roundStat(adventureTurnEndHpRecovery)}`);
+  const skillModifierKeys = new Set([
+    ...Object.keys(fighter.adventureSkillCostMultipliers || {}),
+    ...Object.keys(fighter.adventureSkillPowerMultipliers || {}),
+    ...Object.keys(fighter.adventureSkillAccuracyModifiers || {}),
+    ...Object.keys(fighter.adventureSkillPriorityModifiers || {}),
+  ]);
+  for (const actionKey of skillModifierKeys) {
+    const actionName = battle.displayActionName(fighter, actionKey);
+    const modifiers = [];
+    const cost = Number(fighter.adventureSkillCostMultipliers?.[actionKey] ?? 1);
+    const power = Number(fighter.adventureSkillPowerMultipliers?.[actionKey] ?? 1);
+    const accuracy = Number(fighter.adventureSkillAccuracyModifiers?.[actionKey] ?? 0);
+    const priority = Number(fighter.adventureSkillPriorityModifiers?.[actionKey] ?? 0);
+    if (Number.isFinite(cost) && cost !== 1) modifiers.push(`MP ×${roundStat(cost)}`);
+    if (Number.isFinite(power) && power !== 1) modifiers.push(`위력 ×${roundStat(power)}`);
+    if (Number.isFinite(accuracy) && accuracy !== 0) modifiers.push(`명중률 ${signedNumber(accuracy)}`);
+    if (Number.isFinite(priority) && priority !== 0) modifiers.push(`우선도 ${signedNumber(priority)}`);
+    if (modifiers.length) parts.push(`${actionName}: ${modifiers.join("·")}`);
+  }
+  const allSkillCostMultiplier = Number(fighter.adventureAllSkillCostMultiplier ?? 1);
+  if (Number.isFinite(allSkillCostMultiplier) && allSkillCostMultiplier !== 1) {
+    parts.push(`모든 액티브 MP ×${roundStat(allSkillCostMultiplier)}`);
+  }
+  const damageMultiplier = Number(fighter.adventureDamageMultiplier ?? 1);
+  if (Number.isFinite(damageMultiplier) && damageMultiplier !== 1) {
+    parts.push(`공격 피해 ×${roundStat(damageMultiplier)}`);
+  }
   const defenseBonus = Number(fighter.adventureCommonDefenseReductionBonus || 0);
   const commonAttackBonus = Number(fighter.adventureCommonAttackPowerBonus || 0);
   if (commonAttackBonus) parts.push(`일반 공격 위력 +${roundStat(commonAttackBonus)}`);
@@ -1867,10 +1905,71 @@ function currentStateText(battle, fighter) {
   }
   const relicKind = String(fighter.adventureRelic?.kind || "");
   if (ADVENTURE_RELIC_LABELS[relicKind] && Number(fighter.adventureRelic?.battlesRemaining || 0) > 0) {
-    parts.push(`${ADVENTURE_RELIC_LABELS[relicKind]}(${fighter.adventureRelic.used ? "사용 완료" : "사용 가능"})`);
+    const relic = fighter.adventureRelic;
+    const detail = relicKind === "red_amber"
+      ? `HP ${Math.round(Number(relic.hpThresholdRate || 0) * 100)}% 이하 시 ${Math.round(Number(relic.restoreHpRate || 0) * 100)}% 회복`
+      : relicKind === "blue_amber"
+        ? `MP ${Number(relic.mpThreshold || 0)} 이하 시 ${Number(relic.restoreMp || 0)} 회복`
+        : `첫 빗나감 재판정 ${Number(relic.rerollMissCount || 0)}회`;
+    parts.push(`${ADVENTURE_RELIC_LABELS[relicKind]} ${relic.battlesRemaining}전(${relic.used ? "사용 완료" : "사용 가능"}·${detail})`);
   }
+  const fixedDamage = Number(fighter.adventureTurnEndFixedDamage || 0);
+  if (fixedDamage > 0) parts.push(`턴 종료 고정 피해 ${roundStat(fixedDamage)}`);
+  const surviveCount = Number(fighter.adventureSurviveDefeatCount || 0);
+  if (surviveCount > 0) parts.push(`수호 부적 ${surviveCount}회`);
+  if (fighter.adventureSkipNextAction) {
+    parts.push(`다음 행동 불가: ${fighter.adventureSkipNextActionLabel || "행동 봉쇄"}`);
+  }
+  if (fighter.side === battle.player?.side) parts.push(...adventureRouteStateParts(battle.adventureState));
   parts.push(...characterLogic.extraStateParts(battle, fighter));
   return parts.length ? parts.join(" / ") : "없음";
+}
+
+function adventureRouteStateParts(adventure) {
+  if (!adventure) return [];
+  const parts = [];
+  const statMultipliers = { atk: 1, def: 1, spd: 1, ...(adventure.playerStatMultipliers || {}) };
+  const changedStats = Object.entries(statMultipliers)
+    .filter(([, value]) => Number.isFinite(Number(value)) && Number(value) !== 1)
+    .map(([stat, value]) => `${stat.toUpperCase()} ×${roundStat(Number(value))}`);
+  if (changedStats.length) parts.push(`여정 능력치 ${changedStats.join("·")}`);
+  const postBattleHealBonus = Number(adventure.postBattleHealRateBonus || 0);
+  if (postBattleHealBonus) parts.push(`전투 종료 HP 회복 보정 ${signedPercentPoint(postBattleHealBonus)}`);
+  const battleStartMpRecovery = Number(adventure.battleStartMpRecovery || 0);
+  if (battleStartMpRecovery) parts.push(`전투 시작 MP 회복 +${roundStat(battleStartMpRecovery)}`);
+  const enemyHpMultiplier = Number(adventure.futureEnemyMaxHpMultiplier ?? 1);
+  if (Number.isFinite(enemyHpMultiplier) && enemyHpMultiplier !== 1) {
+    parts.push(`마왕군 최대 HP ×${roundStat(enemyHpMultiplier)}`);
+  }
+  const specialization = adventure.rewardSpecialization;
+  if (Number(specialization?.battlesRemaining || 0) > 0) {
+    parts.push(`전투 보상 ${String(specialization.preferredStat || "").toUpperCase()} ${Math.round(Number(specialization.preferredBonus || 0) * 100)}%·그 외 ${Math.round(Number(specialization.otherBonus || 0) * 100)}%(${specialization.battlesRemaining}회)`);
+  }
+  const rerolls = Number(adventure.routeRerollCount || 0);
+  if (rerolls > 0) parts.push(`행선지 재추첨 ${rerolls}회`);
+  if (adventure.nextAmbushChanceOverride != null) parts.push(`다음 기습 확률 ${Number(adventure.nextAmbushChanceOverride)}%`);
+  if (adventure.forceTownNextRoute) parts.push("다음 행선지에 마을");
+  for (const effect of adventure.nextBattleEffects || []) {
+    const battles = Math.max(0, Math.trunc(Number(effect.battlesRemaining || 0)));
+    if (!battles) continue;
+    const duration = `(${battles}전)`;
+    if (effect.type === "all_skill_cost") parts.push(`다음 전투 액티브 MP ×${roundStat(Number(effect.multiplier || 1))}${duration}`);
+    else if (effect.type === "damage") parts.push(`다음 전투 공격 피해 ×${roundStat(Number(effect.multiplier || 1))}${duration}`);
+    else if (effect.type === "turn_end_mp") parts.push(`다음 전투 턴 종료 MP +${roundStat(Number(effect.amount || 0))}${duration}`);
+    else if (effect.type === "skip_enemy_action") parts.push(`다음 전투 상대 첫 행동 봉쇄${duration}`);
+    else if (effect.type === "both_turn_end_fixed_damage") parts.push(`다음 전투 양측 턴 종료 피해 ${roundStat(Number(effect.amount || 0))}${duration}`);
+  }
+  return parts;
+}
+
+function signedNumber(value) {
+  const number = roundStat(Number(value || 0));
+  return number > 0 ? `+${number}` : String(number);
+}
+
+function signedPercentPoint(value) {
+  const percent = Math.round(Number(value || 0) * 100);
+  return `${percent > 0 ? "+" : ""}${percent}%p`;
 }
 
 function gameResultText(battle) {

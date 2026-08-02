@@ -2006,6 +2006,11 @@ function statePatchFromLogLine(line, context) {
     return { fighterName: match[1] || context.actorName, side: context.lineSide || context.actorSide, mp: Number(match[2]) };
   }
 
+  match = line.match(/^(.+?)(?:의)? HP (\d+)\s*(?:→|->)\s*(\d+)/);
+  if (match) {
+    return { fighterName: match[1], side: context.lineSide, hp: Number(match[3]) };
+  }
+
   return null;
 }
 
@@ -2074,6 +2079,13 @@ function effectFromLogLine(line, context) {
     return fighterName && amount > 0 ? makeLogEffect("heal", fighterName, fighterName, `MP +${amount}`, context.lineSide, context.lineSide || context.actorSide) : null;
   }
 
+  match = line.match(/^(.+?)(?:의)? HP (\d+)\s*(?:→|->)\s*(\d+)/);
+  if (match) {
+    const amount = Number(match[3]) - Number(match[2]);
+    if (amount === 0) return null;
+    return makeLogEffect(amount > 0 ? "heal" : "hit", match[1], match[1], `HP ${amount > 0 ? "+" : ""}${amount}`, context.lineSide, context.lineSide);
+  }
+
   match = line.match(/^(.+?)에게 (.+?) 상태가/);
   if (match) {
     return makeLogEffect("debuff", match[1], context.actorName, match[2], context.lineSide, context.actorSide);
@@ -2098,6 +2110,36 @@ function effectFromLogLine(line, context) {
     return makeLogEffect("buff", match[1], match[1], `${match[2]} x${match[4]}`, context.lineSide, context.lineSide || context.actorSide);
   }
 
+  match = line.match(/^(.+?)의 (ATK|DEF|SPD) ([+-][0-9.]+)% \(현재 ([0-9.]+)배\)/);
+  if (match) {
+    const change = Number(match[3]);
+    return makeLogEffect(change >= 0 ? "buff" : "debuff", match[1], match[1], `${match[2]} ${match[3]}%`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 최대 (HP|MP) ([0-9.]+)\s*(?:→|->)\s*([0-9.]+)/);
+  if (match) {
+    const before = Number(match[3]);
+    const after = Number(match[4]);
+    if (before === after) return null;
+    return makeLogEffect(after > before ? "buff" : "debuff", match[1], match[1], `최대 ${match[2]} ${before}→${after}`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 (MP 소모량 배율|위력 배율|명중률 보정|우선도 보정) (-?[0-9.]+)\s*(?:→|->)\s*(-?[0-9.]+)/);
+  if (match) {
+    const before = Number(match[3]);
+    const after = Number(match[4]);
+    const lowerIsBetter = match[2] === "MP 소모량 배율";
+    const improved = lowerIsBetter ? after < before : after > before;
+    const fighterName = state.battle?.[context.lineSide]?.name || context.actorName;
+    return fighterName ? makeLogEffect(improved ? "buff" : "debuff", fighterName, fighterName, `${match[1]} ${match[2]}`, context.lineSide, context.lineSide || context.actorSide) : null;
+  }
+
+  match = line.match(/^(일반 공격|일반 방어|명상)의 (?:위력|추가 피해 경감률|추가 MP 회복량) /);
+  if (match) {
+    const fighterName = state.battle?.[context.lineSide]?.name || context.actorName;
+    return fighterName ? makeLogEffect("buff", fighterName, fighterName, `${match[1]} 강화`, context.lineSide, context.lineSide || context.actorSide) : null;
+  }
+
   match = line.match(/^(.+?)의 기본 MP 회복량 \+([0-9.]+) \(현재 \+([0-9.]+)\)/);
   if (match) {
     return makeLogEffect("buff", match[1], match[1], `MP 회복 +${match[3]}`, context.lineSide, context.lineSide || context.actorSide);
@@ -2113,15 +2155,30 @@ function effectFromLogLine(line, context) {
     return makeLogEffect("buff", match[1], match[1], `최대 HP +${match[2]}%`, context.lineSide, context.lineSide || context.actorSide);
   }
 
-  match = line.match(/^(.+?)의 전투 종료 HP 회복량 \+([0-9.]+)%p \(현재 ([0-9.]+)%\)/);
+  match = line.match(/^(.+?)의 전투 종료 HP 회복 (?:량|보정) ([+-][0-9.]+)%p \(현재 ([+-]?[0-9.]+)%p?\)/);
   if (match) {
-    return makeLogEffect("buff", match[1], match[1], `전투 종료 HP ${match[3]}%`, context.lineSide, context.lineSide || context.actorSide);
+    return makeLogEffect(Number(match[2]) >= 0 ? "buff" : "debuff", match[1], match[1], `전투 종료 HP ${match[3]}%`, context.lineSide, context.lineSide || context.actorSide);
   }
 
-  match = line.match(/^(.+?)의 (.+?) MP 소모량이 30% (감소|증가)했다\. \(현재 ([0-9.]+)배\)/);
+  match = line.match(/^(.+?)의 (.+?) MP 소모량이 ([0-9.]+)% (감소|증가)했다\. \(현재 ([0-9.]+)배\)/);
   if (match) {
-    const effectType = match[3] === "감소" ? "buff" : "debuff";
-    return makeLogEffect(effectType, match[1], match[1], `${match[2]} MP x${match[4]}`, context.lineSide, context.lineSide || context.actorSide);
+    const effectType = match[4] === "감소" ? "buff" : "debuff";
+    return makeLogEffect(effectType, match[1], match[1], `${match[2]} MP x${match[5]}`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)(?:에게|의|은|이) (?:다음|이후).*(?:적용|회복|소모량|공격 피해|전투 보상)/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], "여정 효과", context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)에게 (?:빠른|무거운|느린) 박자가 적용된다/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], "전투 리듬", context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)(?:이|가) (?:붉은 호박|푸른 호박|유리 눈)을 얻었다/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], "유물", context.lineSide, context.lineSide || context.actorSide);
   }
 
   match = line.match(/^(.+?)의 (.+?) (\d+)(?:\/\d+)?\s*(?:→|->)\s*(\d+)(?:\/\d+)?(?:중첩)?/);

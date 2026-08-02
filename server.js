@@ -383,7 +383,7 @@ class GameStore {
         this.lockAiAction();
         log = [
           "선제 공격.",
-          `[@AI]${battle.ai.name}의 HP가 ${Math.round(strike.rate * 100)}% 감소했다. HP ${strike.hpBefore} -> ${strike.hpAfter}`,
+          `[@AI]${battle.ai.name}에게 ${strike.hpLoss}의 피해. HP ${strike.hpBefore} -> ${strike.hpAfter} (선제 공격)`,
           `STAGE ${this.adventureState.stage} 전투 시작: ${battle.player.name} vs ${battle.ai.label}`,
           `${battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
           ...adventureBattleStartEffectLines(this.adventureState),
@@ -449,7 +449,8 @@ class GameStore {
       log = [`${meal.label}를 먹었다.`, ...battle.logs];
       if (meal.stat) {
         log.push("매콤 스튜 효과가 발동했다.");
-        log.push(`[@PLAYER]${battle.player.name}의 ${meal.stat.label} +10% (현재 ${meal.stat.afterMultiplier}배)`);
+        const percent = Math.round((Number(meal.stat.afterMultiplier) - Number(meal.stat.beforeMultiplier)) * 100);
+        log.push(`[@PLAYER]${battle.player.name}의 ${meal.stat.label} ${signedPercent(percent)} (현재 ${meal.stat.afterMultiplier}배)`);
       }
       log.push("마을에서 식사를 마쳤다.");
       log.push("다음 행선지가 나타났다.");
@@ -470,20 +471,20 @@ class GameStore {
       log = [selectionLog, ...battle.logs];
       if (result.eventId === "magic_stone_mine") {
         if (result.type === "calm") {
-          log.push(`[@PLAYER]${battle.player.name}의 기본 MP 회복량 +2 (현재 +${result.afterBonus})`);
+          log.push(`[@PLAYER]${battle.player.name}의 기본 MP 회복량 +${result.afterBonus - result.beforeBonus} (현재 +${result.afterBonus})`);
           log.push("폭주하던 마석이 잦아들었다.");
         } else if (result.type === "absorb") {
           const outcome = result.success ? "성공" : "실패";
           const direction = result.success ? "감소" : "증가";
-          log.push(`흡수 판정 75% / 판정값 ${result.roll} - ${outcome}`);
-          log.push(`[@PLAYER]${battle.player.name}의 ${result.skillName} MP 소모량이 30% ${direction}했다. (현재 ${result.afterMultiplier}배)`);
+          log.push(`흡수 판정 ${Math.round(result.successRate * 100)}% / 판정값 ${result.roll} - ${outcome}`);
+          log.push(`[@PLAYER]${battle.player.name}의 ${result.skillName} MP 소모량이 ${Math.round(Math.abs(1 - result.appliedMultiplier) * 100)}% ${direction}했다. (현재 ${result.afterMultiplier}배)`);
         } else if (result.type === "ignore") {
           log.push(`[@PLAYER]${battle.player.name}에게 ${result.hpLoss}의 피해. HP ${result.hpBefore} -> ${result.hpAfter} (폭주한 마석)`);
         }
         log.push("마석 광산을 벗어났다.");
       } else if (result.eventId === "potato_farm") {
         if (result.type === "potato_bake") {
-          log.push(`감자 굽기 판정 70% / 판정값 ${result.roll} - ${result.success ? "성공" : "실패"}`);
+          log.push(`감자 굽기 판정 ${Math.round(result.successRate * 100)}% / 판정값 ${result.roll} - ${result.success ? "성공" : "실패"}`);
           if (!result.success) log.push("감자를 태워 아무 효과도 얻지 못했다.");
         }
         if (result.addedRecovery > 0) {
@@ -493,14 +494,15 @@ class GameStore {
       } else if (result.eventId === "spring_of_life") {
         if (result.type === "spring_wash") {
           log.push(`[@PLAYER]${battle.player.name}에게 ${result.hpSpent}의 피해. HP ${result.hpBefore} -> ${result.hpAfter} (상처를 씻는다)`);
-          log.push(`[@PLAYER]${battle.player.name}의 최대 HP +15% (${result.maxHpBefore} -> ${result.maxHpAfter})`);
+          log.push(`[@PLAYER]${battle.player.name}의 최대 HP ${result.maxHpBefore} -> ${result.maxHpAfter}`);
         } else if (result.type === "spring_bottle") {
-          log.push(`[@PLAYER]${battle.player.name}의 전투 종료 HP 회복량 ${Math.round(result.totalRate * 100)}%`);
+          log.push(`[@PLAYER]${battle.player.name}의 전투 종료 HP 회복 보정 ${signedPercentPoint(result.addedRate)} (현재 ${Math.round(result.totalRate * 100)}%)`);
         }
         log.push("생명의 샘을 떠났다.");
       } else if (result.eventId === "blood_altar") {
         log.push(`[@PLAYER]${battle.player.name}에게 ${result.hpSpent}의 피해. HP ${result.hpBefore} -> ${result.hpAfter} (피의 제단)`);
-        log.push(`[@PLAYER]${battle.player.name}의 ${result.stat.label} +30% (현재 ${result.stat.afterMultiplier}배)`);
+        const percent = Math.round((Number(result.stat.afterMultiplier) - Number(result.stat.beforeMultiplier)) * 100);
+        log.push(`[@PLAYER]${battle.player.name}의 ${result.stat.label} ${signedPercent(percent)} (현재 ${result.stat.afterMultiplier}배)`);
         log.push("피의 제단을 떠났다.");
       } else {
         log.push(...adventureEffectResultLines(battle.player, result));
@@ -1110,15 +1112,27 @@ function adventureEffectResultLines(fighter, result) {
   }
   if (result.rhythm) {
     const rhythmNames = { rush: "빠른 박자", wall: "무거운 박자", late: "느린 박자" };
-    lines.push(`${rhythmNames[result.rhythm.kind] || "전투의 박자"}가 이후 전투에 적용된다.`);
+    const rhythm = result.rhythm;
+    if (rhythm.kind === "wall") {
+      lines.push(`[@PLAYER]${fighter.name}에게 ${rhythmNames[rhythm.kind]}가 적용된다. ${rhythm.earlyTurnEnd}턴까지 받는 공격 피해 ×${rhythm.earlyIncomingDamageMultiplier}, 이후 ×${rhythm.lateIncomingDamageMultiplier}`);
+    } else {
+      lines.push(`[@PLAYER]${fighter.name}에게 ${rhythmNames[rhythm.kind] || "전투의 박자"}가 적용된다. ${rhythm.earlyTurnEnd}턴까지 주는 공격 피해 ×${rhythm.earlyOutgoingDamageMultiplier}, 이후 ×${rhythm.lateOutgoingDamageMultiplier}`);
+    }
   }
   if (result.rewardSpecialization) {
-    const stat = String(result.rewardSpecialization.preferredStat || "").toUpperCase();
-    lines.push(`다음 ${result.rewardSpecialization.battlesRemaining}번의 전투 보상이 ${stat} 중심으로 변경된다.`);
+    const specialization = result.rewardSpecialization;
+    const stat = String(specialization.preferredStat || "").toUpperCase();
+    lines.push(`[@PLAYER]${fighter.name}의 다음 ${specialization.battlesRemaining}번 전투 보상: ${stat} +${Math.round(specialization.preferredBonus * 100)}%, 그 외 +${Math.round(specialization.otherBonus * 100)}%`);
   }
   if (result.relic) {
     const relicNames = { red_amber: "붉은 호박", blue_amber: "푸른 호박", glass_eye: "유리 눈" };
-    lines.push(`${relicNames[result.relic.kind] || "유물"}이 다음 ${result.relic.battlesRemaining}번의 전투에 반응한다.`);
+    const relic = result.relic;
+    const detail = relic.kind === "red_amber"
+      ? `HP가 ${Math.round(relic.hpThresholdRate * 100)}% 이하가 되면 최대 HP의 ${Math.round(relic.restoreHpRate * 100)}% 회복`
+      : relic.kind === "blue_amber"
+        ? `액티브 사용 후 MP가 ${relic.mpThreshold} 이하가 되면 MP ${relic.restoreMp} 회복`
+        : `첫 빗나감 또는 회피 판정 ${relic.rerollMissCount}회 재판정`;
+    lines.push(`[@PLAYER]${fighter.name}이 ${relicNames[relic.kind] || "유물"}을 얻었다. 다음 ${relic.battlesRemaining}번의 전투에서 ${detail}`);
   }
   if (result.maxHp) lines.push(`[@PLAYER]${fighter.name}의 최대 HP ${result.maxHp.before} -> ${result.maxHp.after}`);
   if (result.maxMp) lines.push(`[@PLAYER]${fighter.name}의 최대 MP ${result.maxMp.before} -> ${result.maxMp.after}`);
@@ -1128,19 +1142,63 @@ function adventureEffectResultLines(fighter, result) {
       : "제거할 영구 약화 효과가 없었다.");
   }
   if (result.postBattleHeal) {
-    lines.push(`전투 종료 HP 회복 보정이 ${Math.round(result.postBattleHeal.after * 100)}%가 됐다.`);
+    lines.push(`[@PLAYER]${fighter.name}의 전투 종료 HP 회복 보정 ${signedPercentPoint(result.postBattleHeal.delta)} (현재 ${signedPercentPoint(result.postBattleHeal.after)})`);
   }
-  if (result.battleStartMpRecovery != null) lines.push(`이후 전투 시작 시 MP를 ${result.battleStartMpRecovery} 회복한다.`);
+  if (result.battleStartMpRecovery != null) lines.push(`[@PLAYER]${fighter.name}은 이후 전투 시작 시 MP를 ${result.battleStartMpRecovery} 회복한다.`);
+  if (result.ambush) lines.push(`기습 확률 단계 ${result.ambush.before} -> ${result.ambush.after} (현재 ${result.ambush.chance}%)`);
   if (result.nextAmbushChance != null) lines.push(`다음 행선지의 기습 확률이 ${result.nextAmbushChance}%가 됐다.`);
   if (result.routeRerollCount != null) lines.push(`행선지를 다시 뽑을 기회 ${result.routeRerollCount}회를 얻었다.`);
   if (result.forceTownNextRoute) lines.push("다음 행선지에 마을이 나타난다.");
+  if (result.forceTownUnavailable) lines.push("남은 마을 방문 횟수가 없어 표지판의 안내를 따를 수 없었다.");
   if (result.advanceStage) lines.push(`스테이지를 ${result.advanceStage}개 건너뛴다.`);
   if (result.surviveDefeatCount) lines.push(`수호 부적 ${result.surviveDefeatCount}회를 보유한다.`);
   if (result.futureEnemyMaxHpMultiplier) lines.push(`이후 마왕군 최대 HP 배율이 ${result.futureEnemyMaxHpMultiplier}배가 됐다.`);
   if (result.restored === false) lines.push("되돌릴 전투 기록이 없어 변화가 없었다.");
-  if (result.battleCount) lines.push(`효과가 다음 ${result.battleCount}번의 전투에 적용된다.`);
-  if (result.skipEnemyFirstTurn) lines.push("다음 전투에서 상대의 첫 행동을 막는다.");
+  if (result.restored === true) {
+    lines.push(`[@PLAYER]${fighter.name}의 HP ${result.before.hp} -> ${result.after.hp} (직전 전투 기록)`);
+    lines.push(`[@PLAYER]${fighter.name} MP ${result.before.mp} -> ${result.after.mp} (직전 전투 기록)`);
+  }
+  if (result.mpBefore != null && result.mpAfter != null && result.mpBefore !== result.mpAfter && result.type === "storm_absorb") {
+    lines.push(`[@PLAYER]${fighter.name} MP ${result.mpBefore} -> ${result.mpAfter} (마력 폭풍)`);
+  }
+  if (result.nextBattleEffect) lines.push(...adventureQueuedEffectLines(fighter, result.nextBattleEffect));
+  if (result.battleConfig?.enemyStartingHpRate != null) {
+    lines.push(`마왕군은 최대 HP의 ${Math.round(result.battleConfig.enemyStartingHpRate * 100)}%로 전투를 시작한다.`);
+  }
+  if (result.battleConfig?.rewardChoiceCount > 1) {
+    lines.push(`승리하면 전투 보상을 ${result.battleConfig.rewardChoiceCount}개 선택한다.`);
+  }
+  if (result.battleConfig?.enemyAllStatMultiplier != null) {
+    lines.push(`마왕군의 모든 능력치가 ${result.battleConfig.enemyAllStatMultiplier}배가 된다.`);
+  }
+  if (result.battleConfig?.victoryMaxHpMultiplier != null) {
+    lines.push(`승리하면 최대 HP가 ${Math.round((result.battleConfig.victoryMaxHpMultiplier - 1) * 100)}% 증가한다.`);
+  }
+  if (result.battleCount && !result.nextBattleEffect && !result.rewardSpecialization && !result.relic) {
+    lines.push(`효과가 다음 ${result.battleCount}번의 전투에 적용된다.`);
+  }
+  if (result.skipEnemyFirstTurn && !result.nextBattleEffect) lines.push("다음 전투에서 상대의 첫 행동을 막는다.");
   return lines;
+}
+
+function adventureQueuedEffectLines(fighter, effect) {
+  const battles = Math.max(1, Math.trunc(Number(effect.battlesRemaining || 1)));
+  if (effect.type === "all_skill_cost") return [`[@PLAYER]${fighter.name}의 다음 ${battles}번 전투 동안 모든 액티브 스킬 MP 소모량 ×${effect.multiplier}`];
+  if (effect.type === "damage") return [`[@PLAYER]${fighter.name}의 다음 ${battles}번 전투 동안 주는 공격 피해 ×${effect.multiplier}`];
+  if (effect.type === "turn_end_mp") return [`[@PLAYER]${fighter.name}은 다음 ${battles}번 전투 동안 매 턴 종료 시 MP를 ${effect.amount} 추가로 회복한다.`];
+  if (effect.type === "skip_enemy_action") return ["다음 전투에서 상대의 첫 행동을 막는다."];
+  if (effect.type === "both_turn_end_fixed_damage") return [`다음 ${battles}번 전투 동안 양측 모두 매 턴 종료 시 ${effect.amount}의 고정 피해를 입는다.`];
+  return [];
+}
+
+function signedPercent(value) {
+  const percent = Number(value || 0);
+  return `${percent > 0 ? "+" : ""}${percent}%`;
+}
+
+function signedPercentPoint(value) {
+  const percent = Math.round(Number(value || 0) * 100);
+  return `${percent > 0 ? "+" : ""}${percent}%p`;
 }
 
 function readJson(file) {

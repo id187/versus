@@ -39,7 +39,11 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       break;
     case "witch_blue_potion":
       result = { ...result, restore: restoreMp(battle, fighter, 1, "푸른 약") };
-      addNextBattleEffect(adventure, { type: "all_skill_cost", battlesRemaining: 1, multiplier: Number(effect.nextBattleSkillCostMultiplier || 1.2) });
+      result.nextBattleEffect = addNextBattleEffect(adventure, {
+        type: "all_skill_cost",
+        battlesRemaining: 1,
+        multiplier: Number(effect.nextBattleSkillCostMultiplier || 1.2),
+      });
       break;
     case "witch_black_potion": {
       const roll = battle.roll();
@@ -65,7 +69,11 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       result = { ...result, heal: restoreHp(battle, fighter, Number(effect.restoreHpRate || 0.1), "거울 호수"), ambush: adjustAmbushIndex(adventure, Number(effect.ambushChanceStep || -1)) };
       break;
     case "library_tactics":
-      addNextBattleEffect(adventure, { type: "damage", battlesRemaining: Number(effect.battleCount || 2), multiplier: Number(effect.damageMultiplier || 1.15) });
+      result.nextBattleEffect = addNextBattleEffect(adventure, {
+        type: "damage",
+        battlesRemaining: Number(effect.battleCount || 2),
+        multiplier: Number(effect.damageMultiplier || 1.15),
+      });
       result.battleCount = Number(effect.battleCount || 2);
       break;
     case "library_skill_cost": {
@@ -113,18 +121,20 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       result.advanceStage = Number(effect.advanceStage || 1);
       break;
     case "passage_blockade":
-      addNextBattleEffect(adventure, { type: "skip_enemy_action", battlesRemaining: 1 });
+      result.nextBattleEffect = addNextBattleEffect(adventure, { type: "skip_enemy_action", battlesRemaining: 1 });
       result.skipEnemyFirstTurn = true;
       break;
     case "merchant_survival_amulet":
       result.hp = loseHp(fighter, hpCost);
       adventure.playerSurviveDefeatCount = Number(adventure.playerSurviveDefeatCount || 0) + Number(effect.surviveDefeatCount || 1);
+      fighter.adventureSurviveDefeatCount = adventure.playerSurviveDefeatCount;
       result.surviveDefeatCount = adventure.playerSurviveDefeatCount;
       break;
     case "merchant_hourglass":
       result = { ...result, ...spendMp(battle, fighter, mpCost || 30, "모래시계") };
       adventure.nextAmbushChanceOverride = Number(effect.nextAmbushChance ?? 0);
       adventure.routeRerollCount = Number(adventure.routeRerollCount || 0) + Number(effect.routeRerollCount || 1);
+      result.nextAmbushChance = adventure.nextAmbushChanceOverride;
       result.routeRerollCount = adventure.routeRerollCount;
       break;
     case "merchant_sell_memory": {
@@ -175,8 +185,10 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       result.routeRerollCount = adventure.routeRerollCount;
       break;
     case "crossroads_force_town":
-      adventure.forceTownNextRoute = Boolean(effect.forceTownNextRoute);
+      adventure.forceTownNextRoute = Boolean(effect.forceTownNextRoute)
+        && Number(adventure.eventVisitCounts?.town || 0) < 2;
       result.forceTownNextRoute = adventure.forceTownNextRoute;
+      result.forceTownUnavailable = Boolean(effect.forceTownNextRoute) && !adventure.forceTownNextRoute;
       break;
     case "crossroads_skip_stage":
       result.hp = loseHp(fighter, hpCost);
@@ -184,7 +196,11 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       result.advanceStage = Number(effect.advanceStage || 1);
       break;
     case "graveyard_prayer":
-      addNextBattleEffect(adventure, { type: "turn_end_mp", battlesRemaining: Number(effect.battleCount || 3), amount: Number(effect.turnEndMpBonus || 2) });
+      result.nextBattleEffect = addNextBattleEffect(adventure, {
+        type: "turn_end_mp",
+        battlesRemaining: Number(effect.battleCount || 3),
+        amount: Number(effect.turnEndMpBonus || 2),
+      });
       result.battleCount = Number(effect.battleCount || 3);
       break;
     case "graveyard_dig": {
@@ -216,16 +232,21 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
     case "storm_absorb": {
       const roll = battle.roll();
       const success = roll < Number(effect.successRate || 0.7) * 100;
-      result = { ...result, roll: roundStat(roll), success };
+      result = { ...result, roll: roundStat(roll), success, mpBefore: fighter.mp };
       if (success) result.maxMp = changeMaxMp(fighter, Number(effect.successMaxMpBonus || 20));
       else {
         result.maxMp = changeMaxMp(fighter, -Number(effect.failureMaxMpPenalty || 10));
         fighter.mp = Number(effect.failureSetMp || 0);
       }
+      result.mpAfter = fighter.mp;
       break;
     }
     case "storm_release":
-      addNextBattleEffect(adventure, { type: "both_turn_end_fixed_damage", battlesRemaining: 1, amount: Number(effect.nextBattleBothTurnEndFixedDamage || 5) });
+      result.nextBattleEffect = addNextBattleEffect(adventure, {
+        type: "both_turn_end_fixed_damage",
+        battlesRemaining: 1,
+        amount: Number(effect.nextBattleBothTurnEndFixedDamage || 5),
+      });
       result.stats = applyStatDeltas(battle, adventure, { [effect.statId || "atk"]: Number(effect.statBonus || 0.2) });
       break;
     case "garden_white_flower":
@@ -508,6 +529,7 @@ function adjustAmbushIndex(adventure, delta) {
 
 function addNextBattleEffect(adventure, effect) {
   adventure.nextBattleEffects = [...(adventure.nextBattleEffects || []), effect];
+  return { ...effect };
 }
 
 function allStatDeltas(amount) {

@@ -45,9 +45,7 @@ function createAdventureBattle({ characters, monsters, events = [], inscriptions
     maxTurns: payload.maxTurns || 200,
   });
 
-  return {
-    battle,
-    adventure: {
+  const adventure = {
       stage: currentStage,
       totalStages: ADVENTURE_TOTAL_STAGES,
       phase: "battle",
@@ -95,7 +93,11 @@ function createAdventureBattle({ characters, monsters, events = [], inscriptions
       encounteredMonsterIds: [monster.id],
       remainingMonsterCount: Math.max(0, normalMonsters.length - 1),
       choices: [],
-    },
+    };
+  battle.adventureState = adventure;
+  return {
+    battle,
+    adventure,
   };
 }
 
@@ -146,6 +148,7 @@ function createNextAdventureBattle({ characters, monsters, inscriptions, previou
   adventure.settled = false;
   adventure.activeBattleConfig = { ...battleConfig };
   delete adventure.settlement;
+  battle.adventureState = adventure;
   return { battle, adventure };
 }
 
@@ -194,6 +197,7 @@ function createFinalAdventureBattle({ characters, monsters, inscriptions, previo
   adventure.settled = false;
   adventure.activeBattleConfig = {};
   delete adventure.settlement;
+  battle.adventureState = adventure;
   return { battle, adventure };
 }
 
