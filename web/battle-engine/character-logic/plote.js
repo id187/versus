@@ -43,8 +43,8 @@ module.exports = {
     if (!burn || !choice.action.isAttack) return false;
     const damage = floorInt(actor.maxHp * 0.02 * burn.stacks);
     if (damage <= 0) return false;
-    battle.fixedDamage(actor, damage, `화상 ${burn.stacks}중첩`, actor);
-    if (target.characterId === CHARACTER_ID) {
+    battle.fixedDamage(actor, damage, `화상 ${burn.stacks}중첩`, target);
+    if ((battle.activeCharacterId?.(target) || target.characterId) === CHARACTER_ID) {
       battle.restoreMp(target, floorInt(burn.stacks * 0.5), "영혼 연소");
     }
     return battle.gameOver;

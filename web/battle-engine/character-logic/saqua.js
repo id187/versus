@@ -99,7 +99,7 @@ module.exports = {
 
   onDefenseHit(battle, choice) {
     const defender = battle.opponent(choice.actor);
-    if (defender.characterId === CHARACTER_ID && defender.defenseName === "흐르는 수막") {
+    if ((battle.activeCharacterId?.(defender) || defender.characterId) === CHARACTER_ID && defender.defenseName === "흐르는 수막") {
       addCounter(battle, defender, FLOW, 2, MAX_FLOW);
     }
   },

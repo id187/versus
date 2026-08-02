@@ -41,6 +41,7 @@ function actionKindForKey(fighter, key) {
 }
 
 function recentKindCounts(battle, fighter, limit = 4) {
+  if (typeof battle.recentKindCounts === "function") return battle.recentKindCounts(fighter, limit);
   const counts = { attack: 0, defense: 0, meditation: 0 };
   let history = fighter.selectedHistory;
   if (Object.prototype.hasOwnProperty.call(battle.record.selected, fighter.side)) history = history.slice(0, -1);

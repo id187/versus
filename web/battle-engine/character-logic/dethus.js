@@ -49,7 +49,12 @@ module.exports = {
   preMpTurnEnd(battle, fighter) {
     const thirst = fighter.statuses["갈증"];
     if (thirst && fighter.mp <= 9) {
-      battle.fixedDamage(fighter, Number(thirst.stacks) * 3, `갈증 ${thirst.stacks}중첩`, fighter);
+      battle.fixedDamage(
+        fighter,
+        Number(thirst.stacks) * 3,
+        `갈증 ${thirst.stacks}중첩`,
+        battle.opponent(fighter),
+      );
     }
   },
 

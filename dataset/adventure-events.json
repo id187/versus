@@ -1,0 +1,1060 @@
+[
+  {
+    "id": "magic_stone_mine",
+    "name": "마석 광산",
+    "description": "마석이 폭주하고 있다.",
+    "bgm": "event",
+    "choices": [
+      {
+        "id": "calm",
+        "symbol": "+2",
+        "title": "마석을 진정시킨다",
+        "description": "MP를 20 소모한다. 기본 MP 회복량이 2 증가한다.",
+        "effect": {
+          "type": "calm",
+          "mpCost": 20,
+          "mpRecoveryBonus": 2,
+          "requiresFullMpCost": true
+        }
+      },
+      {
+        "id": "absorb",
+        "symbol": "75%",
+        "title": "마석을 흡수한다",
+        "description": "75% 확률로 무작위 액티브 스킬 하나의 MP 소모량이 30% 감소한다. 실패하면 오히려 30% 증가한다.",
+        "effect": {
+          "type": "absorb",
+          "successRate": 0.75,
+          "successMultiplier": 0.7,
+          "failureMultiplier": 1.3
+        }
+      },
+      {
+        "id": "ignore",
+        "symbol": "HP",
+        "title": "마석을 방치한다",
+        "description": "HP가 10 감소한다.",
+        "effect": {
+          "type": "ignore",
+          "hpLoss": 10
+        }
+      }
+    ]
+  },
+  {
+    "id": "potato_farm",
+    "name": "감자 농장",
+    "description": "농장 한편에 감자가 쌓여 있다.",
+    "bgm": "village",
+    "choices": [
+      {
+        "id": "pick_up_potato",
+        "symbol": "+1",
+        "title": "감자를 줍는다",
+        "description": "매 턴 종료 시 HP를 1 회복한다.",
+        "effect": {
+          "type": "potato_heal",
+          "turnEndHpRecovery": 1
+        }
+      },
+      {
+        "id": "buy_potato",
+        "symbol": "MP",
+        "title": "감자를 산다",
+        "description": "MP를 15 소모한다. 매 턴 종료 시 HP를 2 회복한다.",
+        "effect": {
+          "type": "potato_buy",
+          "mpCost": 15,
+          "turnEndHpRecovery": 2,
+          "requiresFullMpCost": true
+        }
+      },
+      {
+        "id": "bake_potato",
+        "symbol": "70%",
+        "title": "감자를 굽는다",
+        "description": "70% 확률로 매 턴 종료 시 HP를 3 회복한다. 30% 확률로 태워 아무 효과도 얻지 못한다.",
+        "effect": {
+          "type": "potato_bake",
+          "successRate": 0.7,
+          "turnEndHpRecovery": 3
+        }
+      }
+    ]
+  },
+  {
+    "id": "spring_of_life",
+    "name": "생명의 샘",
+    "description": "맑은 샘물이 고요히 솟아오르고 있다.",
+    "bgm": "event",
+    "choices": [
+      {
+        "id": "drink_spring_water",
+        "symbol": "MP",
+        "title": "샘물을 마신다",
+        "description": "MP를 30 소모한다. HP를 전부 회복한다.",
+        "effect": {
+          "type": "spring_drink",
+          "mpCost": 30,
+          "requiresFullMpCost": true
+        }
+      },
+      {
+        "id": "wash_wounds",
+        "symbol": "HP",
+        "title": "상처를 씻는다",
+        "description": "최대 HP의 15%만큼 HP를 소모한다. 최대 HP가 15% 증가한다.",
+        "effect": {
+          "type": "spring_wash",
+          "hpCostRate": 0.15,
+          "maxHpMultiplier": 1.15,
+          "requiresFullHpCost": false
+        }
+      },
+      {
+        "id": "bottle_spring_water",
+        "symbol": "+10%",
+        "title": "샘물을 담아간다",
+        "description": "전투 종료 시 HP 자동 회복량이 최대 HP의 10%만큼 증가한다.",
+        "effect": {
+          "type": "spring_bottle",
+          "postBattleHealRateBonus": 0.1
+        }
+      }
+    ]
+  },
+  {
+    "id": "blood_altar",
+    "name": "피의 제단",
+    "description": "검붉은 제단이 대가를 요구하고 있다.",
+    "bgm": "event",
+    "choices": [
+      {
+        "id": "blood_atk",
+        "symbol": "ATK",
+        "title": "공격력을 원한다",
+        "description": "최대 HP의 20%만큼 HP를 소모한다. ATK가 30% 강화된다.",
+        "effect": {
+          "type": "blood_altar",
+          "statId": "atk",
+          "hpCostRate": 0.2,
+          "statBonus": 0.3
+        }
+      },
+      {
+        "id": "blood_def",
+        "symbol": "DEF",
+        "title": "방어력을 원한다",
+        "description": "최대 HP의 20%만큼 HP를 소모한다. DEF가 30% 강화된다.",
+        "effect": {
+          "type": "blood_altar",
+          "statId": "def",
+          "hpCostRate": 0.2,
+          "statBonus": 0.3
+        }
+      },
+      {
+        "id": "blood_spd",
+        "symbol": "SPD",
+        "title": "속도를 원한다",
+        "description": "최대 HP의 20%만큼 HP를 소모한다. SPD가 30% 강화된다.",
+        "effect": {
+          "type": "blood_altar",
+          "statId": "spd",
+          "hpCostRate": 0.2,
+          "statBonus": 0.3
+        }
+      }
+    ]
+  },
+  {
+    "id": "preemptive_strike",
+    "name": "선제 공격",
+    "description": "마왕군보다 먼저 적을 발견했다.",
+    "bgm": "fight",
+    "repeatable": true,
+    "unavailableAfterBattle": true,
+    "combat": {
+      "type": "preemptive_strike",
+      "enemyHpLossRate": 0.1
+    }
+  },
+  {
+    "id": "town",
+    "name": "마을",
+    "description": "따뜻한 불빛과 음식 냄새가 여행자를 맞이한다.",
+    "bgm": "village",
+    "routeManaged": true,
+    "repeatable": true,
+    "maxVisits": 2,
+    "choices": [
+      {
+        "id": "mushroom_stew",
+        "symbol": "MP",
+        "title": "버섯 스튜",
+        "description": "최대 MP의 30%를 회복한다.",
+        "effect": {
+          "type": "town_restore_mp",
+          "restoreMpRate": 0.3
+        }
+      },
+      {
+        "id": "beef_stew",
+        "symbol": "HP",
+        "title": "비프 스튜",
+        "description": "최대 HP의 30%를 회복한다.",
+        "effect": {
+          "type": "town_restore_hp",
+          "restoreHpRate": 0.3
+        }
+      },
+      {
+        "id": "spicy_stew",
+        "symbol": "+10%",
+        "title": "매콤 스튜",
+        "description": "ATK·DEF·SPD 중 하나가 무작위로 10% 강화된다.",
+        "effect": {
+          "type": "town_random_stat",
+          "statBonus": 0.1
+        }
+      }
+    ]
+  },
+  {
+    "id": "abandoned_forge",
+    "name": "버려진 대장간",
+    "description": "식어버린 용광로 안에 아직 쓸 만한 불씨가 남아 있다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "sharpen_weapon",
+        "symbol": "PWR",
+        "title": "무기를 벼린다",
+        "description": "MP를 30 소모한다. 무작위 액티브 스킬 하나의 위력이 40% 증가한다.",
+        "effect": {
+          "type": "forge_skill_power",
+          "mpCost": 30,
+          "requiresFullMpCost": true,
+          "skillPowerMultiplier": 1.4
+        }
+      },
+      {
+        "id": "reinforce_armor",
+        "symbol": "DEF",
+        "title": "갑옷을 보강한다",
+        "description": "최대 HP의 20%만큼 HP를 소모한다. DEF가 35% 강화된다.",
+        "effect": {
+          "type": "forge_defense",
+          "hpCostRate": 0.2,
+          "statId": "def",
+          "statBonus": 0.35
+        }
+      },
+      {
+        "id": "dismantle_relic",
+        "symbol": "-45%",
+        "title": "유물을 분해한다",
+        "description": "무작위 공격 액티브 스킬 하나의 MP 소모량이 45% 감소하지만 위력이 25% 감소한다.",
+        "effect": {
+          "type": "forge_skill_tradeoff",
+          "skillCostMultiplier": 0.55,
+          "skillPowerMultiplier": 0.75,
+          "attackSkillsOnly": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "wandering_witch",
+    "name": "떠돌이 마녀",
+    "description": "세 병의 약을 늘어놓은 마녀가 값을 묻지 않고 하나를 권한다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "drink_red_potion",
+        "symbol": "HP",
+        "title": "붉은 약을 마신다",
+        "description": "HP를 전부 회복하지만 최대 HP가 10% 감소한다.",
+        "effect": {
+          "type": "witch_red_potion",
+          "restoreHpRate": 1,
+          "maxHpMultiplier": 0.9
+        }
+      },
+      {
+        "id": "drink_blue_potion",
+        "symbol": "-20%",
+        "title": "푸른 약을 마신다",
+        "description": "MP를 전부 회복하지만 다음 전투 동안 모든 액티브 스킬의 MP 소모량이 20% 증가한다.",
+        "effect": {
+          "type": "witch_blue_potion",
+          "restoreMpRate": 1,
+          "nextBattleSkillCostMultiplier": 1.2
+        }
+      },
+      {
+        "id": "drink_black_potion",
+        "symbol": "50%",
+        "title": "검은 약을 마신다",
+        "description": "50% 확률로 ATK·DEF·SPD가 모두 20% 강화된다. 실패하면 모두 10% 약화된다.",
+        "effect": {
+          "type": "witch_black_potion",
+          "successRate": 0.5,
+          "successStatBonus": 0.2,
+          "failureStatPenalty": 0.1
+        }
+      }
+    ]
+  },
+  {
+    "id": "mirror_lake",
+    "name": "거울 호수",
+    "description": "바람 한 점 없는 수면이 현재의 모습을 그대로 비춘다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "face_reflection",
+        "symbol": "LOW",
+        "title": "자신을 마주한다",
+        "description": "ATK·DEF·SPD 중 현재 배율이 가장 낮은 능력치가 20% 강화된다.",
+        "effect": {
+          "type": "mirror_raise_lowest_stat",
+          "statBonus": 0.2
+        }
+      },
+      {
+        "id": "break_reflection",
+        "symbol": "CLR",
+        "title": "수면을 깨뜨린다",
+        "description": "최대 HP의 15%만큼 HP를 소모한다. 영구적인 약화 효과 하나를 제거한다.",
+        "effect": {
+          "type": "mirror_remove_penalty",
+          "hpCostRate": 0.15,
+          "removePenaltyCount": 1
+        }
+      },
+      {
+        "id": "leave_reflection",
+        "symbol": "↓",
+        "title": "시선을 돌린다",
+        "description": "HP를 최대 HP의 10%만큼 회복하고 기습 확률 단계가 1 감소한다.",
+        "effect": {
+          "type": "mirror_retreat",
+          "restoreHpRate": 0.1,
+          "ambushChanceStep": -1
+        }
+      }
+    ]
+  },
+  {
+    "id": "sealed_library",
+    "name": "봉인된 서고",
+    "description": "봉인 사이로 세 권의 책이 스스로 펼쳐진다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "read_tactics",
+        "symbol": "DMG",
+        "title": "전술서를 읽는다",
+        "description": "다음 두 번의 전투 동안 공격으로 주는 피해가 30% 증가한다.",
+        "effect": {
+          "type": "library_tactics",
+          "battleCount": 2,
+          "damageMultiplier": 1.3
+        }
+      },
+      {
+        "id": "read_spellbook",
+        "symbol": "MP",
+        "title": "마도서를 읽는다",
+        "description": "최대 MP가 10 감소한다. 무작위 액티브 스킬 하나의 MP 소모량이 40% 감소한다.",
+        "effect": {
+          "type": "library_skill_cost",
+          "skillCostMultiplier": 0.6,
+          "maxMpPenalty": 10
+        }
+      },
+      {
+        "id": "read_forbidden_book",
+        "symbol": "MAX",
+        "title": "금서를 읽는다",
+        "description": "최대 MP가 40 증가하지만 최대 HP가 25% 감소한다.",
+        "effect": {
+          "type": "library_forbidden_book",
+          "maxMpBonus": 40,
+          "maxHpMultiplier": 0.75
+        }
+      }
+    ]
+  },
+  {
+    "id": "demon_beast_nest",
+    "name": "마수의 둥지",
+    "description": "주인이 자리를 비운 둥지에서 낮은 울음소리가 들린다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "raid_nest",
+        "symbol": "2X",
+        "title": "둥지를 습격한다",
+        "description": "HP가 80%인 마왕군과 전투한다. 승리하면 전투 보상을 두 개 선택한다.",
+        "effect": {
+          "type": "nest_bonus_battle",
+          "enemyStartingHpRate": 0.8,
+          "rewardChoiceCount": 2
+        }
+      },
+      {
+        "id": "steal_egg",
+        "symbol": "EGG",
+        "title": "알을 훔친다",
+        "description": "이후 모든 전투 시작 시 MP를 5 회복하지만 기습 확률 단계가 1 증가한다.",
+        "effect": {
+          "type": "nest_steal_egg",
+          "battleStartMpRecovery": 5,
+          "ambushChanceStep": 1
+        }
+      },
+      {
+        "id": "detour_nest",
+        "symbol": "0%",
+        "title": "조용히 우회한다",
+        "description": "아무 보상도 얻지 않지만 다음 행선지의 기습 확률이 0%가 된다.",
+        "effect": {
+          "type": "nest_detour",
+          "nextAmbushChance": 0
+        }
+      }
+    ]
+  },
+  {
+    "id": "twisted_passage",
+    "name": "뒤틀린 통로",
+    "description": "뒤엉킨 세 갈래 통로가 서로 다른 장소로 이어져 있다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "take_returning_path",
+        "symbol": "BACK",
+        "title": "되돌아가는 길을 택한다",
+        "description": "HP와 MP가 직전 전투를 끝냈을 때의 수치로 돌아간다.",
+        "effect": {
+          "type": "passage_return",
+          "restorePreviousBattleSnapshot": true
+        }
+      },
+      {
+        "id": "take_shortcut",
+        "symbol": "+1",
+        "title": "지름길을 택한다",
+        "description": "스테이지를 하나 건너뛰고 ATK·DEF·SPD가 모두 10% 강화된다.",
+        "effect": {
+          "type": "passage_shortcut",
+          "advanceStage": 1,
+          "allStatBonus": 0.1
+        }
+      },
+      {
+        "id": "block_enemy_path",
+        "symbol": "BLOCK",
+        "title": "마왕군의 길을 막는다",
+        "description": "다음 전투의 첫 턴에 상대는 행동할 수 없다.",
+        "effect": {
+          "type": "passage_blockade",
+          "skipEnemyFirstTurn": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "ghost_merchant",
+    "name": "유령 상인",
+    "description": "투명한 상인이 금화 대신 기억과 생명력을 요구한다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "buy_amulet",
+        "symbol": "1HP",
+        "title": "수호 부적을 산다",
+        "description": "최대 HP의 30%만큼 HP를 소모한다. 한 번에 한해 패배할 피해를 받으면 HP 1로 살아남는다.",
+        "effect": {
+          "type": "merchant_survival_amulet",
+          "hpCostRate": 0.3,
+          "surviveDefeatCount": 1
+        }
+      },
+      {
+        "id": "buy_hourglass",
+        "symbol": "MP",
+        "title": "모래시계를 산다",
+        "description": "MP를 40 소모한다. 기습 확률을 0%로 만들고 다음 행선지를 두 번 다시 뽑을 수 있다.",
+        "effect": {
+          "type": "merchant_hourglass",
+          "mpCost": 40,
+          "requiresFullMpCost": true,
+          "nextAmbushChance": 0,
+          "routeRerollCount": 2
+        }
+      },
+      {
+        "id": "sell_memory",
+        "symbol": "FULL",
+        "title": "기억을 판다",
+        "description": "ATK·DEF·SPD 중 하나가 무작위로 25% 약화된다. HP와 MP를 전부 회복한다.",
+        "effect": {
+          "type": "merchant_sell_memory",
+          "randomStatPenalty": 0.25,
+          "restoreHpRate": 1,
+          "restoreMpRate": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": "cursed_idol",
+    "name": "저주받은 우상",
+    "description": "금이 간 우상이 머릿속에 직접 속삭인다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "touch_idol",
+        "symbol": "50%",
+        "title": "우상에 손을 댄다",
+        "description": "50% 확률로 무작위 능력치가 40% 강화된다. 실패하면 무작위 능력치가 20% 약화된다.",
+        "effect": {
+          "type": "idol_gamble",
+          "successRate": 0.5,
+          "successStatBonus": 0.4,
+          "failureStatPenalty": 0.2
+        }
+      },
+      {
+        "id": "purify_idol",
+        "symbol": "CLR",
+        "title": "우상을 정화한다",
+        "description": "MP를 30 소모한다. 영구적인 약화 효과를 모두 제거한다.",
+        "effect": {
+          "type": "idol_purify",
+          "mpCost": 30,
+          "requiresFullMpCost": true,
+          "removeAllPenalties": true
+        }
+      },
+      {
+        "id": "destroy_idol",
+        "symbol": "-5%",
+        "title": "우상을 파괴한다",
+        "description": "최대 HP의 15%만큼 HP를 소모한다. 이후 등장하는 모든 마왕군의 최대 HP가 5% 감소한다.",
+        "effect": {
+          "type": "idol_destroy",
+          "hpCostRate": 0.15,
+          "futureEnemyMaxHpMultiplier": 0.95
+        }
+      }
+    ]
+  },
+  {
+    "id": "abandoned_camp",
+    "name": "버려진 야영지",
+    "description": "불씨와 식량이 남아 있지만 주변의 발자국이 심상치 않다.",
+    "bgm": "village",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "sleep_at_camp",
+        "symbol": "50%",
+        "title": "잠을 청한다",
+        "description": "최대 HP의 50%를 회복하지만 다음 행선지의 기습 확률이 100%가 된다.",
+        "effect": {
+          "type": "camp_sleep",
+          "restoreHpRate": 0.5,
+          "nextAmbushChance": 100
+        }
+      },
+      {
+        "id": "pack_rations",
+        "symbol": "+5%",
+        "title": "식량을 챙긴다",
+        "description": "HP를 최대 HP의 20%만큼 회복한다. 전투 종료 시 HP 자동 회복량이 최대 HP의 5%만큼 증가한다.",
+        "effect": {
+          "type": "camp_rations",
+          "restoreHpRate": 0.2,
+          "postBattleHealRateBonus": 0.05
+        }
+      },
+      {
+        "id": "train_at_camp",
+        "symbol": "LOW",
+        "title": "훈련한다",
+        "description": "HP를 10 소모한다. ATK·DEF·SPD 중 현재 배율이 가장 낮은 능력치가 15% 강화된다.",
+        "effect": {
+          "type": "camp_training",
+          "hpLoss": 10,
+          "lowestStatBonus": 0.15
+        }
+      }
+    ]
+  },
+  {
+    "id": "foggy_crossroads",
+    "name": "안개 낀 갈림길",
+    "description": "표지판이 모두 다른 방향을 가리키고 있다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "climb_watchtower",
+        "symbol": "VIEW",
+        "title": "망루에 오른다",
+        "description": "다음 행선지를 확인한 뒤 한 번 다시 뽑을 수 있다.",
+        "effect": {
+          "type": "crossroads_preview",
+          "routeRerollCount": 1
+        }
+      },
+      {
+        "id": "follow_old_sign",
+        "symbol": "TOWN",
+        "title": "낡은 표지판을 따른다",
+        "description": "마을 방문 횟수가 남아 있다면 다음 행선지에 반드시 마을이 등장한다.",
+        "effect": {
+          "type": "crossroads_force_town",
+          "forceTownNextRoute": true
+        }
+      },
+      {
+        "id": "cross_the_fog",
+        "symbol": "+1",
+        "title": "안개를 가로지른다",
+        "description": "최대 HP의 20%만큼 HP를 소모하고 스테이지를 하나 건너뛴다.",
+        "effect": {
+          "type": "crossroads_skip_stage",
+          "hpCostRate": 0.2,
+          "advanceStage": 1
+        }
+      }
+    ]
+  },
+  {
+    "id": "moonlit_graveyard",
+    "name": "달빛 공동묘지",
+    "description": "희미한 달빛 아래 묘비 사이로 푸른 불꽃이 떠다닌다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "pray_for_dead",
+        "symbol": "MP+4",
+        "title": "망자를 위해 기도한다",
+        "description": "다음 세 번의 전투 동안 매 턴 종료 시 MP를 4 추가로 회복한다.",
+        "effect": {
+          "type": "graveyard_prayer",
+          "battleCount": 3,
+          "turnEndMpBonus": 4
+        }
+      },
+      {
+        "id": "dig_grave",
+        "symbol": "60%",
+        "title": "무덤을 파헤친다",
+        "description": "60% 확률로 무작위 능력치가 40% 강화된다. 실패하면 최대 HP의 40%만큼 피해를 입는다.",
+        "effect": {
+          "type": "graveyard_dig",
+          "successRate": 0.6,
+          "randomStatBonus": 0.4,
+          "failureHpLossRate": 0.4
+        }
+      },
+      {
+        "id": "challenge_spirit",
+        "symbol": "BOSS",
+        "title": "기사의 혼령에 도전한다",
+        "description": "능력치가 30% 강화된 마왕군과 전투한다. 승리하면 최대 HP가 35% 증가한다.",
+        "effect": {
+          "type": "graveyard_elite_battle",
+          "enemyAllStatMultiplier": 1.3,
+          "victoryMaxHpMultiplier": 1.35
+        }
+      }
+    ]
+  },
+  {
+    "id": "fallen_knight",
+    "name": "쓰러진 기사",
+    "description": "오래전에 쓰러진 기사가 검과 방패를 놓지 않고 있다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "take_sword",
+        "symbol": "ATK",
+        "title": "검을 가져간다",
+        "description": "ATK가 40% 강화되고 DEF가 20% 약화된다.",
+        "effect": {
+          "type": "knight_sword",
+          "statBonus": {
+          "atk": 0.4
+          },
+          "statPenalty": {
+          "def": 0.2
+          }
+        }
+      },
+      {
+        "id": "take_shield",
+        "symbol": "DEF",
+        "title": "방패를 가져간다",
+        "description": "DEF가 40% 강화되고 SPD가 20% 약화된다.",
+        "effect": {
+          "type": "knight_shield",
+          "statBonus": {
+          "def": 0.4
+          },
+          "statPenalty": {
+          "spd": 0.2
+          }
+        }
+      },
+      {
+        "id": "bury_knight",
+        "symbol": "MAXHP",
+        "title": "기사를 묻어준다",
+        "description": "최대 HP가 15% 증가하고 HP를 최대 HP의 20%만큼 회복한다.",
+        "effect": {
+          "type": "knight_burial",
+        "maxHpMultiplier": 1.15,
+        "restoreHpRate": 0.2
+        }
+      }
+    ]
+  },
+  {
+    "id": "mana_storm",
+    "name": "마력 폭풍",
+    "description": "응축된 마력이 길을 뒤틀며 폭발하고 있다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "absorb_storm",
+        "symbol": "70%",
+        "title": "마력을 흡수한다",
+        "description": "70% 확률로 최대 MP가 20 증가한다. 실패하면 최대 MP가 10 감소하고 MP가 0이 된다.",
+        "effect": {
+          "type": "storm_absorb",
+          "successRate": 0.7,
+          "successMaxMpBonus": 20,
+          "failureMaxMpPenalty": 10,
+          "failureSetMp": 0
+        }
+      },
+      {
+        "id": "imbue_skill",
+        "symbol": "-25%",
+        "title": "스킬에 마력을 새긴다",
+        "description": "명중률이 있는 액티브 스킬 중 하나가 무작위로 선택된다. 해당 스킬의 MP 소모량이 25% 감소하지만 명중률이 5 감소한다.",
+        "effect": {
+          "type": "storm_imbue_skill",
+          "skillCostMultiplier": 0.75,
+          "accuracyPenalty": 5,
+          "requiresAccuracy": true
+        }
+      },
+      {
+        "id": "release_storm",
+        "symbol": "5DMG",
+        "title": "폭풍을 방출한다",
+        "description": "다음 전투 동안 양측 모두 매 턴 종료 시 5의 고정 피해를 입는다. 자신의 ATK가 20% 강화된다.",
+        "effect": {
+          "type": "storm_release",
+          "nextBattleBothTurnEndFixedDamage": 5,
+          "statId": "atk",
+          "statBonus": 0.2
+        }
+      }
+    ]
+  },
+  {
+    "id": "monochrome_garden",
+    "name": "흑백의 정원",
+    "description": "색을 잃은 세 송이 꽃이 서로 다른 향기를 내뿜는다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "pick_white_flower",
+        "symbol": "WHITE",
+        "title": "흰 꽃을 꺾는다",
+        "description": "HP를 전부 회복하지만 ATK가 25% 약화된다.",
+        "effect": {
+          "type": "garden_white_flower",
+          "restoreHpRate": 1,
+          "statId": "atk",
+          "statPenalty": 0.25
+        }
+      },
+      {
+        "id": "pick_black_flower",
+        "symbol": "BLACK",
+        "title": "검은 꽃을 꺾는다",
+        "description": "ATK가 40% 강화되지만 전투 종료 시 HP 자동 회복량이 최대 HP의 20%만큼 감소한다.",
+        "effect": {
+          "type": "garden_black_flower",
+          "statId": "atk",
+          "statBonus": 0.4,
+          "postBattleHealRatePenalty": 0.2
+        }
+      },
+      {
+        "id": "pick_gray_flower",
+        "symbol": "GRAY",
+        "title": "회색 꽃을 꺾는다",
+        "description": "DEF와 SPD가 30% 강화되지만 최대 MP가 30 감소한다.",
+        "effect": {
+          "type": "garden_gray_flower",
+          "statBonus": {
+          "def": 0.3,
+          "spd": 0.3
+          },
+        "maxMpPenalty": 30
+        }
+      }
+    ]
+  },
+  {
+    "id": "gray_arcane_workbench",
+    "name": "잿빛 마도 작업대",
+    "description": "검게 그을린 작업대 위에서 불안정한 마도 회로가 맥동하고 있다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "overload_circuit",
+        "symbol": "PWR+",
+        "title": "회로를 과부하시킨다",
+        "description": "무작위 공격 액티브 스킬 하나의 MP 소모량이 60% 증가하고 위력이 80% 증가한다.",
+        "effect": {
+          "type": "workbench_overload",
+          "skillCostMultiplier": 1.6,
+          "skillPowerMultiplier": 1.8
+        }
+      },
+      {
+        "id": "shorten_circuit",
+        "symbol": "PRI+",
+        "title": "회로를 단축한다",
+        "description": "무작위 액티브 스킬 하나의 MP 소모량이 40% 증가하고 우선도가 2 증가한다.",
+        "effect": {
+          "type": "workbench_shortcut",
+          "skillCostMultiplier": 1.4,
+          "priorityBonus": 2
+        }
+      },
+      {
+        "id": "attach_sight",
+        "symbol": "ACC+",
+        "title": "조준 장치를 연결한다",
+        "description": "명중률이 100 미만인 무작위 공격 액티브 스킬 하나의 위력이 30% 감소하고 명중률이 35 증가한다.",
+        "effect": {
+          "type": "workbench_aim",
+          "skillPowerMultiplier": 0.7,
+          "accuracyBonus": 35,
+          "accuracyBelow": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "nameless_instructor",
+    "name": "무명의 교관",
+    "description": "얼굴을 가린 노병이 세 가지 기본기 중 하나만을 끝까지 연마하라고 말한다.",
+    "bgm": "village",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "master_attack",
+        "symbol": "ATK",
+        "title": "공격을 연마한다",
+        "description": "일반 공격의 위력이 8 증가한다.",
+        "effect": {
+          "type": "common_action_mastery",
+          "actionKind": "normal_attack",
+          "powerBonus": 8
+        }
+      },
+      {
+        "id": "master_defense",
+        "symbol": "DEF",
+        "title": "방어를 연마한다",
+        "description": "일반 방어의 공격 피해 경감률이 15%p 증가한다.",
+        "effect": {
+          "type": "common_action_mastery",
+          "actionKind": "defense",
+          "defenseReductionBonus": 0.15
+        }
+      },
+      {
+        "id": "master_meditation",
+        "symbol": "MP",
+        "title": "호흡을 연마한다",
+        "description": "명상의 MP 회복량이 10 증가한다.",
+        "effect": {
+          "type": "common_action_mastery",
+          "actionKind": "meditation",
+          "meditationRecoveryBonus": 10
+        }
+      }
+    ]
+  },
+  {
+    "id": "silent_war_drum",
+    "name": "침묵의 전쟁북",
+    "description": "소리를 내지 않는 북이 서로 다른 전투의 박자를 심장에 새긴다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "engrave_rush_rhythm",
+        "symbol": "RUSH",
+        "title": "빠른 박자를 새긴다",
+        "description": "이후 전투의 1~2턴에는 주는 공격 피해가 50% 증가하고, 3턴부터는 30% 감소한다.",
+        "effect": {
+          "type": "battle_rhythm",
+          "rhythm": "rush",
+          "earlyTurnEnd": 2,
+          "earlyOutgoingDamageMultiplier": 1.5,
+          "lateOutgoingDamageMultiplier": 0.7
+        }
+      },
+      {
+        "id": "engrave_wall_rhythm",
+        "symbol": "WALL",
+        "title": "무거운 박자를 새긴다",
+        "description": "이후 전투의 1~2턴에는 받는 공격 피해가 40% 감소하고, 3턴부터는 30% 증가한다.",
+        "effect": {
+          "type": "battle_rhythm",
+          "rhythm": "wall",
+          "earlyTurnEnd": 2,
+          "earlyIncomingDamageMultiplier": 0.6,
+          "lateIncomingDamageMultiplier": 1.3
+        }
+      },
+      {
+        "id": "engrave_late_rhythm",
+        "symbol": "LATE",
+        "title": "느린 박자를 새긴다",
+        "description": "이후 전투의 1~3턴에는 주는 공격 피해가 35% 감소하고, 4턴부터는 70% 증가한다.",
+        "effect": {
+          "type": "battle_rhythm",
+          "rhythm": "late",
+          "earlyTurnEnd": 3,
+          "earlyOutgoingDamageMultiplier": 0.65,
+          "lateOutgoingDamageMultiplier": 1.7
+        }
+      }
+    ]
+  },
+  {
+    "id": "mercenary_guild_board",
+    "name": "용병 길드 게시판",
+    "description": "남은 여정의 보상 방식을 정하는 세 장의 장기 의뢰서가 걸려 있다.",
+    "bgm": "village",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "accept_attack_contract",
+        "symbol": "ATK×2",
+        "title": "공격 의뢰를 맡는다",
+        "description": "다음 세 번의 전투 보상에서 ATK는 20%, DEF·SPD는 5% 강화된다.",
+        "effect": {
+          "type": "reward_specialization",
+          "preferredStat": "atk",
+          "preferredBonus": 0.2,
+          "otherBonus": 0.05,
+          "battleCount": 3
+        }
+      },
+      {
+        "id": "accept_defense_contract",
+        "symbol": "DEF×2",
+        "title": "방어 의뢰를 맡는다",
+        "description": "다음 세 번의 전투 보상에서 DEF는 20%, ATK·SPD는 5% 강화된다.",
+        "effect": {
+          "type": "reward_specialization",
+          "preferredStat": "def",
+          "preferredBonus": 0.2,
+          "otherBonus": 0.05,
+          "battleCount": 3
+        }
+      },
+      {
+        "id": "accept_speed_contract",
+        "symbol": "SPD×2",
+        "title": "신속 의뢰를 맡는다",
+        "description": "다음 세 번의 전투 보상에서 SPD는 20%, ATK·DEF는 5% 강화된다.",
+        "effect": {
+          "type": "reward_specialization",
+          "preferredStat": "spd",
+          "preferredBonus": 0.2,
+          "otherBonus": 0.05,
+          "battleCount": 3
+        }
+      }
+    ]
+  },
+  {
+    "id": "cracked_reliquary",
+    "name": "금이 간 유물함",
+    "description": "금이 간 세 유물이 주인의 위기에 단 한 번씩 반응한다.",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      {
+        "id": "take_red_amber",
+        "symbol": "30%",
+        "title": "붉은 호박을 집는다",
+        "description": "다음 세 번의 전투에서 처음 HP가 30% 이하가 되면 최대 HP의 15%를 회복한다.",
+        "effect": {
+          "type": "sealed_relic",
+          "relic": "red_amber",
+          "battleCount": 3,
+          "hpThresholdRate": 0.3,
+          "restoreHpRate": 0.15
+        }
+      },
+      {
+        "id": "take_blue_amber",
+        "symbol": "20MP",
+        "title": "푸른 호박을 집는다",
+        "description": "다음 세 번의 전투에서 액티브 스킬 사용 후 처음 MP가 20 이하가 되면 MP를 15 회복한다.",
+        "effect": {
+          "type": "sealed_relic",
+          "relic": "blue_amber",
+          "battleCount": 3,
+          "mpThreshold": 20,
+          "restoreMp": 15
+        }
+      },
+      {
+        "id": "take_glass_eye",
+        "symbol": "RETRY",
+        "title": "유리 눈을 집는다",
+        "description": "다음 세 번의 전투에서 자신의 공격이 처음 빗나가거나 회피되면 판정을 한 번 다시 한다.",
+        "effect": {
+          "type": "sealed_relic",
+          "relic": "glass_eye",
+          "battleCount": 3,
+          "rerollMissCount": 1
+        }
+      }
+    ]
+  }
+]

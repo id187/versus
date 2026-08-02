@@ -271,3 +271,17 @@ module.exports = {
     return null;
   },
 };
+
+module.exports.borrowedEffects = {
+  extraStateParts: module.exports.extraStateParts,
+  resetTurnFlags: module.exports.resetTurnFlags,
+  attackDamageMultipliers: module.exports.attackDamageMultipliers,
+  estimatedDamageMultipliers: module.exports.estimatedDamageMultipliers,
+  modifyAttackDamageAsTarget: module.exports.modifyAttackDamage,
+  decrementCounters: module.exports.decrementCounters,
+};
+
+module.exports.onBorrowedStateCleared = function onBorrowedStateCleared(fighter) {
+  delete fighter.counters[AWAKENING];
+  delete fighter.counters[SCALE_GUARD];
+};

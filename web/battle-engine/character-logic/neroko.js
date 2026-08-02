@@ -112,6 +112,11 @@ module.exports = {
     const previousDesperation = Number(fighter.counters[DESPERATE] || 0);
     const companionRecord = fighter.counters[COMPANION];
     const afterLives = Math.max(0, beforeLives - 1);
+    const preservedCounters = fighter.characterId === CHARACTER_ID
+      ? {}
+      : Object.fromEntries(
+        Object.entries(fighter.counters).filter(([name]) => ![LIVES, DESPERATE, COMPANION].includes(name)),
+      );
     fighter.statuses = {};
     fighter.statEffects = [];
     fighter.costEffects = [];
@@ -121,7 +126,7 @@ module.exports = {
     fighter.defenseName = null;
     fighter.evasionChance = 0;
     fighter.guaranteedEvasion = false;
-    fighter.counters = { [LIVES]: afterLives };
+    fighter.counters = { ...preservedCounters, [LIVES]: afterLives };
     if (companionRecord != null) fighter.counters[COMPANION] = companionRecord;
     const newDesperation = previousDesperation === 1 ? 2 : 0;
     if (newDesperation) fighter.counters[DESPERATE] = newDesperation;

@@ -37,10 +37,10 @@ module.exports = {
     if (action.isSkill(CHARACTER_ID, 0)) {
       if (battle.roll("마비 부여") < 80) battle.addStatus(target, "마비", 3, 1, actor.name);
     } else if (action.isSkill(CHARACTER_ID, 2)) {
-      if (target.statuses["마비"]) {
-        battle.heal(actor, floorInt(totalDamage * 0.7), "신사지교");
-      } else if (!battle.kindIsAttack(battle.record.selectedKind[target.side]) || battle.isActorFirst(choice)) {
-        battle.heal(actor, floorInt(totalDamage * 0.5), "신사지교");
+      const canHeal = !battle.kindIsAttack(battle.record.selectedKind[target.side]) || battle.isActorFirst(choice);
+      if (canHeal) {
+        const rate = target.statuses["마비"] ? 0.7 : 0.5;
+        battle.heal(actor, floorInt(totalDamage * rate), "신사지교");
       }
     } else if (action.isSkill(CHARACTER_ID, 3)) {
       if (battle.record.selectedKind[target.side] === "방어" && battle.isActorFirst(choice)) {
@@ -92,10 +92,11 @@ module.exports = {
       } else value -= 220;
       if (incoming >= actor.hp * 0.65) value -= 360;
     } else if (action.isSkill(CHARACTER_ID, 2)) {
-      if (paralyzed) {
+      const healConditionRead = counts.defense + counts.meditation > counts.attack;
+      if (paralyzed && healConditionRead) {
         const healValue = Math.min(actor.maxHp - actor.hp, expectedDamage * 0.7);
         value += 1250 + healValue * 8;
-      } else if (counts.defense + counts.meditation > counts.attack) value += 420;
+      } else if (healConditionRead) value += 420;
       else if (actor.mp < 55) value -= 320;
       if (actor.hp < actor.maxHp * 0.55) value += 260;
     } else if (action.isSkill(CHARACTER_ID, 3)) {
@@ -105,4 +106,9 @@ module.exports = {
     }
     return value;
   },
+};
+
+module.exports.borrowedEffects = {
+  modifyPriority: module.exports.modifyPriority,
+  decrementCounters: module.exports.decrementCounters,
 };

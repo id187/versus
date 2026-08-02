@@ -14,6 +14,7 @@ const {
   resolvePersonality,
   stateForBattle,
 } = require("./engine");
+const { createAdventureBattle } = require("./adventure");
 
 const FIREBASE_ROOMS_PATH = "versusRoomsJs";
 const PVP_DEFAULT_PERSONALITY_ID = "R";
@@ -54,11 +55,13 @@ class FirebaseClient {
 }
 
 class MobileGameStore {
-  constructor({ characters, inscriptions, firebaseConfig = null }) {
+  constructor({ characters, adventureMonsters, inscriptions, firebaseConfig = null }) {
     this.characters = characters;
+    this.adventureMonsters = adventureMonsters;
     this.inscriptions = normalizeInscriptions(inscriptions);
     this.aiData = { personalities: AI_PERSONALITIES };
     this.battle = null;
+    this.adventureState = null;
     this.pendingAiAction = null;
     this.firebaseHostRooms = new Map();
     this.firebase = firebaseConfig?.databaseURL ? new FirebaseClient(firebaseConfig) : null;
@@ -77,6 +80,7 @@ class MobileGameStore {
   }
 
   newBattle(payload) {
+    this.adventureState = null;
     const rng = new Mulberry32(payload.seed ?? null);
     const playerIndex = resolveCharacterIndex(this.characters, payload.playerIndex, rng);
     const aiIndex = resolveCharacterIndex(this.characters, payload.aiIndex, rng);
@@ -109,6 +113,31 @@ class MobileGameStore {
     return state;
   }
 
+  newAdventure(payload) {
+    const encounter = createAdventureBattle({
+      characters: this.characters,
+      monsters: this.adventureMonsters,
+      inscriptions: this.inscriptions,
+      payload,
+      stage: 1,
+    });
+    this.battle = encounter.battle;
+    this.adventureState = encounter.adventure;
+    this.battle.startTurn();
+    this.lockAiAction();
+    const state = stateForBattle(this.battle);
+    state.ok = true;
+    state.adventure = { ...this.adventureState };
+    state.aiChoiceLocked = Boolean(this.pendingAiAction && !this.battle.gameOver);
+    state.log = [
+      `새 여정 시작: ${this.battle.player.name} vs ${this.battle.ai.label}`,
+      `STAGE ${this.adventureState.stage} / ${this.adventureState.totalStages}`,
+      `${this.battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
+      `${this.battle.player.name} 각인: ${this.battle.player.inscriptionName}`,
+    ];
+    return state;
+  }
+
   chooseAction(payload) {
     const battle = this.requireBattle();
     if (battle.gameOver) throw new Error("Battle already ended.");
@@ -127,6 +156,7 @@ class MobileGameStore {
     }
     const state = stateForBattle(battle);
     state.ok = true;
+    if (this.adventureState) state.adventure = { ...this.adventureState };
     state.aiChoiceLocked = Boolean(this.pendingAiAction && !battle.gameOver);
     state.log = battle.logs.slice();
     return state;
@@ -135,6 +165,7 @@ class MobileGameStore {
   state() {
     if (!this.battle) return { started: false };
     const state = stateForBattle(this.battle);
+    if (this.adventureState) state.adventure = { ...this.adventureState };
     state.aiChoiceLocked = Boolean(this.pendingAiAction && !this.battle.gameOver);
     return state;
   }

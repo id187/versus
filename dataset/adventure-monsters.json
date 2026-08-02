@@ -1,0 +1,273 @@
+[
+  {
+    "id": "demon_scout_kain",
+    "name": "카인",
+    "title": "마왕의 척후",
+    "stats": {
+      "hp": 90,
+      "atk": 120,
+      "def": 60,
+      "spd": 130
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 가호",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "무영의 암습",
+        "target": "상대",
+        "mp": 15,
+        "power": 10,
+        "accuracy": 90,
+        "priority": -1,
+        "description": "조건 검토 시, 이번 턴에 상대가 비공격 행동을 선택했다면, 이 스킬로 입히는 공격 피해가 1.5배가 된다."
+      },
+      {
+        "name": "칠흑의 잠행",
+        "target": "자신",
+        "mp": 22,
+        "power": null,
+        "accuracy": null,
+        "priority": 0,
+        "description": "4턴 동안 자신의 회피율이 5%p 증가한다."
+      }
+    ]
+  },
+  {
+    "id": "demon_warrior_luke",
+    "name": "루크",
+    "title": "마왕의 전사",
+    "stats": {
+      "hp": 150,
+      "atk": 70,
+      "def": 120,
+      "spd": 60
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 가호",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "흑철의 파쇄",
+        "target": "상대",
+        "mp": 19,
+        "power": 17,
+        "accuracy": 90,
+        "priority": 0,
+        "description": "명중 시, 30% 확률로 상대의 DEF가 3턴 동안 0.9배가 된다."
+      },
+      {
+        "name": "회철의 전투태세",
+        "target": "자신",
+        "mp": 14,
+        "power": null,
+        "accuracy": null,
+        "priority": 0,
+        "description": "4턴 동안 자신의 ATK와 DEF가 1.1배가 된다."
+      }
+    ]
+  },
+  {
+    "id": "demon_mage_zero",
+    "name": "제로",
+    "title": "마왕의 법사",
+    "stats": {
+      "hp": 110,
+      "atk": 130,
+      "def": 100,
+      "spd": 60
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 가호",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "백광의 마탄",
+        "target": "상대",
+        "mp": 18,
+        "power": 19,
+        "accuracy": 85,
+        "priority": 0,
+        "description": "명중 시, 상대에게 1의 고정 피해를 추가로 입힌다."
+      },
+      {
+        "name": "회백의 역장",
+        "target": "자신",
+        "mp": 25,
+        "power": null,
+        "accuracy": null,
+        "priority": 3,
+        "description": "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다. 상대의 공격 명중 시, 상대에게 3의 고정 피해를 입힌다."
+      }
+    ]
+  },
+  {
+    "id": "demon_archer_robin",
+    "name": "로빈",
+    "title": "마왕의 궁수",
+    "stats": {
+      "hp": 70,
+      "atk": 90,
+      "def": 110,
+      "spd": 130
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 가호",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "백은의 관통시",
+        "target": "상대",
+        "mp": 18,
+        "power": 15,
+        "accuracy": 95,
+        "priority": 0,
+        "description": "명중 시, 30% 확률로 상대의 SPD가 3턴 동안 0.9배가 된다."
+      },
+      {
+        "name": "회영의 엄폐",
+        "target": "자신",
+        "mp": 16,
+        "power": null,
+        "accuracy": null,
+        "priority": 2,
+        "description": "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다. 3턴 동안 자신의 SPD가 1.1배가 된다."
+      }
+    ]
+  },
+  {
+    "id": "demon_priest_sara",
+    "name": "사라",
+    "title": "마왕의 사제",
+    "stats": {
+      "hp": 130,
+      "atk": 80,
+      "def": 70,
+      "spd": 120
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 가호",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "흑혈의 성찬",
+        "target": "상대",
+        "mp": 20,
+        "power": 17,
+        "accuracy": 90,
+        "priority": 0,
+        "description": "명중 시, 이 스킬로 입힌 공격 피해의 50%만큼 자신의 HP를 회복한다."
+      },
+      {
+        "name": "빛바랜 저주",
+        "target": "자신",
+        "mp": 18,
+        "power": null,
+        "accuracy": null,
+        "priority": 0,
+        "description": "4턴 동안 상대의 ATK가 0.9배가 된다."
+      }
+    ]
+  },
+  {
+    "id": "demon_fighter_gran",
+    "name": "그란",
+    "title": "마왕의 투사",
+    "stats": {
+      "hp": 160,
+      "atk": 125,
+      "def": 65,
+      "spd": 50
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 가호",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "흑권쇄도",
+        "target": "상대",
+        "mp": 18,
+        "power": 5,
+        "accuracy": 90,
+        "priority": 0,
+        "description": "[연격] 2~5."
+      },
+      {
+        "name": "무채의 투혼",
+        "target": "자신",
+        "mp": 16,
+        "power": null,
+        "accuracy": null,
+        "priority": 0,
+        "description": "4턴 동안 자신의 ATK가 1.2배가 되고 DEF가 0.9배가 된다."
+      }
+    ]
+  },
+  {
+    "id": "demon_king_monochrem",
+    "name": "모노크렘",
+    "title": "흑백의 마왕",
+    "boss": true,
+    "stats": {
+      "hp": 200,
+      "atk": 100,
+      "def": 100,
+      "spd": 100
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 위엄",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "백색 붕괴",
+        "target": "상대",
+        "mp": 20,
+        "power": 20,
+        "accuracy": 95,
+        "priority": 0,
+        "description": "피해 계산 시, 상대가 [방어] 행동을 선택했다면 이 스킬로 상대에게 입히는 공격 피해가 4배가 된다. 이 스킬은 연속으로 선택할 수 없다."
+      },
+      {
+        "name": "흑색 반전",
+        "target": "자신",
+        "mp": 22,
+        "power": null,
+        "accuracy": null,
+        "priority": 3,
+        "description": "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다. 상대의 공격 명중 시, 그 공격으로 자신이 입을 최종 공격 피해를 0으로 만들고 감소시킨 만큼 상대에게 고정 피해를 입힌다. 이 스킬은 연속으로 선택할 수 없다."
+      },
+      {
+        "name": "무채의 침묵",
+        "target": "상대",
+        "mp": 18,
+        "power": 12,
+        "accuracy": 95,
+        "priority": 1,
+        "description": "명중 시, 상대가 명상을 선택했다면 상대의 MP가 35 감소한다. 이 스킬은 연속으로 선택할 수 없다."
+      },
+      {
+        "name": "색채의 종언",
+        "target": "상대",
+        "mp": 80,
+        "power": 30,
+        "accuracy": 100,
+        "priority": 2,
+        "description": "명중 시, 다음 턴부터 4턴 동안 상대의 서로 다른 액티브 스킬 2개를 무작위로 선택할 수 없게 만든다. 이 스킬은 연속으로 선택할 수 없다."
+      }
+    ]
+  }
+]

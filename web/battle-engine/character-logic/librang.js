@@ -14,7 +14,8 @@ function balance(fighter) {
   return Math.max(0, Number(fighter.counters[BALANCE] || 0));
 }
 
-function actionKeyIsAttack(fighter, key) {
+function actionKeyIsAttack(fighter, key, battle = null) {
+  if (typeof battle?.actionKeyIsAttack === "function") return battle.actionKeyIsAttack(fighter, key);
   if (key === "common:normal_attack") return true;
   if (String(key).startsWith("common:")) return false;
   const [id, slotText] = String(key).split(":");
@@ -22,11 +23,11 @@ function actionKeyIsAttack(fighter, key) {
   return id === fighter.characterId && Number.isInteger(slot) && fighter.data.skills?.[slot]?.power != null;
 }
 
-function selectedCounts(fighter) {
+function selectedCounts(fighter, battle = null) {
   let attacks = 0;
   let nonAttacks = 0;
   for (const key of fighter.selectedHistory) {
-    if (actionKeyIsAttack(fighter, key)) attacks += 1;
+    if (actionKeyIsAttack(fighter, key, battle)) attacks += 1;
     else nonAttacks += 1;
   }
   return [attacks, nonAttacks];
@@ -95,8 +96,8 @@ module.exports = {
 
   renderBattleLog(battle, fighter, lines) {
     const opponent = battle.opponent(fighter);
-    const [ownAttacks, ownNonAttacks] = selectedCounts(fighter);
-    const [oppAttacks, oppNonAttacks] = selectedCounts(opponent);
+    const [ownAttacks, ownNonAttacks] = selectedCounts(fighter, battle);
+    const [oppAttacks, oppNonAttacks] = selectedCounts(opponent, battle);
     lines.push(`자신 선택: 공격 ${ownAttacks} / 비공격 ${ownNonAttacks}`);
     lines.push(`상대 선택: 공격 ${oppAttacks} / 비공격 ${oppNonAttacks}`);
   },
@@ -143,7 +144,7 @@ module.exports = {
     const actor = choice.actor;
     const target = battle.opponent(actor);
     if (choice.action.isSkill(CHARACTER_ID, 0)) {
-      const [attacks, nonAttacks] = selectedCounts(target);
+      const [attacks, nonAttacks] = selectedCounts(target, battle);
       battle.fixedDamage(target, Math.max(0, nonAttacks - attacks), choice.action.name, actor);
     } else if (choice.action.isSkill(CHARACTER_ID, 3)) {
       battle.fixedDamage(target, judgmentFixedDamage(target, balance(actor)), choice.action.name, actor);
@@ -168,13 +169,13 @@ module.exports = {
     const attacker = choice.actor;
     const defender = battle.opponent(attacker);
     if (defender.defenseName !== "지킨다는 것의 무거움") return;
-    const [attacks, nonAttacks] = selectedCounts(attacker);
+    const [attacks, nonAttacks] = selectedCounts(attacker, battle);
     battle.fixedDamage(attacker, Math.max(0, attacks - nonAttacks), defender.defenseName, defender);
   },
 
   onTurnEnd(battle, fighter) {
     if (battle.turn % 2 !== 0) return;
-    const [attacks, nonAttacks] = selectedCounts(fighter);
+    const [attacks, nonAttacks] = selectedCounts(fighter, battle);
     if (attacks === nonAttacks) addCounter(battle, fighter, BALANCE, 1);
   },
 
@@ -196,7 +197,7 @@ module.exports = {
     const stacks = balance(actor);
     if (action.isSkill(CHARACTER_ID, 1)) {
       const incoming = battle.estimateBestIncomingDamage(target, actor);
-      const [attacks, nonAttacks] = selectedCounts(target);
+      const [attacks, nonAttacks] = selectedCounts(target, battle);
       return incoming * 0.25 + Math.max(0, attacks - nonAttacks) * 150 + stacks * 60;
     }
     if (action.isSkill(CHARACTER_ID, 2) && stacks >= 1) {
@@ -209,8 +210,8 @@ module.exports = {
   aiScore(battle, actor, target, action, expectedDamage, hitRate) {
     let value = 0;
     const stacks = balance(actor);
-    const [ownAttacks, ownNonAttacks] = selectedCounts(actor);
-    const [targetAttacks, targetNonAttacks] = selectedCounts(target);
+    const [ownAttacks, ownNonAttacks] = selectedCounts(actor, battle);
+    const [targetAttacks, targetNonAttacks] = selectedCounts(target, battle);
     const incoming = battle.estimateBestIncomingDamage(target, actor);
 
     value += balanceTimingValue(battle, action, ownAttacks, ownNonAttacks);
@@ -251,4 +252,11 @@ module.exports = {
   wouldConditionFail(_battle, actor, _target, action) {
     return action.isSkill(CHARACTER_ID, 2) ? balance(actor) < 1 : undefined;
   },
+};
+
+module.exports.borrowedEffects = {
+  extraStateParts: module.exports.extraStateParts,
+  attackDamageMultipliers: module.exports.attackDamageMultipliers,
+  estimatedDamageMultipliers: module.exports.estimatedDamageMultipliers,
+  decrementCounters: module.exports.decrementCounters,
 };

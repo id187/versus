@@ -1,12 +1,16 @@
 const LOG_DELAY_MS = 280;
+const DIALOGUE_LOG_DELAY_MS = 1200;
 const EFFECT_SETTLE_MS = 620;
 const SFX_VOLUME = 0.28;
+const SFX_POOL_SIZE = 3;
 const BGM_FADE_MS = 900;
 
 const els = {
   homeScreen: document.querySelector("#homeScreen"),
   battleScreen: document.querySelector("#battleScreen"),
+  battleScreenTitle: document.querySelector("#battleScreen .header-title strong"),
   codexScreen: document.querySelector("#codexScreen"),
+  openAdventureButton: document.querySelector("#openAdventureButton"),
   openBattleButton: document.querySelector("#openBattleButton"),
   openPvpButton: document.querySelector("#openPvpButton"),
   openCodexButton: document.querySelector("#openCodexButton"),
@@ -26,6 +30,7 @@ const els = {
   turnChip: document.querySelector("#turnChip"),
   actionsGrid: document.querySelector("#actionsGrid"),
   actionHint: document.querySelector("#actionHint"),
+  adventureRouteRerollButton: document.querySelector("#adventureRouteRerollButton"),
   passiveChip: document.querySelector("#passiveChip"),
   battleLog: document.querySelector("#battleLog"),
   prevLogButton: document.querySelector("#prevLogButton"),
@@ -78,16 +83,16 @@ const fighterIds = {
 };
 
 const CHARACTER_COLORS = {
-  toxiche: "#78e052",
+  toxiche: "#aee63d",
   cryne: "#c33a3a",
   plote: "#ff5a2f",
   ashend: "#a4a0b2",
-  karossy: "#5eb8ff",
-  nihfle: "#6db7ff",
+  karossy: "#9bdfff",
+  nihfle: "#3974ff",
   serpen: "#e9d16a",
   melague: "#8fb62d",
   balef: "#f29b38",
-  revesha: "#a874ff",
+  revesha: "#7f3bd4",
   gandrick: "#f3e6a3",
   charinel: "#f05fb8",
   dethus: "#c9a05b",
@@ -99,6 +104,8 @@ const CHARACTER_COLORS = {
   saqua: "#55dce8",
   queenas: "#b1185a",
   jitrom: "#66ff33",
+  fimit: "#7894a8",
+  emento: "#a686d4",
 };
 
 const RANDOM_CHARACTER_COLOR = "#ffffff";
@@ -167,8 +174,177 @@ const DEFAULT_INSCRIPTION_OPTIONS = [
   },
 ];
 
-const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom"]);
-const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom"]);
+const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento"]);
+const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento"]);
+const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
+const MONSTER_PORTRAIT_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
+const ADVENTURE_DESTINATION_ICONS = Object.freeze({
+  start_adventure: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="m16 3 4 9 9 4-9 4-4 9-4-9-9-4 9-4 4-9Z" />
+      <path d="m20 12-3 7-7 3 3-7 7-3Z" />
+    </svg>`,
+  final_battle: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="m6 11 5 5 5-10 5 10 5-5-2 14H8L6 11Z" />
+      <path d="M9 25h14v3H9z" />
+      <path d="M7 8 4 4M25 8l3-4" />
+    </svg>`,
+  magic_stone_mine: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M7 26 21 12" />
+      <path d="M13 7c5-3 10-2 14 2l-5 5c-3-3-5-5-9-7Z" />
+      <path d="m18 21 4-4 5 4-2 6h-6l-3-3Z" />
+    </svg>`,
+  spring_of_life: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="m16 27-9-8.5C2 13.5 5 6 11 6c3 0 5 2 5 4 0-2 2-4 5-4 6 0 9 7.5 4 12.5L16 27Z" />
+    </svg>`,
+  potato_farm: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M12 12c4-3 11-1 13 4 2 6-2 11-8 11-6 0-10-4-9-9 0-3 1-5 4-6Z" />
+      <path d="M16 12c-1-4-4-6-7-6 1 4 3 6 7 6Z" />
+      <path d="M16 11c2-4 5-5 8-4-2 3-4 5-8 4Z" />
+      <circle cx="13" cy="18" r="1" />
+      <circle cx="20" cy="21" r="1" />
+    </svg>`,
+  preemptive_strike: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="15" cy="17" r="9" />
+      <circle cx="15" cy="17" r="4" />
+      <path d="m18 14 9-9" />
+      <path d="m21 5 6 0 0 6" />
+    </svg>`,
+  blood_altar: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 4c-2 4-5 7-5 11a5 5 0 0 0 10 0c0-4-3-7-5-11Z" />
+      <path d="M10 22h12l3 5H7l3-5Z" />
+    </svg>`,
+  town: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="m4 15 12-9 12 9" />
+      <path d="M7 14v13h18V14" />
+      <path d="M13 27v-8h6v8M21 8V5h4v7" />
+    </svg>`,
+  abandoned_forge: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M5 15h17l5 4-5 4h-6v4h5M8 23h6v4H7" />
+      <path d="m9 5 6 6M12 4l5 5M6 8l5-3" />
+    </svg>`,
+  wandering_witch: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="m7 19 9-15 9 15H7Z" />
+      <path d="M4 22c7 2 17 2 24 0M12 14h9" />
+      <path d="M13 25c0 3 6 3 6 0" />
+    </svg>`,
+  mirror_lake: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="13" rx="8" ry="9" />
+      <path d="M16 22v4M11 27h10M5 25c3-2 6-2 9 0s6 2 9 0 4-2 6-1" />
+    </svg>`,
+  sealed_library: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M5 7h9c3 0 4 2 4 4v16c0-2-2-3-4-3H5V7Z" />
+      <path d="M27 7h-9v20c0-2 2-3 4-3h5V7Z" />
+      <rect x="13" y="13" width="6" height="6" rx="1" />
+      <path d="M15 13v-1a1 1 0 0 1 2 0v1" />
+    </svg>`,
+  demon_beast_nest: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M5 23c4-3 7-4 11-4s7 1 11 4l-3 4H8l-3-4Z" />
+      <path d="M11 18c-2-5 1-10 5-12 4 2 7 7 5 12" />
+      <path d="M12 12c1 3 3 5 4 6M20 12c-1 3-3 5-4 6" />
+    </svg>`,
+  twisted_passage: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M5 27V6h7M27 27V6h-7" />
+      <path d="M9 27c0-6 10-5 10-10 0-4-6-4-6-8" />
+      <path d="m10 11 3-3 3 3M16 17h6M19 14l3 3-3 3" />
+    </svg>`,
+  ghost_merchant: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M9 15c0-6 3-10 7-10s7 4 7 10v12l-3-3-4 3-4-3-3 3V15Z" />
+      <circle cx="13" cy="15" r="1" />
+      <circle cx="19" cy="15" r="1" />
+      <circle cx="24" cy="8" r="3" />
+    </svg>`,
+  cursed_idol: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M10 9 6 5v8l4 3M22 9l4-4v8l-4 3" />
+      <path d="M10 9h12v13l-6 5-6-5V9Z" />
+      <path d="m12 14 3 2-3 2M20 14l-3 2 3 2M14 22h4" />
+    </svg>`,
+  abandoned_camp: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="m5 24 9-16 9 16H5Z" />
+      <path d="M14 8v16M20 24h7" />
+      <path d="m21 16 6 7M27 16l-6 7" />
+    </svg>`,
+  foggy_crossroads: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 6v22M7 9h16l4 4-4 4H7l-3-4 3-4Z" />
+      <path d="M5 22h8M19 22h8M3 26h7M22 26h7" />
+    </svg>`,
+  moonlit_graveyard: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M22 4a7 7 0 1 0 5 11 8 8 0 0 1-5-11Z" />
+      <path d="M7 27V16c0-4 3-7 7-7s7 3 7 7v11H7Z" />
+      <path d="M11 17h6M14 14v6" />
+    </svg>`,
+  fallen_knight: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M7 17c1-7 5-11 9-11s8 4 9 11H7Z" />
+      <path d="M9 17v5c2 4 12 4 14 0v-5M16 6v11" />
+      <path d="m5 27 8-8M8 19l6 6" />
+    </svg>`,
+  mana_storm: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M25 9c-3-5-11-6-16-2s-5 12 0 16 13 3 16-2c3-4 1-9-3-11-3-2-8-1-10 2-2 3 0 7 3 8 3 2 7 0 7-3" />
+      <path d="m17 8-3 7h4l-3 8" />
+    </svg>`,
+  monochrome_garden: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 15v13M8 19v9M24 19v9" />
+      <circle cx="16" cy="10" r="4" />
+      <circle cx="8" cy="15" r="3" />
+      <circle cx="24" cy="15" r="3" />
+      <path d="M13 23c-3-2-5-2-7-1M19 23c3-2 5-2 7-1" />
+    </svg>`,
+  gray_arcane_workbench: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M4 14h16l6 4-5 4h-6v4h5v2H9v-2h4v-4H8l-4-4Z" />
+      <circle cx="22" cy="8" r="3" />
+      <path d="M22 3v2M22 11v2M17 8h2M25 8h3" />
+    </svg>`,
+  nameless_instructor: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M9 15c0-7 3-11 7-11s7 4 7 11l-7 6-7-6Z" />
+      <path d="M11 12h10M12 16h8" />
+      <path d="M5 28c1-6 5-10 11-10s10 4 11 10" />
+      <path d="m10 22 6 5 6-5" />
+    </svg>`,
+  silent_war_drum: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <circle cx="16" cy="18" r="9" />
+      <path d="m10 12 12 12M22 12 10 24" />
+      <path d="M5 4l7 8M27 4l-7 8" />
+    </svg>`,
+  mercenary_guild_board: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M6 6h20v18H6Z" />
+      <path d="M9 24v4M23 24v4" />
+      <path d="M10 10h12v10H10Z" />
+      <circle cx="16" cy="10" r="1" />
+      <path d="M12 14h8M12 17h6" />
+    </svg>`,
+  cracked_reliquary: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M7 13h18v14H7Z" />
+      <path d="M9 13c0-6 3-9 7-9s7 3 7 9" />
+      <path d="m16 9-4 7 4 6 4-6-4-7Z" />
+      <path d="m16 9-1 5 2 2-2 3 1 3" />
+    </svg>`,
+});
 
 const EFFECT_CLASSES = ["hit", "shadow-hit", "miss", "defense", "heal", "buff", "debuff", "stack-gain", "stack-spend"];
 const EFFECT_SFX = {
@@ -183,6 +359,12 @@ const EFFECT_SFX = {
   "stack-spend": "/assets/sfx/stack-spend.wav",
 };
 const BGM_TRACKS = {
+  fight: { src: "/assets/bgm/fight.mp3", loop: true, volume: 0.18 },
+  boss: { src: "/assets/bgm/boss.mp3", loop: true, volume: 0.18 },
+  village: { src: "/assets/bgm/village.mp3", loop: true, volume: 0.18 },
+  event: { src: "/assets/bgm/event.mp3", loop: true, volume: 0.18, preload: false },
+  prologue: { src: "/assets/bgm/prologue.mp3", loop: true, volume: 0.18, preload: false },
+  clear: { src: "/assets/bgm/clear.mp3", loop: false, volume: 0.22 },
   victory: { src: "/assets/bgm/victory.wav", loop: false, volume: 0.24 },
   defeat: { src: "/assets/bgm/defeat.wav", loop: false, volume: 0.22 },
   draw: { src: "/assets/bgm/draw.wav", loop: false, volume: 0.2 },
@@ -193,12 +375,15 @@ const state = {
   options: null,
   battle: null,
   battleMode: "pve",
+  adventure: null,
   pvp: null,
   busy: false,
   selectedCodexIndex: 0,
   turnLogs: [],
   currentLogIndex: -1,
   logToken: 0,
+  logAnimating: false,
+  adventureRestartRequested: false,
   customSelects: [],
   characterPickers: [],
   activeCharacterPicker: null,
@@ -206,6 +391,7 @@ const state = {
   effectTimers: [],
   sfx: new Map(),
   bgm: new Map(),
+  audioPrimed: false,
   bgmFadeTimers: [],
   currentBgm: null,
   currentBgmType: null,
@@ -224,6 +410,7 @@ async function init() {
 }
 
 function bindEvents() {
+  els.openAdventureButton.addEventListener("click", openAdventureMode);
   els.openBattleButton.addEventListener("click", () => openBattleMode("pve"));
   els.openPvpButton.addEventListener("click", () => openBattleMode("pvp"));
   els.openCodexButton.addEventListener("click", () => showScreen("codex"));
@@ -235,6 +422,7 @@ function bindEvents() {
   els.pvpRoomInput.addEventListener("input", previewSelectedMatch);
   els.prevLogButton.addEventListener("click", () => moveLog(-1));
   els.nextLogButton.addEventListener("click", () => moveLog(1));
+  els.adventureRouteRerollButton.addEventListener("click", () => chooseAdventureChoice("route_reroll"));
   els.enemyInfoButton.addEventListener("click", () => openFighterInfo("ai"));
   els.battleRecordButton.addEventListener("click", openBattleRecords);
   els.playerInfoButton.addEventListener("click", () => openFighterInfo("player"));
@@ -263,11 +451,29 @@ function openBattleMode(mode) {
   showScreen("battle");
 }
 
+function openAdventureMode() {
+  els.pvpRoomInput.value = "";
+  setBattleMode("adventure");
+  resetBattleScreen();
+  state.adventure = {
+    stage: 1,
+    totalStages: 10,
+    phase: "setup",
+  };
+  previewSelectedMatch();
+  showScreen("battle");
+  els.turnChip.textContent = "PROLOGUE";
+  pushTurnLog("Adventure", ["캐릭터를 고르고 새 여정을 시작하세요."], false);
+  renderEmptyActions("새 여정을 시작하세요.");
+}
+
 function resetBattleScreen() {
   stopPvpPolling();
   state.battle = null;
+  state.adventure = null;
   state.pvp = null;
   state.busy = false;
+  state.adventureRestartRequested = false;
   document.body.classList.remove("is-waiting");
   closeCustomSelects();
   closeInscriptionPopover();
@@ -336,7 +542,7 @@ function syncInscriptionPicker() {
   els.inscriptionButton.style.setProperty("--inscription-color", selected.color);
   els.inscriptionButton.dataset.inscriptionId = selected.id;
   els.inscriptionButton.setAttribute("aria-label", `각인: ${selected.summary}`);
-  els.inscriptionButton.title = selected.detail;
+  els.inscriptionButton.removeAttribute("title");
 
   els.inscriptionPopover.innerHTML = "";
   for (const option of inscriptionOptions()) {
@@ -371,17 +577,22 @@ function syncInscriptionPicker() {
 function prepareSfx() {
   if (state.sfx.size) return;
   for (const [type, src] of Object.entries(EFFECT_SFX)) {
-    const audio = new Audio(src);
-    audio.preload = "auto";
-    audio.volume = SFX_VOLUME;
-    state.sfx.set(type, audio);
+    const pool = Array.from({ length: SFX_POOL_SIZE }, () => {
+      const audio = new Audio(src);
+      audio.preload = "auto";
+      audio.volume = SFX_VOLUME;
+      return audio;
+    });
+    state.sfx.set(type, { pool, cursor: 0 });
   }
 }
 
 function primeSfx() {
   prepareSfx();
-  for (const audio of state.sfx.values()) {
-    audio.load();
+  for (const { pool } of state.sfx.values()) {
+    for (const audio of pool) {
+      audio.load();
+    }
   }
 }
 
@@ -389,7 +600,7 @@ function prepareBgm() {
   if (state.bgm.size) return;
   for (const [type, track] of Object.entries(BGM_TRACKS)) {
     const audio = new Audio(track.src);
-    audio.preload = "auto";
+    audio.preload = track.preload === false ? "none" : "auto";
     audio.loop = Boolean(track.loop);
     audio.volume = track.volume;
     state.bgm.set(type, audio);
@@ -397,11 +608,13 @@ function prepareBgm() {
 }
 
 function primeAudio() {
+  if (state.audioPrimed) return;
   primeSfx();
   prepareBgm();
-  for (const audio of state.bgm.values()) {
-    audio.load();
+  for (const [type, audio] of state.bgm.entries()) {
+    if (BGM_TRACKS[type]?.preload !== false) audio.load();
   }
+  state.audioPrimed = true;
 }
 
 function showScreen(name) {
@@ -414,7 +627,8 @@ function showScreen(name) {
   if (name === "battle") {
     els.battleScreen.classList.add("is-active");
   } else if (name === "codex") {
-    stopBgm();
+    primeAudio();
+    playBgm("village");
     els.codexScreen.classList.add("is-active");
     renderCodex();
   } else {
@@ -438,21 +652,25 @@ function leaveBattleScreen() {
 }
 
 function setBattleMode(mode) {
-  state.battleMode = mode === "pvp" ? "pvp" : "pve";
+  state.battleMode = mode === "pvp" ? "pvp" : mode === "adventure" ? "adventure" : "pve";
   const isPvp = state.battleMode === "pvp";
+  const isAdventure = state.battleMode === "adventure";
   if (!isPvp) {
     stopPvpPolling();
     state.pvp = null;
   }
   els.battleScreen.classList.toggle("is-pvp", isPvp);
-  els.battleScreen.classList.toggle("is-pve", !isPvp);
+  els.battleScreen.classList.toggle("is-pve", !isPvp && !isAdventure);
+  els.battleScreen.classList.toggle("is-adventure", isAdventure);
+  els.battleScreenTitle.textContent = isAdventure ? "Adventure" : "전투";
   for (const field of els.pveSetupFields) {
-    field.hidden = isPvp;
+    field.hidden = isPvp || isAdventure;
   }
   for (const field of els.pvpSetupFields) {
     field.hidden = !isPvp;
   }
-  els.startButton.textContent = isPvp ? "PvP 입장" : "전투 시작";
+  els.startButton.hidden = false;
+  els.startButton.textContent = isAdventure ? "새 여정" : isPvp ? "PvP 입장" : "전투 시작";
   syncSetupLock();
   previewSelectedMatch();
 }
@@ -730,6 +948,13 @@ function setMatchLabel(player, ai, personality) {
 
 function previewSelectedMatch() {
   const player = selectedText(els.playerSelect);
+  if (state.battleMode === "adventure") {
+    const stage = state.adventure?.stage || 1;
+    const totalStages = state.adventure?.totalStages || 10;
+    els.matchLabel.textContent = `${player} · STAGE ${stage} / ${totalStages}`;
+    els.aiModeText.textContent = "ADVENTURE";
+    return;
+  }
   if (state.battleMode === "pvp") {
     setMatchLabel(player, "???", "PvP");
     els.aiModeText.textContent = "PvP";
@@ -742,6 +967,15 @@ function previewSelectedMatch() {
 }
 
 function startConfiguredBattle() {
+  if (
+    state.battleMode === "adventure"
+    && state.busy
+    && ["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
+  ) {
+    requestAdventureRestart();
+    return;
+  }
+  if (state.battleMode === "adventure") return startAdventure();
   return state.battleMode === "pvp" ? startPvpEntry() : startBattle();
 }
 
@@ -792,7 +1026,7 @@ async function startBattle() {
   stopPvpPolling();
   state.pvp = null;
   primeAudio();
-  stopBgm(300);
+  playBgm("fight", 300);
   setBusy(true);
   clearLogs();
   try {
@@ -815,6 +1049,33 @@ async function startBattle() {
   }
 }
 
+async function startAdventure() {
+  if (state.busy) return;
+  state.adventureRestartRequested = false;
+  stopPvpPolling();
+  state.pvp = null;
+  primeAudio();
+  playBgm("prologue", 300);
+  setBusy(true);
+  clearLogs();
+  try {
+    const data = await api("/api/adventure/new", {
+      playerIndex: els.playerSelect.value,
+      playerInscriptionId: state.selectedInscriptionId,
+    });
+    state.adventure = { ...data.adventure };
+    state.battle = data;
+    syncSetupFromBattle(data);
+    renderBattle(data);
+    await pushDialogueLog("PROLOGUE", data.log);
+  } catch (error) {
+    stopBgm(300);
+    pushTurnLog("오류", [`새 여정 시작 실패: ${error.message}`], false);
+  } finally {
+    setBusy(false);
+  }
+}
+
 async function chooseAction(actionNumber) {
   if (state.battleMode === "pvp") {
     return choosePvpAction(actionNumber);
@@ -826,19 +1087,155 @@ async function chooseAction(actionNumber) {
     const previousTurn = state.battle.turn;
     const data = await api("/api/action", { action: actionNumber });
     const isGameOver = Boolean(data.is_over || data.gameOver);
+    if (data.adventure) {
+      state.adventure = { ...data.adventure };
+    }
+    const hasPostBattleDialogue = data.adventure?.phase === "post_battle_dialogue"
+      && Array.isArray(data.adventure?.dialogue?.lines)
+      && data.adventure.dialogue.lines.length > 0;
+    const hasFinalBattleEnding = data.adventure?.phase === "final_battle_ending"
+      && Array.isArray(data.adventure?.dialogue?.lines)
+      && data.adventure.dialogue.lines.length > 0;
+    if (hasPostBattleDialogue || hasFinalBattleEnding) syncSetupLock();
+    if (isGameOver) {
+      renderEmptyActions(hasPostBattleDialogue || hasFinalBattleEnding ? "전투 종료 처리 중" : "전투 결과 처리 중");
+    }
     await pushTurnLog(`TURN ${previousTurn}`, data.log, true, {
       settleEffects: isGameOver,
       syncState: true,
     });
+    if (state.adventureRestartRequested) return;
     state.battle = data;
     renderBattle(data, { animateDefeat: isGameOver });
-    if (isGameOver) {
-      playResultBgm(data);
+    if (hasFinalBattleEnding) {
+      playBgm("clear", 300);
+      await pushDialogueLog(
+        data.adventure.dialogue.title || "전투 후 · 모노크렘",
+        data.adventure.dialogue.lines,
+      );
+      if (state.adventureRestartRequested) return;
+      const completeData = await api("/api/adventure/choice", {
+        choiceId: "complete_final_battle_ending",
+      });
+      if (state.adventureRestartRequested) return;
+      state.battle = completeData;
+      state.adventure = { ...completeData.adventure };
+      syncSetupLock();
+      renderBattle(completeData);
+    } else if (hasPostBattleDialogue) {
+      playBgm("victory", 300);
+      await pushDialogueLog(
+        data.adventure.dialogue.title || "전투 후",
+        data.adventure.dialogue.lines,
+      );
+      if (state.adventureRestartRequested) return;
+      const rewardData = await api("/api/adventure/choice", {
+        choiceId: "complete_post_battle_dialogue",
+      });
+      if (state.adventureRestartRequested) return;
+      state.battle = rewardData;
+      state.adventure = { ...rewardData.adventure };
+      syncSetupLock();
+      renderBattle(rewardData);
+      playBgm("village", 300);
+    } else if (isGameOver) {
+      playResultBgm(data, data.adventure?.phase === "reward" ? "village" : null);
     }
   } catch (error) {
     pushTurnLog("오류", [`행동 처리 실패: ${error.message}`], false);
   } finally {
-    setBusy(false);
+    if (state.adventureRestartRequested) {
+      state.adventureRestartRequested = false;
+      state.busy = false;
+      document.body.classList.remove("is-waiting");
+      syncSetupLock();
+      await startAdventure();
+    } else {
+      setBusy(false);
+    }
+  }
+}
+
+function requestAdventureRestart() {
+  if (state.adventureRestartRequested) return;
+  state.adventureRestartRequested = true;
+  state.logToken += 1;
+  state.logAnimating = false;
+  renderEmptyActions("새 여정을 시작하는 중");
+  renderLog();
+  syncSetupLock();
+}
+
+async function chooseAdventureChoice(choiceId) {
+  const previousPhase = state.adventure?.phase;
+  if (state.busy || state.battleMode !== "adventure" || !["prologue", "reward", "route", "town", "event"].includes(previousPhase)) return;
+  setBusy(true);
+  try {
+    const data = await api("/api/adventure/choice", { choiceId });
+    state.battle = data;
+    state.adventure = { ...data.adventure };
+    const hasFinalBattleDialogue = data.adventure?.phase === "final_battle_dialogue"
+      && Array.isArray(data.adventure?.dialogue?.lines)
+      && data.adventure.dialogue.lines.length > 0;
+    renderEmptyActions(previousPhase === "prologue"
+      ? "여정을 시작하는 중"
+      : previousPhase === "reward"
+        ? "보상을 적용하는 중"
+        : "선택을 처리하는 중");
+    const logTitle = hasFinalBattleDialogue
+      ? "최종 결전"
+      : data.adventure?.phase === "battle"
+      ? `STAGE ${data.adventure.stage}`
+      : data.adventure?.phase === "event" || previousPhase === "event"
+      ? data.adventure?.currentEvent?.name || "이벤트"
+      : previousPhase === "reward"
+        ? "보상"
+        : previousPhase === "route"
+          ? "마을"
+          : "식사";
+    if (data.adventure?.phase === "town") playBgm("village", 300);
+    if (data.adventure?.phase === "event") {
+      playBgm(data.adventure.currentEvent?.bgm === "village" ? "village" : "event", 300);
+    }
+    if (hasFinalBattleDialogue) {
+      playBgm("boss", 300);
+      renderBattle(data);
+    } else if (data.adventure?.phase === "battle") {
+      playBgm(data.adventure.isFinalBattle ? "boss" : "fight", 300);
+    }
+    if (data.adventure?.phase === "defeat") playBgm("defeat", 300);
+    await pushTurnLog(logTitle, data.log, true);
+    if (state.adventureRestartRequested) return;
+    renderBattle(data);
+    if (hasFinalBattleDialogue) {
+      await pushDialogueLog(
+        data.adventure.dialogue.title || "전투 전 · 모노크렘",
+        data.adventure.dialogue.lines,
+      );
+      if (state.adventureRestartRequested) return;
+      const battleData = await api("/api/adventure/choice", {
+        choiceId: "complete_final_battle_dialogue",
+      });
+      if (state.adventureRestartRequested) return;
+      state.battle = battleData;
+      state.adventure = { ...battleData.adventure };
+      renderEmptyActions("최종 결전을 시작하는 중");
+      await pushTurnLog(`STAGE ${battleData.adventure.stage}`, battleData.log, true);
+      if (state.adventureRestartRequested) return;
+      renderBattle(battleData);
+    }
+  } catch (error) {
+    pushTurnLog("오류", [`Adventure 선택 실패: ${error.message}`], false);
+  } finally {
+    if (state.adventureRestartRequested) {
+      state.adventureRestartRequested = false;
+      state.busy = false;
+      document.body.classList.remove("is-waiting");
+      syncSetupLock();
+      await startAdventure();
+    } else {
+      setBusy(false);
+    }
   }
 }
 
@@ -904,6 +1301,8 @@ async function handlePvpState(data, options = {}) {
   if (data.is_over || data.gameOver) {
     stopPvpPolling();
     playResultBgm(data);
+  } else if (data.started) {
+    playBgm("fight", 300);
   }
 }
 
@@ -1009,6 +1408,8 @@ async function pollPvpState() {
 }
 
 function renderEmptyBattle() {
+  els.battleScreen.classList.remove("is-adventure-prologue");
+  els.battleScreen.classList.remove("is-adventure-choice-phase");
   const empty = {
     name: "-",
     title: "대기 중",
@@ -1033,20 +1434,99 @@ function renderEmptyBattle() {
 }
 
 function renderBattle(data, options = {}) {
+  const adventure = data.adventure || (state.battleMode === "adventure" ? state.adventure : null);
+  const isPrologue = adventure?.phase === "prologue";
+  const isFinalBattleDialogue = adventure?.phase === "final_battle_dialogue";
+  const isFinalBattleEnding = adventure?.phase === "final_battle_ending";
+  els.battleScreen.classList.toggle("is-adventure-prologue", isPrologue);
   renderFighter("player", data.player);
-  renderFighter("ai", data.ai);
+  if (isPrologue) {
+    renderFighter("ai", {
+      name: "팔레티아",
+      title: "색을 잃어가는 대륙",
+      hp: 0,
+      max_hp: 0,
+      mp: 0,
+      max_mp: 0,
+      atk: "-",
+      defense: "-",
+      spd: "-",
+      status_text: "PROLOGUE",
+    });
+    renderAdventureScene(adventure.scene);
+  } else {
+    renderFighter("ai", data.ai);
+  }
   renderPassive(data.player);
-  renderActions(data.actions || [], data.is_over);
+  const adventureChoices = (data.is_over || isPrologue) && Array.isArray(adventure?.choices) ? adventure.choices : [];
+  if (adventure?.phase === "complete") {
+    renderEmptyActions("여정을 마쳤습니다.");
+  } else if (adventureChoices.length) {
+    renderAdventureChoices(adventureChoices);
+  } else if (["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(adventure?.phase)) {
+    renderEmptyActions(state.adventureRestartRequested ? "새 여정을 시작하는 중" : "대화 진행 중...");
+  } else if (["town_complete", "event_complete"].includes(adventure?.phase)) {
+    renderEmptyActions(adventure.phase === "event_complete"
+      ? `${adventure.currentEvent?.name || "이벤트"}에서 떠났습니다.`
+      : "마을에서 식사를 마쳤습니다.");
+  } else {
+    renderActions(data.actions || [], data.is_over);
+  }
   renderBattleRecordButton(data);
-  els.turnChip.textContent = data.is_over ? `TURN ${data.turn} 종료` : `TURN ${data.turn}`;
-  if (data.pvp) {
+  const isAdventureIntermission = ["prologue", "route", "town", "town_complete", "event", "event_complete", "complete"].includes(adventure?.phase);
+  els.turnChip.textContent = adventure
+    ? isPrologue
+      ? "PROLOGUE"
+      : isFinalBattleDialogue
+      ? "FINAL BATTLE"
+      : isFinalBattleEnding
+      ? "ENDING"
+      : adventure.phase === "complete"
+      ? "여정 완료"
+      : isAdventureIntermission
+      ? `STAGE ${adventure.stage}`
+      : data.is_over
+      ? `STAGE ${adventure.stage} 종료`
+      : `STAGE ${adventure.stage} · TURN ${data.turn}`
+    : data.is_over
+      ? `TURN ${data.turn} 종료`
+      : `TURN ${data.turn}`;
+  if (adventure) {
+    const adventureLocation = isPrologue
+      ? "PROLOGUE"
+      : adventure.phase === "complete"
+      ? "여정 완료"
+      : adventure.phase === "route"
+      ? "다음 행선지"
+      : ["event", "event_complete"].includes(adventure.phase)
+        ? adventure.currentEvent?.name || "이벤트"
+        : "마을";
+    if (isPrologue) {
+      els.matchLabel.textContent = `${data.player.name} · PROLOGUE`;
+    } else {
+      setMatchLabel(
+        data.player.name,
+        isAdventureIntermission ? adventureLocation : `${data.ai.title} ${data.ai.name}`,
+        `STAGE ${adventure.stage}`,
+      );
+    }
+    els.aiModeText.textContent = isPrologue
+      ? "PROLOGUE"
+      : isFinalBattleDialogue
+      ? "FINAL BATTLE"
+      : isFinalBattleEnding
+      ? "ENDING"
+      : adventure.phase === "complete"
+      ? "ADVENTURE COMPLETE"
+      : `STAGE ${adventure.stage} / ${adventure.totalStages}`;
+  } else if (data.pvp) {
     setMatchLabel(data.player.name, data.started ? data.ai.name : "???", "PvP");
     els.aiModeText.textContent = "PvP";
   } else {
     setMatchLabel(data.player.name, data.ai.name, data.personality.name);
     els.aiModeText.textContent = data.personality.name;
   }
-  els.enemyInfoButton.disabled = false;
+  els.enemyInfoButton.disabled = isPrologue;
   els.playerInfoButton.disabled = false;
   renderPvpStatus(data);
   syncSetupLock();
@@ -1075,6 +1555,7 @@ function renderFighter(side, fighter) {
   const defense = fighter.defense ?? fighter.stats?.def ?? "-";
   const stateText = fighter.status_text || fighter.stateText || "없음";
   const avatar = document.querySelector(ids.avatar);
+  avatar.classList.remove("is-adventure-scene");
   document.querySelector(ids.sideName).textContent = fighter.name;
   document.querySelector(ids.sideTitle).textContent = fighter.title || "";
   avatar.style.setProperty("--character-color", characterColor(fighter.id));
@@ -1089,6 +1570,16 @@ function renderFighter(side, fighter) {
     `ATK ${formatStat(fighter.atk)} / DEF ${formatStat(defense)} / SPD ${formatStat(fighter.spd)}`;
   document.querySelector(ids.state).textContent = stateText;
   hideInlineBattleRecord(ids.record);
+}
+
+function renderAdventureScene(scene) {
+  const avatar = document.querySelector(fighterIds.ai.avatar);
+  const illustration = String(scene?.illustration || "").trim();
+  if (!illustration) return;
+  avatar.classList.remove("is-empty");
+  avatar.classList.add("is-adventure-scene");
+  avatar.style.setProperty("--character-color", "#b46cff");
+  avatar.innerHTML = `<img class="adventure-scene-illustration" src="${escapeHtml(illustration)}" alt="색을 잃어가는 팔레티아 대륙">`;
 }
 
 function hideInlineBattleRecord(selector) {
@@ -1148,8 +1639,93 @@ function syncDefeatPortraits(data = state.battle, animate = false) {
   });
 }
 
-function renderActions(actions, isOver) {
+function renderAdventureChoices(choices) {
+  const availableChoices = Array.isArray(choices) ? choices : [];
+  const visibleChoices = availableChoices.slice(0, 3);
+  const isRewardSelection = visibleChoices.length > 0 && visibleChoices.every((choice) => choice.type === "reward");
+  const isTownSelection = visibleChoices.length > 0 && visibleChoices.every((choice) => choice.type === "town_meal");
+  const isEventSelection = visibleChoices.length > 0 && visibleChoices.every((choice) => choice.type === "event_choice");
+  const isPrologueSelection = visibleChoices.length === 1 && visibleChoices[0].id === "start_adventure";
+  els.battleScreen.classList.add("is-adventure-choice-phase");
   els.actionsGrid.innerHTML = "";
+  els.actionsGrid.classList.add("is-adventure-choices");
+  els.actionHint.hidden = false;
+  els.actionHint.textContent = isRewardSelection
+    ? "전투 보상"
+    : isPrologueSelection
+      ? "PROLOGUE"
+    : isTownSelection
+      ? "마을"
+      : isEventSelection
+        ? state.adventure?.currentEvent?.name || "이벤트"
+      : visibleChoices.length === 1
+        ? "행선지"
+        : "다음 갈 길";
+  renderAdventureRouteControls();
+  els.passiveChip.hidden = true;
+
+  for (const choice of visibleChoices) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `adventure-choice-button${visibleChoices.length === 1 ? " is-single" : ""}${isEventSelection ? " is-event-choice" : ""}`;
+    button.dataset.choiceId = choice.id;
+    button.disabled = state.busy || Boolean(choice.disabled);
+    if (choice.disabledReason) button.title = choice.disabledReason;
+    const choiceDescription = choice.type === "destination"
+      ? ""
+      : [choice.description, choice.disabledReason].filter(Boolean).join(" · ");
+    button.innerHTML = `
+      <span class="adventure-choice-symbol${adventureChoiceSymbolSizeClass(choice)}" aria-hidden="true">${adventureChoiceSymbolHtml(choice)}</span>
+      <span class="adventure-choice-copy">
+        <strong>${escapeHtml(choice.title)}</strong>
+        ${choiceDescription ? `<small>${escapeHtml(choiceDescription)}</small>` : ""}
+      </span>
+    `;
+    button.addEventListener("click", () => {
+      if (["reward", "destination", "town_meal", "event_choice"].includes(choice.type)) {
+        chooseAdventureChoice(choice.id);
+        return;
+      }
+      if (typeof choice.onSelect === "function") {
+        choice.onSelect(choice);
+        return;
+      }
+      pushTurnLog("선택", [`${choice.title} 선택 흐름은 다음 단계에서 연결된다.`], false);
+    });
+    els.actionsGrid.append(button);
+  }
+}
+
+function renderAdventureRouteControls() {
+  const rerollCount = Number(state.adventure?.routeRerollCount || 0);
+  const canReroll = state.adventure?.phase === "route" && rerollCount > 0;
+  els.adventureRouteRerollButton.hidden = !canReroll;
+  els.adventureRouteRerollButton.disabled = state.busy || !canReroll;
+  els.adventureRouteRerollButton.textContent = rerollCount > 1
+    ? `행선지 다시 뽑기 (${rerollCount})`
+    : "행선지 다시 뽑기";
+}
+
+function adventureChoiceSymbolHtml(choice) {
+  if (choice?.type === "destination" && ADVENTURE_DESTINATION_ICONS[choice.id]) {
+    return ADVENTURE_DESTINATION_ICONS[choice.id];
+  }
+  return escapeHtml(choice?.symbol || "◆");
+}
+
+function adventureChoiceSymbolSizeClass(choice) {
+  if (choice?.type === "destination" && ADVENTURE_DESTINATION_ICONS[choice.id]) return "";
+  const length = [...String(choice?.symbol || "")].length;
+  if (length >= 5) return " is-compact";
+  if (length >= 4) return " is-wide";
+  return "";
+}
+
+function renderActions(actions, isOver) {
+  els.battleScreen.classList.remove("is-adventure-choice-phase");
+  els.actionsGrid.innerHTML = "";
+  els.actionsGrid.classList.remove("is-adventure-choices");
+  els.adventureRouteRerollButton.hidden = true;
   if (!actions.length || isOver) {
     renderEmptyActions(isOver ? "전투 종료" : "전투 시작 전");
     els.actionHint.textContent = isOver ? "결과 확인" : "대기 중";
@@ -1179,7 +1755,7 @@ function createPassiveSlot(passive) {
   slot.setAttribute("aria-disabled", disabled ? "true" : "false");
   slot.setAttribute("aria-label", passive ? `패시브: ${passive.name}` : "패시브");
   slot.innerHTML = `
-    ${skillIconHtml({ number: 0, name: passive?.name || "패시브" })}
+    ${skillIconHtml(passive || { number: 0, name: "패시브" })}
     <span class="action-main">
       <span class="action-head">
         <span class="action-name">${escapeHtml(passive?.name || "패시브")}</span>
@@ -1220,18 +1796,28 @@ function createEmptyActionSlot() {
 function currentPlayerPassive() {
   const fighter = state.battle?.player;
   const character = fighter ? findCharacterForFighter(fighter) : null;
-  return fighter?.passive || character?.passive || null;
+  const passive = fighter?.passive || character?.passive || null;
+  if (!passive) return null;
+  return {
+    ...passive,
+    number: 0,
+    iconCharacterId: fighter?.passiveIconCharacterId || fighter?.activeCharacterId || fighter?.id || character?.id || null,
+    transformed: Boolean(fighter?.passiveTransformed),
+  };
 }
 
 function skillIconHtml(action) {
-  return skillIconHtmlForCharacter(action, currentPlayerCharacterId());
+  return skillIconHtmlForCharacter(action, action?.iconCharacterId || currentPlayerCharacterId(), {
+    transformed: Boolean(action?.transformed),
+  });
 }
 
-function skillIconHtmlForCharacter(action, characterId) {
+function skillIconHtmlForCharacter(action, characterId, options = {}) {
   const meta = skillIconMeta(action, characterId);
   const glyph = meta.glyph || action.name.trim().slice(0, 1) || "?";
+  const transformedClass = options.transformed || action?.transformed ? " skill-icon-transformed" : "";
   return `
-    <span class="skill-icon ${meta.className}" aria-hidden="true">
+    <span class="skill-icon ${meta.className}${transformedClass}" aria-hidden="true">
       ${meta.src
         ? `<img class="skill-icon-image" src="${escapeHtml(meta.src)}" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">`
         : ""}
@@ -1264,10 +1850,15 @@ function skillIconMeta(action, characterId = currentPlayerCharacterId()) {
 }
 
 function characterSkillIconSrc(characterId, number) {
-  if (!characterId || !CHARACTER_SKILL_ICON_IDS.has(characterId)) return null;
   if (number >= 1 && number <= 3) return null;
+  const assetGroup = CHARACTER_SKILL_ICON_IDS.has(characterId)
+    ? "characters"
+    : MONSTER_SKILL_ICON_IDS.has(characterId)
+      ? "monsters"
+      : null;
+  if (!characterId || !assetGroup) return null;
   const fileName = number === 0 ? "passive" : `skill${number}`;
-  return `/assets/characters/${encodeURIComponent(characterId)}/skills/${fileName}.webp`;
+  return `/assets/${assetGroup}/${encodeURIComponent(characterId)}/skills/${fileName}.webp`;
 }
 
 function currentPlayerCharacterId() {
@@ -1295,6 +1886,10 @@ function skillIconFallbackGlyph(action, number) {
 }
 
 function renderEmptyActions(message = "전투 시작 전") {
+  els.battleScreen.classList.remove("is-adventure-choice-phase");
+  els.actionsGrid.classList.remove("is-adventure-choices");
+  els.adventureRouteRerollButton.hidden = true;
+  els.actionHint.hidden = true;
   els.actionsGrid.innerHTML = `<div class="empty-actions">${escapeHtml(message)}</div>`;
 }
 
@@ -1307,29 +1902,44 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
   };
   state.turnLogs.push(packet);
   state.currentLogIndex = state.turnLogs.length - 1;
+  const token = ++state.logToken;
+  state.logAnimating = Boolean(animated);
   renderLog({ follow: true });
 
-  const token = ++state.logToken;
   if (!animated) return;
+  const delayMs = Number.isFinite(Number(options.delayMs))
+    ? Math.max(0, Number(options.delayMs))
+    : LOG_DELAY_MS;
   let playedEffect = false;
-  for (let index = 1; index <= packet.entries.length; index += 1) {
-    await sleep(LOG_DELAY_MS);
-    if (token !== state.logToken) return;
-    packet.visibleCount = index;
-    renderLog({ follow: true });
-    const entry = packet.entries[index - 1];
-    playLogEffect(entry.effect);
-    if (options.syncState) {
-      applyLogStatePatch(entry.patch);
+  try {
+    for (let index = 1; index <= packet.entries.length; index += 1) {
+      await sleep(delayMs);
+      if (token !== state.logToken) return;
+      packet.visibleCount = index;
+      renderLog({ follow: true });
+      const entry = packet.entries[index - 1];
+      playLogEffect(entry.effect);
+      if (options.syncState) {
+        applyLogStatePatch(entry.patch);
+      }
+      const effect = entry.effect;
+      if (effect) {
+        playedEffect = true;
+      }
     }
-    const effect = entry.effect;
-    if (effect) {
-      playedEffect = true;
+    if (options.settleEffects && playedEffect && token === state.logToken) {
+      await sleep(EFFECT_SETTLE_MS);
+    }
+  } finally {
+    if (token === state.logToken) {
+      state.logAnimating = false;
+      renderLog();
     }
   }
-  if (options.settleEffects && playedEffect && token === state.logToken) {
-    await sleep(EFFECT_SETTLE_MS);
-  }
+}
+
+function pushDialogueLog(title, lines = []) {
+  return pushTurnLog(title, lines, true, { delayMs: DIALOGUE_LOG_DELAY_MS });
 }
 
 function compactLogEntries(lines) {
@@ -1483,6 +2093,37 @@ function effectFromLogLine(line, context) {
     return makeLogEffect(multiplier >= 1 ? "buff" : "debuff", match[1], match[1], match[2], context.lineSide, context.lineSide || context.actorSide);
   }
 
+  match = line.match(/^(.+?)의 (ATK|DEF|SPD) \+([0-9.]+)배 \(현재 ([0-9.]+)배\)/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], `${match[2]} x${match[4]}`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 기본 MP 회복량 \+([0-9.]+) \(현재 \+([0-9.]+)\)/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], `MP 회복 +${match[3]}`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 매 턴 종료 HP 회복량 \+([0-9.]+) \(현재 \+([0-9.]+)\)/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], `턴 종료 HP +${match[3]}`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 최대 HP \+([0-9.]+)%/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], `최대 HP +${match[2]}%`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 전투 종료 HP 회복량 \+([0-9.]+)%p \(현재 ([0-9.]+)%\)/);
+  if (match) {
+    return makeLogEffect("buff", match[1], match[1], `전투 종료 HP ${match[3]}%`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 (.+?) MP 소모량이 30% (감소|증가)했다\. \(현재 ([0-9.]+)배\)/);
+  if (match) {
+    const effectType = match[3] === "감소" ? "buff" : "debuff";
+    return makeLogEffect(effectType, match[1], match[1], `${match[2]} MP x${match[4]}`, context.lineSide, context.lineSide || context.actorSide);
+  }
+
   match = line.match(/^(.+?)의 (.+?) (\d+)(?:\/\d+)?\s*(?:→|->)\s*(\d+)(?:\/\d+)?(?:중첩)?/);
   if (match) {
     const [, targetName, stackName, beforeText, afterText] = match;
@@ -1613,9 +2254,14 @@ function playLogEffect(effect) {
 
 function playEffectSound(type) {
   prepareSfx();
-  const source = state.sfx.get(type);
-  if (!source) return;
-  const sound = source.cloneNode();
+  const bank = state.sfx.get(type);
+  if (!bank) return;
+  const available = bank.pool.find((audio) => audio.paused || audio.ended);
+  const sound = available || bank.pool[bank.cursor];
+  const soundIndex = bank.pool.indexOf(sound);
+  bank.cursor = (soundIndex + 1) % bank.pool.length;
+  sound.pause();
+  sound.currentTime = 0;
   sound.volume = SFX_VOLUME;
   sound.play().catch(() => {
     // Some browsers suppress audio until after the first user gesture.
@@ -1657,15 +2303,28 @@ function playBgm(type, fadeMs = BGM_FADE_MS) {
     });
 }
 
-function playResultBgm(data) {
+function playResultBgm(data, nextType = null) {
   const type = resultBgmType(data);
   if (type) {
     playBgm(type, BGM_FADE_MS);
+    if (nextType) queueBgmAfterTrack(type, nextType);
   }
+}
+
+function queueBgmAfterTrack(currentType, nextType) {
+  prepareBgm();
+  const current = state.bgm.get(currentType);
+  if (!current || !BGM_TRACKS[nextType]) return;
+  current.addEventListener("ended", () => {
+    if (state.currentBgm === current && state.battleMode === "adventure") {
+      playBgm(nextType, 300);
+    }
+  }, { once: true });
 }
 
 function resultBgmType(data) {
   if (!data?.is_over && !data?.gameOver) return null;
+  if (data.adventure?.phase === "complete") return "clear";
   const winnerSide = data.winner?.side?.toLowerCase?.();
   if (winnerSide === "player") return "victory";
   if (winnerSide === "ai") return "defeat";
@@ -1789,8 +2448,8 @@ function renderLog(options = {}) {
       ${lines.map((line) => `<div class="log-line">${escapeHtml(line)}</div>`).join("")}
     </div>
   `;
-  els.prevLogButton.disabled = state.currentLogIndex <= 0;
-  els.nextLogButton.disabled = state.currentLogIndex >= state.turnLogs.length - 1;
+  els.prevLogButton.disabled = state.logAnimating || state.currentLogIndex <= 0;
+  els.nextLogButton.disabled = state.logAnimating || state.currentLogIndex >= state.turnLogs.length - 1;
   if (options.follow) {
     scrollBattleLogToBottom();
   }
@@ -1805,6 +2464,7 @@ function scrollBattleLogToBottom() {
 }
 
 function moveLog(delta) {
+  if (state.logAnimating) return;
   const nextIndex = state.currentLogIndex + delta;
   if (nextIndex < 0 || nextIndex >= state.turnLogs.length) return;
   state.currentLogIndex = nextIndex;
@@ -1815,6 +2475,7 @@ function moveLog(delta) {
 
 function clearLogs() {
   state.logToken += 1;
+  state.logAnimating = false;
   clearBattleEffects();
   state.turnLogs = [];
   state.currentLogIndex = -1;
@@ -2062,22 +2723,51 @@ function setBusy(isBusy) {
   document.body.classList.toggle("is-waiting", isBusy);
   syncSetupLock();
   if (state.battle) {
-    renderActions(state.battle.actions || [], state.battle.is_over);
+    const adventureChoices = state.battleMode === "adventure"
+      && (state.battle.is_over || state.adventure?.phase === "prologue")
+      && Array.isArray(state.adventure?.choices)
+      ? state.adventure.choices
+      : [];
+    if (adventureChoices.length) {
+      renderAdventureChoices(adventureChoices);
+    } else if (
+      state.battleMode === "adventure"
+      && ["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
+    ) {
+      renderEmptyActions(state.adventureRestartRequested ? "새 여정을 시작하는 중" : "대화 진행 중...");
+    } else if (state.battleMode === "adventure" && ["town_complete", "event_complete", "complete"].includes(state.adventure?.phase)) {
+      renderEmptyActions(state.adventure.phase === "complete"
+        ? "여정을 마쳤습니다."
+        : state.adventure.phase === "event_complete"
+        ? `${state.adventure.currentEvent?.name || "이벤트"}에서 떠났습니다.`
+        : "마을에서 식사를 마쳤습니다.");
+    } else {
+      renderActions(state.battle.actions || [], state.battle.is_over);
+    }
   }
 }
 
 function syncSetupLock() {
   const pvpLocked = isPvpSetupLocked();
-  const startLocked = state.busy || pvpLocked;
+  const playerSetupLocked = pvpLocked || (state.battleMode === "adventure" && state.busy);
+  const canRestartDuringDialogue = state.battleMode === "adventure"
+    && state.busy
+    && ["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
+    && !state.adventureRestartRequested;
+  const startLocked = pvpLocked || (state.busy && !canRestartDuringDialogue);
   els.startButton.disabled = startLocked;
-  els.inscriptionButton.disabled = pvpLocked;
-  els.playerSelect.disabled = pvpLocked;
+  els.inscriptionButton.removeAttribute("title");
+  if (playerSetupLocked && document.activeElement === els.inscriptionButton) {
+    els.inscriptionButton.blur();
+  }
+  els.inscriptionButton.disabled = playerSetupLocked;
+  els.playerSelect.disabled = playerSetupLocked;
   els.pvpRoomInput.disabled = pvpLocked;
   for (const picker of state.characterPickers) {
-    picker.select.disabled = picker.select === els.playerSelect ? pvpLocked : false;
+    picker.select.disabled = picker.select === els.playerSelect ? playerSetupLocked : false;
     picker.button.disabled = picker.select.disabled;
   }
-  if (pvpLocked) {
+  if (playerSetupLocked) {
     closeCustomSelects();
     closeInscriptionPopover();
     closeCharacterPicker();
@@ -2178,6 +2868,8 @@ function findCharacterByName(name) {
 }
 
 function findCharacterForFighter(fighter) {
+  const adventureMonster = state.adventure?.monster;
+  if (fighter?.id && adventureMonster?.id === fighter.id) return adventureMonster;
   return state.options?.characters?.find((character) => (
     (fighter.id && character.id === fighter.id) || character.name === fighter.name
   )) || null;
@@ -2189,8 +2881,10 @@ function portraitHtml(subject, side) {
     return "";
   }
   const name = subject?.name || id;
-  if (!CHARACTER_PORTRAIT_IDS.has(id)) {
-    return avatarSvg(name, side);
+  if (!CHARACTER_PORTRAIT_IDS.has(id) && !MONSTER_PORTRAIT_IDS.has(id)) {
+    return avatarSvg(name, side, {
+      monochrome: state.adventure?.monster?.id === id,
+    });
   }
   const src = portraitSrcForId(id);
   return `<img class="character-portrait" src="${escapeHtml(src)}" alt="${escapeHtml(name)}">`;
@@ -2208,7 +2902,8 @@ function characterPickerThumbHtml(character, side, isRandom = false) {
 }
 
 function portraitSrcForId(id) {
-  return `/assets/characters/${encodeURIComponent(id)}/portrait.png`;
+  const assetGroup = MONSTER_PORTRAIT_IDS.has(id) ? "monsters" : "characters";
+  return `/assets/${assetGroup}/${encodeURIComponent(id)}/portrait.png`;
 }
 
 function withJosa(text, consonant, vowel) {
@@ -2250,13 +2945,13 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function avatarSvg(name, side) {
+function avatarSvg(name, side, options = {}) {
   const safeName = name && name !== "-" ? name : "V";
   const hue = hashName(safeName) % 360;
   const hue2 = (hue + 82) % 360;
-  const accent = `hsl(${hue} 74% 58%)`;
-  const accent2 = `hsl(${hue2} 74% 62%)`;
-  const dark = `hsl(${hue} 32% 23%)`;
+  const accent = options.monochrome ? "#c9cdd3" : `hsl(${hue} 74% 58%)`;
+  const accent2 = options.monochrome ? "#707782" : `hsl(${hue2} 74% 62%)`;
+  const dark = options.monochrome ? "#242930" : `hsl(${hue} 32% 23%)`;
   const initial = escapeHtml(safeName.slice(0, 1));
   const tilt = side === "ai" ? -4 : 4;
   return `

@@ -218,14 +218,24 @@ module.exports = {
   },
 };
 
+module.exports.borrowedEffects = {
+  extraStateParts: module.exports.extraStateParts,
+  onActionStart(battle, choice) {
+    if (choice.action.isAttack && defAttackActive(battle, choice.actor)) {
+      choice.attackAtkOverride = battle.currentStats(choice.actor)[1];
+      battle.logs.push("최선의 공격은 방어: 피해 계산 시 ATK 대신 DEF를 사용한다.");
+    }
+    return false;
+  },
+  onTurnEnd: module.exports.onTurnEnd,
+};
+
 function recentAttackDefenseCount(battle, fighter, limit = 4) {
   let history = fighter.selectedHistory;
   if (Object.prototype.hasOwnProperty.call(battle.record.selected, fighter.side)) history = history.slice(0, -1);
   return history.slice(-limit).filter((key) => {
-    if (key === "common:defense") return true;
-    if (String(key).startsWith("common:")) return false;
-    const [id, slotText] = String(key).split(":");
-    const skill = id === fighter.characterId ? fighter.data.skills?.[Number(slotText)] : null;
-    return skill != null && skill.power == null && String(skill.description || "").includes("자신이 이 턴에 입는 공격 피해를 경감");
+    return typeof battle.actionKeyIsDefense === "function"
+      ? battle.actionKeyIsDefense(fighter, key)
+      : key === "common:defense";
   }).length;
 }

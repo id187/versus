@@ -18,7 +18,7 @@ function addVengeance(battle, fighter) {
 function triggerVengeanceOverflow(battle, fighter, reason) {
   const stacks = Number(fighter.counters["과령"] || 0);
   fighter.counters["과령"] = 0;
-  battle.fixedDamage(fighter, 25, reason, battle.opponent(fighter));
+  battle.fixedDamage(fighter, 25, reason, fighter);
   log(battle, `과령 ${stacks}을 모두 소모했다.`);
 }
 
@@ -150,4 +150,14 @@ module.exports = {
     if (action.isCommonAction("meditation") && actor.mp < 35) value += 120;
     return value;
   },
+};
+
+module.exports.borrowedEffects = {
+  extraStateParts: module.exports.extraStateParts,
+  onTurnEnd: module.exports.onTurnEnd,
+  decrementCounters: module.exports.decrementCounters,
+};
+
+module.exports.onBorrowedStateCleared = function onBorrowedStateCleared(fighter) {
+  delete fighter.counters["거포 강령"];
 };

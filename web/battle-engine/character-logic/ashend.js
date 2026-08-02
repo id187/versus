@@ -143,3 +143,13 @@ module.exports = {
     return value;
   },
 };
+
+module.exports.borrowedEffects = {
+  extraStateParts: module.exports.extraStateParts,
+  resetTurnFlags: module.exports.resetTurnFlags,
+  attackDamageMultipliers: module.exports.attackDamageMultipliers,
+  estimatedDamageMultipliers(_battle, actor) {
+    return Number(actor.counters["재로부터의 엄습"] || 0) > 0 ? [1.5] : [];
+  },
+  decrementCounters: module.exports.decrementCounters,
+};

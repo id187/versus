@@ -181,7 +181,6 @@ p {
   border-color: var(--gold);
 }
 
-.primary-menu,
 .primary-button {
   background: linear-gradient(180deg, #f2c655, #a7792f);
   color: #201506;
@@ -193,6 +192,11 @@ p {
 .ghost-button:disabled {
   opacity: 0.54;
   cursor: wait;
+}
+
+.main-menu .menu-button:disabled {
+  opacity: 1;
+  cursor: not-allowed;
 }
 
 .battle-screen,
@@ -262,6 +266,17 @@ p {
   grid-column: 3;
 }
 
+.battle-screen.is-adventure .battle-setup {
+  grid-template-columns: minmax(200px, 250px) 120px;
+  justify-content: space-between;
+}
+
+@media (max-width: 900px) {
+  .battle-screen.is-adventure .battle-setup {
+    grid-template-columns: minmax(0, 250px) minmax(96px, 120px);
+  }
+}
+
 label,
 .setup-field {
   display: grid;
@@ -314,6 +329,10 @@ input {
   pointer-events: none;
 }
 
+.native-select:disabled {
+  opacity: 0;
+}
+
 .custom-select {
   position: relative;
   min-width: 0;
@@ -347,7 +366,7 @@ input {
 .character-picker-button:disabled,
 .inscription-button:disabled,
 input:disabled,
-select:disabled {
+select:not(.native-select):disabled {
   opacity: 0.58;
   cursor: not-allowed;
 }
@@ -452,28 +471,34 @@ select:disabled {
 
 .inscription-button {
   --inscription-color: #aeb4bd;
+  -webkit-appearance: none;
+  appearance: none;
   display: grid;
   place-items: center;
   width: 36px;
   height: 34px;
-  border: 1px solid color-mix(in srgb, var(--inscription-color) 70%, rgba(146, 164, 194, 0.32));
+  overflow: hidden;
+  border: 1px solid rgba(43, 53, 68, 0.92);
   border-radius: 6px;
   background:
     radial-gradient(circle at 50% 22%, color-mix(in srgb, var(--inscription-color) 22%, transparent), transparent 58%),
     rgba(8, 12, 18, 0.88);
   color: var(--text);
   padding: 0;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--inscription-color) 18%, transparent),
-    0 0 12px color-mix(in srgb, var(--inscription-color) 12%, transparent);
+  box-shadow: inset 0 0 0 1px rgba(4, 7, 11, 0.72);
 }
 
-.inscription-button:hover,
+.inscription-button:not(:disabled):hover,
 .inscription-button[aria-expanded="true"] {
-  border-color: color-mix(in srgb, var(--inscription-color) 92%, rgba(242, 198, 85, 0.22));
+  border-color: rgba(242, 198, 85, 0.56);
   background:
     radial-gradient(circle at 50% 22%, color-mix(in srgb, var(--inscription-color) 34%, transparent), transparent 60%),
     rgba(12, 17, 25, 0.95);
+}
+
+.inscription-button:disabled {
+  pointer-events: none;
+  outline: none;
 }
 
 .inscription-gem {
@@ -482,22 +507,20 @@ select:disabled {
   aspect-ratio: 1;
   clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.78), transparent 34%),
     linear-gradient(315deg, rgba(0, 0, 0, 0.38), transparent 42%),
     var(--inscription-color);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.38),
+    inset 0 0 0 1px rgba(4, 7, 11, 0.58),
     0 0 12px color-mix(in srgb, var(--inscription-color) 62%, transparent);
 }
 
 .inscription-button[data-inscription-id="random"] .inscription-gem,
 .inscription-option[data-inscription-id="random"] .inscription-gem {
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.78), transparent 34%),
     linear-gradient(315deg, rgba(0, 0, 0, 0.38), transparent 42%),
     conic-gradient(from 20deg, #ff4f66, #f2c655, #5bd477, #62b8ee, #b46cff, #ff4f66);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+    inset 0 0 0 1px rgba(12, 16, 22, 0.48),
     0 0 14px rgba(180, 108, 255, 0.42);
 }
 
@@ -1001,6 +1024,8 @@ button:focus-visible {
   transform: translateX(-50%);
   display: grid;
   place-items: center;
+  width: max-content;
+  max-width: calc(100% - 16px);
   min-height: 34px;
   padding: 0 16px;
   border-radius: 999px;
@@ -1009,6 +1034,7 @@ button:focus-visible {
   color: var(--gold);
   font-weight: 950;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .turn-chip {
@@ -1088,6 +1114,30 @@ button:focus-visible {
   object-fit: cover;
   object-position: center top;
   transition: filter 1900ms ease, opacity 1900ms ease;
+}
+
+.avatar-stage .adventure-scene-illustration {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  object-fit: cover;
+  object-position: center;
+}
+
+.avatar-stage.is-adventure-scene {
+  background: rgba(7, 10, 14, 0.62);
+  box-shadow:
+    inset 0 0 0 1px rgba(198, 143, 255, 0.34),
+    0 16px 34px rgba(0, 0, 0, 0.28);
+}
+
+.battle-screen.is-adventure-prologue .enemy-card .meter-list,
+.battle-screen.is-adventure-prologue .enemy-card .stat-line,
+.battle-screen.is-adventure-prologue .enemy-card .state-box {
+  display: none;
 }
 
 .avatar-stage.is-defeated::after {
@@ -1590,6 +1640,39 @@ button:focus-visible {
   display: none;
 }
 
+.battle-screen.is-adventure.is-adventure-choice-phase .skills-card .skills-title {
+  display: flex;
+}
+
+.battle-screen.is-adventure #actionHint {
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 950;
+}
+
+.adventure-route-reroll {
+  height: 26px;
+  margin-left: auto;
+  border: 1px solid rgba(198, 143, 255, 0.48);
+  border-radius: 6px;
+  background: rgba(43, 22, 63, 0.72);
+  color: #e1c4ff;
+  padding: 0 9px;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.adventure-route-reroll:hover,
+.adventure-route-reroll:focus-visible {
+  border-color: var(--gold);
+  color: #fff2bf;
+}
+
+.adventure-route-reroll:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .passive-chip {
   position: relative;
   display: flex;
@@ -1752,6 +1835,110 @@ button:focus-visible {
   overflow: visible;
 }
 
+.actions-grid.is-adventure-choices {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.adventure-choice-button {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid rgba(146, 164, 194, 0.34);
+  border-radius: 9px;
+  background:
+    linear-gradient(160deg, rgba(84, 40, 120, 0.3), transparent 48%),
+    rgba(13, 18, 26, 0.9);
+  color: var(--text);
+  padding: 18px 14px;
+  text-align: center;
+}
+
+.adventure-choice-button.is-single {
+  grid-column: 2;
+}
+
+.adventure-choice-button:disabled {
+  opacity: 0.54;
+  cursor: wait;
+}
+
+.adventure-choice-button:hover,
+.adventure-choice-button:focus-visible {
+  border-color: var(--gold);
+  background:
+    linear-gradient(160deg, rgba(84, 40, 120, 0.46), transparent 52%),
+    rgba(24, 30, 42, 0.96);
+}
+
+.adventure-choice-symbol {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(198, 143, 255, 0.5);
+  border-radius: 9px;
+  background: rgba(8, 11, 16, 0.82);
+  color: #d7b0ff;
+  font-size: 1.45rem;
+  font-weight: 950;
+  box-shadow: inset 0 0 18px rgba(84, 40, 120, 0.36);
+}
+
+.adventure-choice-symbol.is-wide {
+  font-size: 1.02rem;
+  letter-spacing: -0.04em;
+}
+
+.adventure-choice-symbol.is-compact {
+  font-size: 0.84rem;
+  letter-spacing: -0.06em;
+}
+
+.adventure-destination-icon {
+  width: 34px;
+  height: 34px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.adventure-destination-icon circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+.adventure-choice-copy {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.adventure-choice-copy strong {
+  color: #f4f6fb;
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.adventure-choice-button.is-event-choice .adventure-choice-copy strong {
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.adventure-choice-copy small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.42;
+}
+
 .action-button {
   position: relative;
   z-index: 0;
@@ -1870,6 +2057,30 @@ button:focus-visible {
   height: 100%;
   display: block;
   object-fit: cover;
+}
+
+.skill-icon-transformed {
+  border-color: rgba(156, 190, 204, 0.78);
+  box-shadow:
+    inset 0 0 0 1px rgba(11, 25, 34, 0.62),
+    0 0 0 1px rgba(105, 142, 160, 0.18),
+    0 8px 18px rgba(0, 0, 0, 0.32);
+}
+
+.skill-icon-transformed .skill-icon-image {
+  filter: grayscale(1) saturate(0) brightness(0.78) contrast(1.12);
+}
+
+.skill-icon-transformed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(190, 211, 220, 0.56), rgba(72, 99, 114, 0.86)),
+    rgba(126, 154, 168, 0.72);
+  mix-blend-mode: color;
 }
 
 .skill-icon-attack {

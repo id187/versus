@@ -17,9 +17,7 @@ function randomIntInclusive(battle, low, high) {
 }
 
 function activeSkillActions(battle, actor) {
-  return (actor.data.skills || [])
-    .map((_skill, slot) => battle.findActionByInput(actor, `${actor.characterId}:${slot}`))
-    .filter(Boolean);
+  return battle.availableActions(actor).filter((action) => action.isActive);
 }
 
 function madnessResultValue(battle, actor, target, action, replaced, incoming) {
@@ -99,9 +97,7 @@ module.exports = {
     const roll = battle.roll(MADNESS);
     battle.logs.push(`광증 판정 ${chance}% / 판정값 ${roll.toFixed(2)}`);
     if (roll >= chance) return false;
-    const options = (actor.data.skills || [])
-      .map((_skill, slot) => battle.findActionByInput(actor, `${actor.characterId}:${slot}`))
-      .filter((action) => action && action.key !== original.key);
+    const options = activeSkillActions(battle, actor).filter((action) => action.key !== original.key);
     if (!options.length) return false;
     const replacement = battle.rng.choice(options);
     choice.action = replacement;
@@ -110,10 +106,10 @@ module.exports = {
     choice.hitCount = 1;
     choice.madnessReplaced = true;
     choice.madnessOriginalActionKey = original.key;
-    if (actor.characterId === "gandrick") {
+    if (replacement.characterId === "gandrick") {
       choice.selectedBullets = replacement.isSkill("gandrick", 3) ? Number(actor.counters["탄환"] || 0) : null;
     }
-    if (actor.characterId === "balef" && replacement.isActive && replacement.isAttack && choice.prevAttackActive == null) {
+    if (replacement.characterId === "balef" && replacement.isActive && replacement.isAttack && choice.prevAttackActive == null) {
       const selected = actor.selectedAttackActiveHistory || [];
       choice.prevAttackActive = selected.length ? selected[selected.length - 1] : null;
     }
@@ -163,7 +159,7 @@ module.exports = {
   },
 
   onTurnEnd(battle, fighter) {
-    if (fighter.characterId !== CHARACTER_ID) return;
+    if ((battle.activeCharacterId?.(fighter) || fighter.characterId) !== CHARACTER_ID) return;
     const decided = battle.record.madnessDecided || {};
     const opponent = battle.opponent(fighter);
     if (decided[fighter.side]) battle.heal(fighter, 7, "복약 지도");

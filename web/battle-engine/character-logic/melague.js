@@ -79,7 +79,14 @@ module.exports = {
 
   preCharacterTurnEnd(battle, fighter) {
     const plague = fighter.statuses[PLAGUE];
-    if (plague) battle.fixedDamage(fighter, plague.stacks, `역병 ${plague.stacks}중첩`, fighter);
+    if (plague) {
+      battle.fixedDamage(
+        fighter,
+        plague.stacks,
+        `역병 ${plague.stacks}중첩`,
+        battle.opponent(fighter),
+      );
+    }
   },
 
   wouldConditionFail(_battle, _actor, target, action) {

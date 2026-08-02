@@ -120,14 +120,14 @@ module.exports = {
     const actor = choice.actor;
     const target = battle.opponent(actor);
     const action = choice.action;
-    if (action.isActive && action.isAttack) {
+    const trio = [skillKey(0), skillKey(1), skillKey(2)];
+    const trioWasReady = trio.every((key) => actor.hitRecords.has(key));
+    if (action.isAttack && trioWasReady) {
+      battle.fixedDamage(target, floorInt(target.maxHp * 0.06), "삼위일권", actor);
+      for (const key of trio) actor.hitRecords.delete(key);
+      if (battle.gameOver) return;
+    } else if (action.isActive && action.isAttack && trio.includes(action.key)) {
       actor.hitRecords.add(action.key);
-      const trio = [skillKey(0), skillKey(1), skillKey(2)];
-      if (trio.every((key) => actor.hitRecords.has(key))) {
-        battle.fixedDamage(target, floorInt(target.maxHp * 0.06), "삼위일권", actor);
-        for (const key of trio) actor.hitRecords.delete(key);
-        if (battle.gameOver) return;
-      }
     }
     if (action.isSkill(CHARACTER_ID, 0) && choice.prevAttackActive === skillKey(1)) {
       battle.addStatEffect(target, "atk", 0.9, 3, action.name);
@@ -210,10 +210,12 @@ module.exports = {
     const read = defenseRead(battle, target, damage);
     const missingMp = Math.max(0, actor.maxMp - actor.mp);
 
-    if (action.isActive && action.isAttack) {
+    if (action.isAttack && missing.size === 0) {
+      value += floorInt(target.maxHp * 0.06) * 95;
+    }
+    if (action.isActive && action.isAttack && missing.size > 0) {
       if (previous) value += action.key !== previous ? 360 : -260;
-      if (missing.size === 0) value += floorInt(target.maxHp * 0.06) * 95;
-      else if (missing.has(action.key)) {
+      if (missing.has(action.key)) {
         value += 520 * hitRate;
         if (missing.size === 1) value += 1500 * hitRate;
         else if (missing.size === 2) value += 520 * hitRate;

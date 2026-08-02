@@ -17,6 +17,16 @@ const { Mulberry32 } = require("./rng");
 const MAX_MP = 100;
 const START_MP = 30;
 const DEFENSE_MULTIPLIERS = [0.5, 0.6, 0.7, 0.8, 0.9];
+const ADVENTURE_RHYTHM_LABELS = Object.freeze({
+  rush: "속공",
+  wall: "철벽",
+  late: "후반",
+});
+const ADVENTURE_RELIC_LABELS = Object.freeze({
+  red_amber: "붉은 호박석",
+  blue_amber: "푸른 호박석",
+  glass_eye: "유리 눈",
+});
 const AI_PERSONALITY_TUNING = {
   R: { temperature: 35, topGap: 120, exploration: 0.02, repeatPenalty: 45 },
   C: { temperature: 60, topGap: 220, exploration: 0.05, repeatPenalty: 30 },
@@ -83,8 +93,47 @@ function fighterLogLine(fighter, text) {
   return `[@${fighter.side}]${text}`;
 }
 
+function withParticle(value, consonantParticle, vowelParticle) {
+  const text = String(value || "");
+  const last = text.codePointAt(text.length - 1);
+  const finalConsonant = last >= 0xac00 && last <= 0xd7a3 ? (last - 0xac00) % 28 : 0;
+  const rieulException = consonantParticle === "으로" && vowelParticle === "로" && finalConsonant === 8;
+  return `${text}${finalConsonant && !rieulException ? consonantParticle : vowelParticle}`;
+}
+
 function commonActionKey(kind) {
   return `common:${kind}`;
+}
+
+function usesAdventurePowerMultiplier(action) {
+  return Boolean(action?.isActive || action?.isCommonAction?.("normal_attack"));
+}
+
+function adventureRhythmAttackMultiplier(fighter, turn, direction) {
+  const kind = String(fighter?.adventureBattleRhythm?.kind || "");
+  const currentTurn = Math.max(1, Math.trunc(Number(turn || 1)));
+  if (direction === "outgoing") {
+    if (kind === "rush") return currentTurn <= 2 ? 1.2 : 0.9;
+    if (kind === "late") return currentTurn <= 3 ? 0.85 : 1.3;
+  }
+  if (direction === "incoming" && kind === "wall") return currentTurn <= 2 ? 0.8 : 1.1;
+  return 1;
+}
+
+function canUseAdventureRelic(fighter, kind) {
+  const relic = fighter?.adventureRelic;
+  return Boolean(
+    relic
+    && relic.kind === kind
+    && Number(relic.battlesRemaining || 0) > 0
+    && !relic.used
+  );
+}
+
+function consumeAdventureRelic(fighter, kind) {
+  if (!canUseAdventureRelic(fighter, kind)) return false;
+  fighter.adventureRelic.used = true;
+  return true;
 }
 
 class Action {
@@ -101,6 +150,8 @@ class Action {
     kind = "skill",
     characterId = null,
     slot = null,
+    ownerCharacterId = null,
+    transformed = false,
   }) {
     this.number = Number(number);
     this.name = String(name);
@@ -114,6 +165,8 @@ class Action {
     this.kind = kind;
     this.characterId = characterId;
     this.slot = slot;
+    this.ownerCharacterId = ownerCharacterId || characterId;
+    this.transformed = Boolean(transformed);
   }
 
   get isAttack() {
@@ -199,25 +252,26 @@ class Fighter {
     this.baseAtk = Number(this.data.stats.atk);
     this.baseDef = Number(this.data.stats.def);
     this.baseSpd = Number(this.data.stats.spd);
-    this.statuses = {};
-    this.statEffects = [];
-    this.costEffects = [];
-    this.counters = {};
-    this.defenseStreak = 0;
-    this.defenseMult = null;
-    this.defenseName = null;
-    this.evasionChance = 0;
-    this.guaranteedEvasion = false;
-    this.selectedHistory = [];
-    this.selectedAttackActiveHistory = [];
-    this.hitRecords = new Set();
-    this.lastSuccessfulActionKey = null;
-    this.forbiddenActionKey = null;
-    this.forbiddenRemaining = 0;
-    this.attackSelectionCount1To5 = 0;
-    this.lastMeditationSuccessTurn = null;
+    this.adventureMpRecoveryBonus = 0;
+    this.adventureTurnEndHpRecovery = 0;
+    this.adventureSkillCostMultipliers = {};
+    this.adventureSkillPowerMultipliers = {};
+    this.adventureSkillAccuracyModifiers = {};
+    this.adventureSkillPriorityModifiers = {};
+    this.adventureAllSkillCostMultiplier = 1;
+    this.adventureDamageMultiplier = 1;
+    this.adventureCommonAttackPowerBonus = 0;
+    this.adventureCommonDefenseReductionBonus = 0;
+    this.adventureMeditationRecoveryBonus = 0;
+    this.adventureBattleRhythm = null;
+    this.adventureRelic = null;
+    this.adventureTurnEndFixedDamage = 0;
+    this.adventureSurviveDefeatCount = 0;
+    this.adventureSkipNextAction = false;
+    this.adventureSkipNextActionLabel = "";
+    clearFighterCombatState(this);
     characterLogic.adjustInitialStats(this);
-    characterLogic.initUniqueState(this, new Set((this.data.unique_statuses || []).map((item) => item.name)));
+    initializeFighterUniqueState(this);
     this.inscriptions = inscriptions;
   }
 
@@ -300,8 +354,37 @@ class Battle {
     }
   }
 
+  resetFighterCombatState(fighter) {
+    clearFighterCombatState(fighter);
+    initializeFighterUniqueState(fighter);
+  }
+
   opponent(fighter) {
     return fighter === this.player ? this.ai : this.player;
+  }
+
+  characterDataById(id) {
+    return this.characters.find((character) => character.id === id) || null;
+  }
+
+  activeCharacterId(fighter) {
+    return characterLogic.activeCharacterId(this, fighter) || fighter.characterId;
+  }
+
+  activeCharacterData(fighter) {
+    return activeCharacterDataForFighter(fighter, this);
+  }
+
+  initializeBorrowedCharacterState(fighter, characterId) {
+    return characterLogic.initializeBorrowedState(this, fighter, characterId);
+  }
+
+  clearBorrowedCharacterState(fighter, state) {
+    characterLogic.clearBorrowedState(fighter, state);
+  }
+
+  availableActions(fighter) {
+    return availableActions(fighter, this);
   }
 
   kindIsAttack(kind) {
@@ -316,17 +399,31 @@ class Battle {
     return commonActionKey(kind);
   }
 
+  actionFromKey(actionKey) {
+    if (!actionKey) return null;
+    const common = normalActions().find((action) => action.key === actionKey);
+    if (common) return common;
+    const match = /^([^:]+):(\d+)$/.exec(String(actionKey));
+    if (!match) return null;
+    const data = this.characterDataById(match[1]);
+    const slot = Number(match[2]);
+    const skill = data?.skills?.[slot];
+    return skill ? actionFromSkill(slot + 4, skill, data.id) : null;
+  }
+
   displayActionName(fighter, actionKey) {
     if (!actionKey) return "";
-    return availableActions(fighter).find((action) => action.key === actionKey)?.name || actionKey;
+    return this.availableActions(fighter).find((action) => action.key === actionKey)?.name
+      || this.actionFromKey(actionKey)?.name
+      || actionKey;
   }
 
   actionKeyIsAttack(fighter, actionKey) {
-    return Boolean(availableActions(fighter).find((action) => action.key === actionKey)?.isAttack);
+    return Boolean((this.availableActions(fighter).find((action) => action.key === actionKey) || this.actionFromKey(actionKey))?.isAttack);
   }
 
   actionKeyIsDefense(fighter, actionKey) {
-    return Boolean(availableActions(fighter).find((action) => action.key === actionKey)?.isDefense);
+    return Boolean((this.availableActions(fighter).find((action) => action.key === actionKey) || this.actionFromKey(actionKey))?.isDefense);
   }
 
   recentKindCounts(fighter, limit = 4) {
@@ -347,12 +444,16 @@ class Battle {
 
   findActionByInput(fighter, raw) {
     const value = String(raw || "").trim();
-    return availableActions(fighter).find((action) => String(action.number) === value || action.key === value || action.name === value) || null;
+    return this.availableActions(fighter).find((action) => String(action.number) === value || action.key === value || action.name === value) || null;
   }
 
   makeChoice(fighter, action) {
     const choice = new Choice(fighter, action, this.effectiveCost(fighter, action), this.effectivePriority(fighter, action));
     characterLogic.onMakeChoice(this, fighter, action, choice);
+    if (action.isCommonAction("defense")) {
+      choice.defenseBonusReduction = Number(choice.defenseBonusReduction || 0)
+        + Number(fighter.adventureCommonDefenseReductionBonus || 0);
+    }
     this.record.selected[fighter.side] = action.name;
     this.record.selectedKey[fighter.side] = action.key;
     this.record.selectedKind[fighter.side] = actionKind(action);
@@ -362,6 +463,7 @@ class Battle {
 
   isLegalChoice(fighter, action) {
     if (fighter.forbiddenActionKey === action.key && fighter.forbiddenRemaining > 0) return false;
+    if (Number(fighter.forbiddenActionKeys?.[action.key] || 0) > 0) return false;
     const characterResult = characterLogic.isLegalChoice(this, fighter, action);
     if (characterResult !== null && characterResult !== undefined) return Boolean(characterResult);
     return fighter.mp >= this.effectiveCost(fighter, action);
@@ -371,6 +473,14 @@ class Battle {
     let cost = Number(action.mp || 0);
     if (action.isActive) {
       cost = characterLogic.modifyCost(this, fighter, action, cost);
+      const adventureMultiplier = Number(fighter.adventureSkillCostMultipliers?.[action.key] ?? 1);
+      if (Number.isFinite(adventureMultiplier) && adventureMultiplier > 0) {
+        cost = floorInt(cost * adventureMultiplier);
+      }
+      const adventureAllMultiplier = Number(fighter.adventureAllSkillCostMultiplier ?? 1);
+      if (Number.isFinite(adventureAllMultiplier) && adventureAllMultiplier > 0) {
+        cost = floorInt(cost * adventureAllMultiplier);
+      }
       for (const effect of fighter.costEffects) cost = floorInt(cost * effect.multiplier);
       if (hasInscription(fighter, "red") && action.isAttack) cost += 3;
     }
@@ -384,12 +494,17 @@ class Battle {
   }
 
   effectivePriority(fighter, action) {
-    return characterLogic.modifyPriority(this, fighter, action, Number(action.priority || 0));
+    let priority = characterLogic.modifyPriority(this, fighter, action, Number(action.priority || 0));
+    if (action.isActive) {
+      const adventureModifier = Number(fighter.adventureSkillPriorityModifiers?.[action.key] ?? 0);
+      if (Number.isFinite(adventureModifier)) priority += adventureModifier;
+    }
+    return priority;
   }
 
   selectAiAction(actor = this.ai, target = this.player, personality = this.personality) {
-    let legal = availableActions(actor).filter((action) => this.isLegalChoice(actor, action));
-    if (!legal.length) return availableActions(actor)[0];
+    let legal = this.availableActions(actor).filter((action) => this.isLegalChoice(actor, action));
+    if (!legal.length) return this.availableActions(actor)[0];
     const viable = legal.filter((action) => !characterLogic.wouldConditionFail(this, actor, target, action));
     if (viable.length) legal = viable;
     if (personality.id === "M") return this.rng.choice(legal);
@@ -418,7 +533,8 @@ class Battle {
       const incoming = this.estimateBestIncomingDamage(target, actor);
       const mult = defenseMultiplierForStreak(
         actor.defenseStreak + 1,
-        characterLogic.defenseScoreBonusReduction(actor, action),
+        characterLogic.defenseScoreBonusReduction(this, actor, action)
+          + (action.isCommonAction("defense") ? Number(actor.adventureCommonDefenseReductionBonus || 0) : 0),
       );
       const prevented = incoming * (1 - mult);
       score += prevented * 1.8;
@@ -517,7 +633,7 @@ class Battle {
   }
 
   searchActionScore(actor, target, action, personalityId, tuning, deadline) {
-    let responses = availableActions(target).filter((candidate) => this.isLegalChoice(target, candidate));
+    let responses = this.availableActions(target).filter((candidate) => this.isLegalChoice(target, candidate));
     if (!responses.length) responses = [normalActions()[0]];
     const weights = this.responseWeights(target, actor, responses);
     const outcomes = [];
@@ -550,7 +666,7 @@ class Battle {
     const actor = this.fighterBySide(actorSide);
     const target = this.opponent(actor);
     if (this.gameOver || depth <= 0 || Date.now() >= deadline) return this.evaluatePosition(actorSide, personalityId);
-    let legal = availableActions(actor).filter((action) => this.isLegalChoice(actor, action));
+    let legal = this.availableActions(actor).filter((action) => this.isLegalChoice(actor, action));
     if (!legal.length) legal = [normalActions()[0]];
     legal = this.prioritizedActions(actor, target, legal, personalityId, tuning.beam);
     const values = [];
@@ -572,7 +688,7 @@ class Battle {
   lookaheadActionValue(actorSide, action, personalityId, depth, tuning, deadline) {
     const actor = this.fighterBySide(actorSide);
     const target = this.opponent(actor);
-    let responses = availableActions(target).filter((candidate) => this.isLegalChoice(target, candidate));
+    let responses = this.availableActions(target).filter((candidate) => this.isLegalChoice(target, candidate));
     if (!responses.length) responses = [normalActions()[0]];
     responses = this.prioritizedActions(target, actor, responses, "R", tuning.responses);
     const weights = this.responseWeights(target, actor, responses);
@@ -655,7 +771,7 @@ class Battle {
   }
 
   matchAction(fighter, action) {
-    const actions = availableActions(fighter);
+    const actions = this.availableActions(fighter);
     return actions.find((candidate) => candidate.number === action.number && candidate.name === action.name)
       || actions.find((candidate) => candidate.name === action.name)
       || normalActions()[0];
@@ -702,7 +818,7 @@ class Battle {
       + this.resourceValue(me) - this.resourceValue(opponent) * 0.85;
     if (personalityId === "C") value += (opponent.maxHp - opponent.hp) * 32 - (me.maxHp - me.hp) * 10;
     else if (personalityId === "D") value += (me.hp / me.maxHp) * 2600 - this.estimateBestIncomingDamage(opponent, me) * 42;
-    else if (personalityId === "G") value += (opponent.maxHp - opponent.hp) * 18 + Math.max(...availableActions(me).map((action) => this.estimateActionDamage(me, opponent, action, true))) * 40;
+    else if (personalityId === "G") value += (opponent.maxHp - opponent.hp) * 18 + Math.max(...this.availableActions(me).map((action) => this.estimateActionDamage(me, opponent, action, true))) * 40;
     else if (personalityId === "E") value += me.mp * 24 + this.resourceValue(me) * 1.7 + this.futurePotentialScore(me.side) * 0.5;
     else if (personalityId === "J") value += this.statusPressureValue(opponent) * 1.9 - this.statusPressureValue(me) * 0.55;
     else if (personalityId === "A") value += this.patternReadValue(me, opponent) * 320;
@@ -729,7 +845,7 @@ class Battle {
   resourceValue(fighter) {
     let value = 0;
     for (const [name, raw] of Object.entries(fighter.counters)) {
-      const handled = characterLogic.counterResourceValue(fighter, name, raw);
+      const handled = characterLogic.counterResourceValue(this, fighter, name, raw);
       if (handled !== null && handled !== undefined) value += Number(handled);
       else if (typeof raw === "number" && Number.isInteger(raw)) value += raw * (["탄환", "집광", "과령", "권의", "통찰"].includes(name) ? 70 : 35);
       else if (typeof raw === "string") value += 45;
@@ -756,8 +872,8 @@ class Battle {
     future.startTurn();
     const actor = future.fighterBySide(actorSide);
     const target = future.opponent(actor);
-    const actorScores = availableActions(actor).filter((action) => future.isLegalChoice(actor, action)).map((action) => future.scoreAction(actor, target, action, "E"));
-    const targetScores = availableActions(target).filter((action) => future.isLegalChoice(target, action)).map((action) => future.scoreAction(target, actor, action, "R"));
+    const actorScores = future.availableActions(actor).filter((action) => future.isLegalChoice(actor, action)).map((action) => future.scoreAction(actor, target, action, "E"));
+    const targetScores = future.availableActions(target).filter((action) => future.isLegalChoice(target, action)).map((action) => future.scoreAction(target, actor, action, "R"));
     const actorBest = actorScores.length ? Math.max(...actorScores) : 0;
     const targetBest = targetScores.length ? Math.max(...targetScores) : 0;
     return actorBest - targetBest * 0.45
@@ -788,6 +904,7 @@ class Battle {
     }
     if (!this.gameOver) characterLogic.afterActionPhase(this);
     if (!this.gameOver) this.endTurn();
+    if (this.gameOver) this.appendGameOverLogs();
   }
 
   actionOrder(a, b) {
@@ -805,7 +922,10 @@ class Battle {
     const action = choice.action;
     if (actor.hp <= 0) return;
     this.logs.push(fighterLogLine(actor, `[${actor.name} 행동]`));
-    this.logs.push(fighterLogLine(actor, `${actor.name}은 ${action.name}을 사용했다.`));
+    this.logs.push(fighterLogLine(
+      actor,
+      `${withParticle(actor.name, "은", "는")} ${withParticle(action.name, "을", "를")} 사용했다.`,
+    ));
     if (this.applyActionStartEffects(choice)) {
       this.finishAction(choice, false, false);
       return;
@@ -823,10 +943,20 @@ class Battle {
       if (resolvedAction.isAttack) {
       this.record.activeAttackMpSpent[actor.side] = choice.cost;
       }
-      characterLogic.onActiveMpSpent(this, actor);
+      characterLogic.onActiveMpSpent(this, actor, resolvedAction);
       if ((actor.data.unique_statuses || []).some((status) => status.name === "잔류")) {
         actor.counters["잔류"] = Math.min(4, Number(actor.counters["잔류"] || 0) + 1);
       }
+      const blueAmberThreshold = Number(actor.adventureRelic?.mpThreshold ?? 20);
+      const blueAmberRecovery = Number(actor.adventureRelic?.restoreMp ?? 15);
+      if (actor.mp <= blueAmberThreshold && consumeAdventureRelic(actor, "blue_amber")) {
+        this.logs.push(fighterLogLine(actor, `${actor.name}의 푸른 호박석이 발동했다.`));
+        this.restoreMp(actor, blueAmberRecovery, "푸른 호박석");
+      }
+    }
+    if (characterLogic.consumeForcedConditionFailure(this, choice)) {
+      this.finishAction(choice, false, false);
+      return;
     }
     let hit = true;
     if (resolvedAction.accuracy !== null) {
@@ -856,6 +986,13 @@ class Battle {
 
   applyActionStartEffects(choice) {
     const actor = choice.actor;
+    if (actor.adventureSkipNextAction) {
+      const label = String(actor.adventureSkipNextActionLabel || "행동 불가 효과");
+      actor.adventureSkipNextAction = false;
+      actor.adventureSkipNextActionLabel = "";
+      this.logs.push(fighterLogLine(actor, `${withParticle(actor.name, "은", "는")} ${label} 때문에 행동할 수 없다.`));
+      return true;
+    }
     if (characterLogic.onActionStartBeforeCommon(this, choice)) return true;
     if (actor.statuses["마비"]) {
       const roll = this.roll("마비");
@@ -869,7 +1006,7 @@ class Battle {
     return characterLogic.onActionStartAfterCommon(this, choice);
   }
 
-  accuracyCheck(choice) {
+  accuracyCheck(choice, allowAdventureRelic = true) {
     const target = this.opponent(choice.actor);
     const accuracy = this.modifiedAccuracy(choice);
     if (accuracy >= 100) {
@@ -879,6 +1016,10 @@ class Battle {
       this.logs.push(`명중률 ${pct(accuracy)} / 판정값 ${roll.toFixed(2)}`);
       if (roll >= accuracy) {
         this.logs.push("명중 판정 실패. 공격이 빗나갔다.");
+        if (allowAdventureRelic && consumeAdventureRelic(choice.actor, "glass_eye")) {
+          this.logs.push(fighterLogLine(choice.actor, `${choice.actor.name}의 유리 눈이 발동해 명중과 회피를 다시 판정한다.`));
+          return this.accuracyCheck(choice, false);
+        }
         return false;
       }
       this.logs.push("명중 판정 성공.");
@@ -890,6 +1031,10 @@ class Battle {
     const evasion = this.targetEvasion(target, choice);
     if (target.guaranteedEvasion && choice.action.isAttack) {
       this.logs.push("공격을 회피했다.");
+      if (allowAdventureRelic && consumeAdventureRelic(choice.actor, "glass_eye")) {
+        this.logs.push(fighterLogLine(choice.actor, `${choice.actor.name}의 유리 눈이 발동해 명중과 회피를 다시 판정한다.`));
+        return this.accuracyCheck(choice, false);
+      }
       return false;
     }
     if (evasion > 0) {
@@ -897,6 +1042,10 @@ class Battle {
       this.logs.push(`${target.name} 회피 확률 ${pct(evasion)} / 판정값 ${roll.toFixed(2)}`);
       if (roll < evasion) {
         this.logs.push("공격을 회피했다.");
+        if (allowAdventureRelic && consumeAdventureRelic(choice.actor, "glass_eye")) {
+          this.logs.push(fighterLogLine(choice.actor, `${choice.actor.name}의 유리 눈이 발동해 명중과 회피를 다시 판정한다.`));
+          return this.accuracyCheck(choice, false);
+        }
         return false;
       }
       this.logs.push("회피 판정 실패.");
@@ -908,6 +1057,10 @@ class Battle {
     if (choice.action.accuracy === null) return 100;
     let accuracy = Number(choice.action.accuracy);
     accuracy = characterLogic.modifyAccuracy(this, choice, this.opponent(choice.actor), accuracy);
+    if (choice.action.isActive) {
+      const adventureModifier = Number(choice.actor.adventureSkillAccuracyModifiers?.[choice.action.key] ?? 0);
+      if (Number.isFinite(adventureModifier)) accuracy += adventureModifier;
+    }
     if (hasInscription(choice.actor, "orange")) accuracy += 10;
     if (hasInscription(choice.actor, "violet")) accuracy -= 5;
     return clamp(accuracy, 0, 100);
@@ -959,11 +1112,26 @@ class Battle {
     targetDef = characterLogic.targetDefenseForAttack(this, choice, target, targetDef);
     let power = Math.max(0, Number(choice.power || 0));
     power = characterLogic.modifyAttackPower(this, choice, power);
+    if (choice.action.isCommonAction("normal_attack")) {
+      power += Number(actor.adventureCommonAttackPowerBonus || 0);
+    }
+    if (usesAdventurePowerMultiplier(choice.action)) {
+      const adventurePowerMultiplier = Number(actor.adventureSkillPowerMultipliers?.[choice.action.key] ?? 1);
+      if (Number.isFinite(adventurePowerMultiplier) && adventurePowerMultiplier >= 0) {
+        power *= adventurePowerMultiplier;
+      }
+    }
     if (hasInscription(actor, "white")) power = Math.max(0, power - whitePowerPenalty(choice.action));
     if (hasInscription(actor, "red")) power += redPowerBonus(choice.action);
     const atk = choice.attackAtkOverride == null ? this.currentStats(actor)[0] : Number(choice.attackAtkOverride);
     let mult = 1;
     for (const value of characterLogic.attackDamageMultipliers(this, choice)) mult *= Number(value || 1);
+    const adventureDamageMultiplier = Number(actor.adventureDamageMultiplier ?? 1);
+    if (Number.isFinite(adventureDamageMultiplier) && adventureDamageMultiplier >= 0) {
+      mult *= adventureDamageMultiplier;
+    }
+    mult *= adventureRhythmAttackMultiplier(actor, this.turn, "outgoing");
+    mult *= adventureRhythmAttackMultiplier(target, this.turn, "incoming");
     let damage = Math.max(1, floorInt((power * (atk + 50)) / (targetDef + 50) * mult));
     damage = characterLogic.modifyAttackDamage(this, choice, target, damage);
     if (hasInscription(actor, "white") && choice.action.isCommonAction("normal_attack")) damage += 1;
@@ -978,7 +1146,11 @@ class Battle {
       return;
     }
     if (action.isCommonAction("meditation")) {
-      this.restoreMp(actor, this.meditationRecovery(actor), "명상");
+      const adventureBonus = Number(actor.adventureMeditationRecoveryBonus || 0);
+      const recovery = choice.meditationRecoveryOverride == null
+        ? this.meditationRecovery(actor)
+        : Number(choice.meditationRecoveryOverride) + adventureBonus;
+      this.restoreMp(actor, recovery, "명상");
       characterLogic.onMeditationEffect(this, choice);
       return;
     }
@@ -988,7 +1160,9 @@ class Battle {
   }
 
   meditationRecovery(fighter) {
-    return 15 + (hasInscription(fighter, "white") ? 1 : 0);
+    return 15
+      + (hasInscription(fighter, "white") ? 1 : 0)
+      + Number(fighter.adventureMeditationRecoveryBonus || 0);
   }
 
   finishAction(choice, success, hit, missNotFailure = false) {
@@ -1024,7 +1198,24 @@ class Battle {
     }
     for (const fighter of [this.player, this.ai]) {
       if (this.gameOver) return;
+      const adventureRecovery = Number(fighter.adventureTurnEndHpRecovery || 0);
+      if (adventureRecovery > 0 && fighter.hp < fighter.maxHp) {
+        this.heal(fighter, adventureRecovery, "Adventure 지속 회복");
+      }
+    }
+    for (const fighter of [this.player, this.ai]) {
+      if (this.gameOver) return;
       characterLogic.applyOtherTurnEnd(this, fighter);
+    }
+    for (const fighter of [this.player, this.ai]) {
+      const fixedDamage = Math.max(0, Math.trunc(Number(fighter.adventureTurnEndFixedDamage || 0)));
+      if (fixedDamage <= 0) continue;
+      const before = fighter.hp;
+      const result = this.damage(fighter, fixedDamage, "Adventure 턴 종료 효과", false, this.opponent(fighter));
+      this.logs.push(fighterLogLine(
+        fighter,
+        `${withParticle(fighter.name, "은", "는")} Adventure 턴 종료 효과로 ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${fighter.hp}`,
+      ));
     }
     if (!this.gameOver) {
       for (const fighter of [this.player, this.ai]) this.decrementDurations(fighter);
@@ -1035,7 +1226,8 @@ class Battle {
     let base = 10;
     if (hasInscription(fighter, "green")) base -= 4;
     if (hasInscription(fighter, "blue")) base += 1;
-    return Math.max(0, base + characterLogic.turnEndMpBonus(fighter));
+    base += Number(fighter.adventureMpRecoveryBonus || 0);
+    return Math.max(0, base + characterLogic.turnEndMpBonus(this, fighter));
   }
 
   decrementDurations(fighter) {
@@ -1058,7 +1250,12 @@ class Battle {
       fighter.forbiddenRemaining -= 1;
       if (fighter.forbiddenRemaining <= 0) fighter.forbiddenActionKey = null;
     }
-    characterLogic.decrementCounters(fighter);
+    for (const [actionKey, remaining] of Object.entries(fighter.forbiddenActionKeys || {})) {
+      const next = Number(remaining) - 1;
+      if (next <= 0) delete fighter.forbiddenActionKeys[actionKey];
+      else fighter.forbiddenActionKeys[actionKey] = next;
+    }
+    characterLogic.decrementCounters(this, fighter);
   }
 
   currentStats(fighter) {
@@ -1113,13 +1310,35 @@ class Battle {
     const actual = before - target.hp;
     if (attack) this.record.attackDamageTaken[target.side] = (this.record.attackDamageTaken[target.side] || 0) + actual;
     if (actual > 0) characterLogic.onDamageTaken(this, target, actual, attack, source);
-    const afterHp = target.hp;
+    const redAmberThresholdRate = Number(target.adventureRelic?.hpThresholdRate ?? 0.3);
+    const redAmberRecoveryRate = Number(target.adventureRelic?.restoreHpRate ?? 0.15);
+    if (
+      actual > 0
+      && !this.gameOver
+      && target.hp <= target.maxHp * redAmberThresholdRate
+      && consumeAdventureRelic(target, "red_amber")
+    ) {
+      this.logs.push(fighterLogLine(target, `${target.name}의 붉은 호박석이 발동했다.`));
+      this.heal(target, Math.max(1, Math.trunc(target.maxHp * redAmberRecoveryRate)), "붉은 호박석");
+    }
+    let afterHp = target.hp;
     let revived = null;
+    let adventureSurvived = false;
     if (target.hp <= 0) {
       revived = characterLogic.consumeDefeatEscape(this, target);
-      if (revived == null) this.endBattle(source || this.opponent(target), target);
+      if (revived == null && Number(target.adventureSurviveDefeatCount || 0) > 0) {
+        target.adventureSurviveDefeatCount = Math.max(0, Number(target.adventureSurviveDefeatCount || 0) - 1);
+        target.hp = 1;
+        afterHp = target.hp;
+        adventureSurvived = true;
+        this.logs.push(fighterLogLine(target, `${target.name}의 수호 부적이 발동했다. HP 1로 살아남았다.`));
+      } else if (revived == null) {
+        this.endBattle(source || this.opponent(target), target);
+      } else {
+        afterHp = target.hp;
+      }
     }
-    return { amount: actual, afterHp, revived };
+    return { amount: actual, afterHp, revived, adventureSurvived };
   }
 
   heal(fighter, amount, reason) {
@@ -1137,7 +1356,10 @@ class Battle {
     if (value <= 0) return;
     const before = target.hp;
     const result = this.damage(target, value, reason, false, opponent);
-    this.logs.push(fighterLogLine(target, `${target.name}은 ${reason}로 ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${result.afterHp}`));
+    this.logs.push(fighterLogLine(
+      target,
+      `${withParticle(target.name, "은", "는")} ${withParticle(reason, "으로", "로")} ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${result.afterHp}`,
+    ));
     if (result.revived) characterLogic.printDefeatEscape(this, target, result.revived);
     if (!this.gameOver && opponent !== target) characterLogic.onFixedDamageToOpponent(this, opponent, target, value);
     return result.amount;
@@ -1224,16 +1446,35 @@ class Battle {
   triggerVengeanceOverflow(fighter, reason) {
     const stacks = Number(fighter.counters["과령"] || 0);
     fighter.counters["과령"] = 0;
-    this.fixedDamage(fighter, 25, reason);
+    this.fixedDamage(fighter, 25, reason, fighter);
     this.logs.push(`과령 ${stacks}을 모두 소모했다.`);
   }
 
   endBattle(winner, loser) {
     if (this.gameOver) return;
+    const resolvedLoser = loser?.side === this.player.side
+      ? this.player
+      : loser?.side === this.ai.side
+        ? this.ai
+        : loser;
+    const requestedWinner = winner?.side === this.player.side
+      ? this.player
+      : winner?.side === this.ai.side
+        ? this.ai
+        : winner;
+    const resolvedWinner = !requestedWinner || requestedWinner.side === resolvedLoser?.side
+      ? this.opponent(resolvedLoser)
+      : requestedWinner;
     this.gameOver = true;
-    this.winner = winner;
-    this.loser = loser;
-    this.logs.push(`GAME OVER: ${winner.label} 승리`);
+    this.winner = resolvedWinner;
+    this.loser = resolvedLoser;
+  }
+
+  appendGameOverLogs() {
+    this.logs.push(`GAME OVER: ${this.winner.label} 승리`);
+    if (this.hidePersonalityUntilGameOver) {
+      this.logs.push(`AI 성향: ${this.personality.name}`);
+    }
   }
 
   roll() {
@@ -1265,10 +1506,25 @@ class Battle {
     let targetDef = this.currentStats(target)[1];
     targetDef = characterLogic.estimatedTargetDefenseForAttack(this, actor, target, action, targetDef);
     let power = characterLogic.estimatedPower(this, actor, target, action, Number(action.power || 0));
+    if (action.isCommonAction("normal_attack")) {
+      power += Number(actor.adventureCommonAttackPowerBonus || 0);
+    }
+    if (usesAdventurePowerMultiplier(action)) {
+      const adventurePowerMultiplier = Number(actor.adventureSkillPowerMultipliers?.[action.key] ?? 1);
+      if (Number.isFinite(adventurePowerMultiplier) && adventurePowerMultiplier >= 0) {
+        power *= adventurePowerMultiplier;
+      }
+    }
     if (hasInscription(actor, "white")) power = Math.max(0, power - whitePowerPenalty(action));
     if (hasInscription(actor, "red")) power += redPowerBonus(action);
     let mult = 1;
     for (const value of characterLogic.estimatedDamageMultipliers(this, actor, target, action)) mult *= Number(value || 1);
+    const adventureDamageMultiplier = Number(actor.adventureDamageMultiplier ?? 1);
+    if (Number.isFinite(adventureDamageMultiplier) && adventureDamageMultiplier >= 0) {
+      mult *= adventureDamageMultiplier;
+    }
+    mult *= adventureRhythmAttackMultiplier(actor, this.turn, "outgoing");
+    mult *= adventureRhythmAttackMultiplier(target, this.turn, "incoming");
     if (target.defenseMult !== null) mult *= target.defenseMult;
     let damage = Math.max(1, floorInt((power * (atk + 50)) / (targetDef + 50) * mult));
     if (hasInscription(actor, "white") && action.isCommonAction("normal_attack")) damage += 1;
@@ -1276,12 +1532,40 @@ class Battle {
   }
 
   estimateBestIncomingDamage(attacker, defender) {
-    const legal = availableActions(attacker).filter((action) => this.isLegalChoice(attacker, action) && action.isAttack);
+    const legal = this.availableActions(attacker).filter((action) => this.isLegalChoice(attacker, action) && action.isAttack);
     return legal.length ? Math.max(...legal.map((action) => this.estimateActionDamage(attacker, defender, action, true))) : 0;
   }
 }
 
-function actionFromSkill(number, skill, characterId = null) {
+function clearFighterCombatState(fighter) {
+  fighter.statuses = {};
+  fighter.statEffects = [];
+  fighter.costEffects = [];
+  fighter.counters = {};
+  fighter.defenseStreak = 0;
+  fighter.defenseMult = null;
+  fighter.defenseName = null;
+  fighter.evasionChance = 0;
+  fighter.guaranteedEvasion = false;
+  fighter.selectedHistory = [];
+  fighter.selectedAttackActiveHistory = [];
+  fighter.hitRecords = new Set();
+  fighter.lastSuccessfulActionKey = null;
+  fighter.forbiddenActionKey = null;
+  fighter.forbiddenRemaining = 0;
+  fighter.forbiddenActionKeys = {};
+  fighter.attackSelectionCount1To5 = 0;
+  fighter.lastMeditationSuccessTurn = null;
+}
+
+function initializeFighterUniqueState(fighter) {
+  characterLogic.initUniqueState(
+    fighter,
+    new Set((fighter.data.unique_statuses || []).map((item) => item.name)),
+  );
+}
+
+function actionFromSkill(number, skill, characterId = null, ownerCharacterId = characterId, transformed = false) {
   return new Action({
     number,
     name: skill.name,
@@ -1293,6 +1577,8 @@ function actionFromSkill(number, skill, characterId = null) {
     description: skill.description,
     common: false,
     characterId,
+    ownerCharacterId,
+    transformed,
     slot: number - 4,
   });
 }
@@ -1305,10 +1591,23 @@ function normalActions() {
   ];
 }
 
-function availableActions(fighter) {
+function activeCharacterDataForFighter(fighter, battle = null) {
+  const activeId = battle && typeof battle.activeCharacterId === "function"
+    ? battle.activeCharacterId(fighter)
+    : fighter.characterId;
+  if (!activeId || activeId === fighter.characterId) return fighter.data;
+  return battle?.characterDataById?.(activeId) || fighter.data;
+}
+
+function availableActions(fighter, battle = null) {
+  const activeData = activeCharacterDataForFighter(fighter, battle);
+  const activeId = activeData?.id || fighter.characterId;
+  const transformed = Boolean(activeId && activeId !== fighter.characterId);
   return [
     ...normalActions(),
-    ...(fighter.data.skills || []).map((skill, index) => actionFromSkill(index + 4, skill, fighter.characterId)),
+    ...(activeData.skills || []).map((skill, index) => (
+      actionFromSkill(index + 4, skill, activeId, fighter.characterId, transformed)
+    )),
   ];
 }
 
@@ -1319,14 +1618,17 @@ function actionKind(action) {
   return action.isActive ? "액티브 비공격" : "비공격";
 }
 
-function renderAction(action, cost = null, priority = null) {
+function renderAction(action, cost = null, priority = null, overrides = {}) {
   const mp = cost == null ? action.mp : cost;
   const pr = priority == null ? action.priority : priority;
-  const power = action.power == null ? "-" : String(action.power);
-  const accuracy = action.accuracy == null ? "-" : String(action.accuracy);
+  const displayedPower = Object.hasOwn(overrides, "power") ? overrides.power : action.power;
+  const displayedAccuracy = Object.hasOwn(overrides, "accuracy") ? overrides.accuracy : action.accuracy;
+  const description = Object.hasOwn(overrides, "description") ? overrides.description : action.description;
+  const power = displayedPower == null ? "-" : String(displayedPower);
+  const accuracy = displayedAccuracy == null ? "-" : String(displayedAccuracy);
   const mpText = cost != null && cost !== action.mp ? `MP ${mp} (기본 ${action.mp})` : `MP ${mp}`;
   const priorityText = priority != null && priority !== action.priority ? `우선도 ${pr} (기본 ${action.priority})` : `우선도 ${pr}`;
-  return `[${action.number}] ${action.name}\n${action.target} / ${mpText} / 위력 ${power} / 명중률 ${accuracy} / ${priorityText}\n${action.description}`;
+  return `[${action.number}] ${action.name}\n${action.target} / ${mpText} / 위력 ${power} / 명중률 ${accuracy} / ${priorityText}\n${description}`;
 }
 
 function findPersonality(id) {
@@ -1376,15 +1678,21 @@ function fighterSummary(fighter) {
 
 function fighterState(battle, fighter, sideOverride = null) {
   const [atk, defense, spd] = battle.currentStats(fighter);
+  const activeData = battle.activeCharacterData(fighter);
+  const activeId = activeData?.id || fighter.characterId;
+  const transformed = activeId !== fighter.characterId;
   const stateText = currentStateText(battle, fighter);
   const battleLog = [];
-  if (characterLogic.needsBattleLog(fighter)) characterLogic.renderBattleLog(battle, fighter, battleLog);
+  if (characterLogic.needsBattleLog(battle, fighter)) characterLogic.renderBattleLog(battle, fighter, battleLog);
   return {
     side: sideOverride || fighter.side,
     battleSide: fighter.side,
     id: fighter.data.id,
     name: fighter.name,
     title: fighter.title,
+    activeCharacterId: activeId,
+    activeCharacterName: activeData?.name || fighter.name,
+    transformed,
     label: fighter.label,
     hp: fighter.hp,
     max_hp: fighter.maxHp,
@@ -1402,20 +1710,68 @@ function fighterState(battle, fighter, sideOverride = null) {
     baseStats: { hp: fighter.maxHp, atk: fighter.baseAtk, def: fighter.baseDef, spd: fighter.baseSpd },
     status_text: stateText,
     stateText,
-    defenseText: `${defenseReductionPercentForStreak(fighter.defenseStreak + 1)}%`,
+    defenseText: `${defenseReductionPercentForStreak(
+      fighter.defenseStreak + 1,
+      Number(fighter.adventureCommonDefenseReductionBonus || 0),
+    )}%`,
     battleLog,
-    passive: fighter.data.passive,
+    passive: activeData?.passive || fighter.data.passive,
+    passiveIconCharacterId: activeId,
+    passiveTransformed: transformed,
     uniqueStatuses: fighter.data.unique_statuses || [],
+    adventureMpRecoveryBonus: Number(fighter.adventureMpRecoveryBonus || 0),
+    adventureTurnEndHpRecovery: Number(fighter.adventureTurnEndHpRecovery || 0),
+    adventureSkillCostMultipliers: { ...(fighter.adventureSkillCostMultipliers || {}) },
+    adventureSkillPowerMultipliers: { ...(fighter.adventureSkillPowerMultipliers || {}) },
+    adventureSkillAccuracyModifiers: { ...(fighter.adventureSkillAccuracyModifiers || {}) },
+    adventureSkillPriorityModifiers: { ...(fighter.adventureSkillPriorityModifiers || {}) },
+    adventureAllSkillCostMultiplier: Number(fighter.adventureAllSkillCostMultiplier ?? 1),
+    adventureDamageMultiplier: Number(fighter.adventureDamageMultiplier ?? 1),
+    adventureCommonAttackPowerBonus: Number(fighter.adventureCommonAttackPowerBonus || 0),
+    adventureCommonDefenseReductionBonus: Number(fighter.adventureCommonDefenseReductionBonus || 0),
+    adventureMeditationRecoveryBonus: Number(fighter.adventureMeditationRecoveryBonus || 0),
+    adventureBattleRhythm: fighter.adventureBattleRhythm ? structuredCloneCompat(fighter.adventureBattleRhythm) : null,
+    adventureRelic: fighter.adventureRelic ? structuredCloneCompat(fighter.adventureRelic) : null,
+    adventureTurnEndFixedDamage: Number(fighter.adventureTurnEndFixedDamage || 0),
+    adventureSurviveDefeatCount: Number(fighter.adventureSurviveDefeatCount || 0),
+    adventureSkipNextAction: Boolean(fighter.adventureSkipNextAction),
+    adventureSkipNextActionLabel: String(fighter.adventureSkipNextActionLabel || ""),
+    forbiddenActionKeys: { ...(fighter.forbiddenActionKeys || {}) },
   };
 }
 
 function actionStatesForFighter(battle, fighter, forceDisabled = false) {
-  return availableActions(fighter).map((action) => {
+  return availableActions(fighter, battle).map((action) => {
     const cost = battle.effectiveCost(fighter, action);
     const priority = battle.effectivePriority(fighter, action);
     const disabled = forceDisabled || battle.gameOver || !battle.isLegalChoice(fighter, action);
-    const power = action.power == null ? "-" : String(action.power);
-    const accuracy = action.accuracy == null ? "-" : String(action.accuracy);
+    const adventurePowerMultiplier = usesAdventurePowerMultiplier(action)
+      ? Number(fighter.adventureSkillPowerMultipliers?.[action.key] ?? 1)
+      : 1;
+    const commonAttackPowerBonus = action.isCommonAction("normal_attack")
+      ? Number(fighter.adventureCommonAttackPowerBonus || 0)
+      : 0;
+    const displayedPower = action.power == null
+      ? null
+      : roundStat((Number(action.power) + commonAttackPowerBonus) * (Number.isFinite(adventurePowerMultiplier) ? adventurePowerMultiplier : 1));
+    const adventureAccuracyModifier = action.isActive
+      ? Number(fighter.adventureSkillAccuracyModifiers?.[action.key] ?? 0)
+      : 0;
+    const displayedAccuracy = action.accuracy == null
+      ? null
+      : roundStat(clamp(Number(action.accuracy) + (Number.isFinite(adventureAccuracyModifier) ? adventureAccuracyModifier : 0), 0, 100));
+    const power = displayedPower == null ? "-" : String(displayedPower);
+    const accuracy = displayedAccuracy == null ? "-" : String(displayedAccuracy);
+    let effectDescription = action.description;
+    if (action.isCommonAction("defense")) {
+      const reduction = defenseReductionPercentForStreak(
+        fighter.defenseStreak + 1,
+        Number(fighter.adventureCommonDefenseReductionBonus || 0),
+      );
+      effectDescription = `[방어] 자신이 이 턴에 입는 공격 피해를 ${reduction}% 경감한다.`;
+    } else if (action.isCommonAction("meditation")) {
+      effectDescription = `자신의 MP를 ${battle.meditationRecovery(fighter)} 회복한다.`;
+    }
     return {
       number: action.number,
       name: action.name,
@@ -1424,16 +1780,21 @@ function actionStatesForFighter(battle, fighter, forceDisabled = false) {
       cost,
       baseCost: action.mp,
       cost_text: String(cost),
-      power: action.power,
+      power: displayedPower,
+      basePower: action.power,
       accuracy: action.accuracy,
       priority,
       basePriority: action.priority,
-      description: `${action.target} / 위력 ${power} / 명중률 ${accuracy} / 우선도 ${priority}\n${action.description}`,
+      characterId: action.characterId,
+      ownerCharacterId: action.ownerCharacterId,
+      iconCharacterId: action.characterId || fighter.characterId,
+      transformed: Boolean(action.transformed),
+      description: `${action.target} / 위력 ${power} / 명중률 ${accuracy} / 우선도 ${priority}\n${effectDescription}`,
       isAttack: action.isAttack,
       isDefense: action.isDefense,
       disabled,
       available: !disabled,
-      display: renderAction(action, cost, priority),
+      display: renderAction(action, cost, priority, { power: displayedPower, accuracy: displayedAccuracy, description: effectDescription }),
     };
   });
 }
@@ -1441,16 +1802,72 @@ function actionStatesForFighter(battle, fighter, forceDisabled = false) {
 function currentStateText(battle, fighter) {
   const parts = [];
   for (const [name, status] of Object.entries(fighter.statuses || {})) {
-    parts.push(status.stacks > 1 ? `${name} ${status.stacks}중첩(${status.remaining}턴)` : `${name}(${status.remaining}턴)`);
+    if (status.stackable) {
+      parts.push(`${name} ${status.stacks}(${status.remaining}턴)`);
+    } else {
+      parts.push(`${name}(${status.remaining}턴)`);
+    }
+  }
+  const uniqueStateNames = new Set();
+  for (const data of [fighter.data, battle.activeCharacterData(fighter)]) {
+    for (const status of data?.unique_statuses || []) {
+      if (status?.name) uniqueStateNames.add(status.name);
+    }
   }
   for (const [name, value] of Object.entries(fighter.counters || {})) {
-    if (!value) continue;
-    const formatted = characterLogic.counterStateText(fighter, name, value);
+    if (!value && !uniqueStateNames.has(name)) continue;
+    const formatted = characterLogic.counterStateText(battle, fighter, name, value);
     if (formatted.handled) {
       if (formatted.text) parts.push(formatted.text);
+    } else if (uniqueStateNames.has(name) && typeof value === "number") {
+      parts.push(`${name} ${value}`);
     } else {
       parts.push(`${name}: ${typeof value === "object" ? JSON.stringify(value) : value}`);
     }
+  }
+  const groupedStatEffects = new Map();
+  for (const effect of fighter.statEffects || []) {
+    const stat = String(effect.stat || "").toLowerCase();
+    const label = { atk: "ATK", def: "DEF", spd: "SPD" }[stat];
+    const multiplier = Number(effect.multiplier);
+    const remaining = Number(effect.remaining);
+    if (!label || !Number.isFinite(multiplier) || remaining <= 0) continue;
+    const key = `${String(effect.source || "")}\u0000${multiplier}\u0000${remaining}`;
+    const group = groupedStatEffects.get(key) || { labels: [], multiplier, remaining };
+    group.labels.push(label);
+    groupedStatEffects.set(key, group);
+  }
+  for (const effect of groupedStatEffects.values()) {
+    parts.push(`${effect.labels.join("·")} ×${roundStat(effect.multiplier)}(${effect.remaining}턴)`);
+  }
+  for (const effect of fighter.costEffects || []) {
+    const multiplier = Number(effect.multiplier);
+    const remaining = Number(effect.remaining);
+    if (!Number.isFinite(multiplier) || remaining <= 0) continue;
+    parts.push(`액티브 MP ×${roundStat(multiplier)}(${remaining}턴)`);
+  }
+  const priorityModifierCount = Object.values(fighter.adventureSkillPriorityModifiers || {})
+    .filter((value) => Number.isFinite(Number(value)) && Number(value) !== 0).length;
+  if (priorityModifierCount > 0) parts.push(`액티브 우선도 보정 ${priorityModifierCount}개`);
+  const defenseBonus = Number(fighter.adventureCommonDefenseReductionBonus || 0);
+  const commonAttackBonus = Number(fighter.adventureCommonAttackPowerBonus || 0);
+  if (commonAttackBonus) parts.push(`일반 공격 위력 +${roundStat(commonAttackBonus)}`);
+  if (defenseBonus) parts.push(`일반 방어 경감 +${Math.round(defenseBonus * 100)}%p`);
+  const meditationBonus = Number(fighter.adventureMeditationRecoveryBonus || 0);
+  if (meditationBonus) parts.push(`명상 회복 +${roundStat(meditationBonus)}`);
+  const sealedActions = Object.entries(fighter.forbiddenActionKeys || {})
+    .filter(([, remaining]) => Number(remaining) > 0)
+    .map(([actionKey, remaining]) => `${battle.displayActionName(fighter, actionKey)}(${remaining}턴)`);
+  if (sealedActions.length) parts.push(`선택 봉인: ${sealedActions.join("·")}`);
+  const rhythmKind = String(fighter.adventureBattleRhythm?.kind || "");
+  if (ADVENTURE_RHYTHM_LABELS[rhythmKind]) {
+    const direction = rhythmKind === "wall" ? "incoming" : "outgoing";
+    const multiplier = adventureRhythmAttackMultiplier(fighter, battle.turn, direction);
+    parts.push(`전투 리듬: ${ADVENTURE_RHYTHM_LABELS[rhythmKind]}(현재 x${multiplier})`);
+  }
+  const relicKind = String(fighter.adventureRelic?.kind || "");
+  if (ADVENTURE_RELIC_LABELS[relicKind] && Number(fighter.adventureRelic?.battlesRemaining || 0) > 0) {
+    parts.push(`${ADVENTURE_RELIC_LABELS[relicKind]}(${fighter.adventureRelic.used ? "사용 완료" : "사용 가능"})`);
   }
   parts.push(...characterLogic.extraStateParts(battle, fighter));
   return parts.length ? parts.join(" / ") : "없음";
@@ -1471,7 +1888,7 @@ function cloneFighter(source) {
   for (const key of Object.keys(source)) {
     const value = source[key];
     if (value instanceof Set) fighter[key] = new Set(value);
-    else if (key === "data" || key === "inscription" || key === "statuses" || key === "statEffects" || key === "costEffects" || key === "counters") {
+    else if (key === "data" || key === "inscription" || key === "statuses" || key === "statEffects" || key === "costEffects" || key === "counters" || key === "forbiddenActionKeys" || key === "adventureSkillCostMultipliers" || key === "adventureSkillPowerMultipliers" || key === "adventureSkillAccuracyModifiers" || key === "adventureSkillPriorityModifiers" || key === "adventureBattleRhythm" || key === "adventureRelic") {
       fighter[key] = structuredCloneCompat(value);
     } else if (Array.isArray(value)) fighter[key] = structuredCloneCompat(value);
     else fighter[key] = value;
