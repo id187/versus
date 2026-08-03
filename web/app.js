@@ -1,5 +1,6 @@
 const LOG_DELAY_MS = 280;
 const DIALOGUE_LOG_DELAY_MS = 1200;
+const FINAL_BATTLE_DIALOGUE_HOLD_MS = 3000;
 const EFFECT_SETTLE_MS = 620;
 const SFX_VOLUME = 0.28;
 const SFX_POOL_SIZE = 3;
@@ -1221,6 +1222,8 @@ async function chooseAdventureChoice(choiceId) {
         data.adventure.dialogue.title || "전투 전 · 모노크렘",
         data.adventure.dialogue.lines,
       );
+      if (state.adventureRestartRequested) return;
+      await sleep(FINAL_BATTLE_DIALOGUE_HOLD_MS);
       if (state.adventureRestartRequested) return;
       const battleData = await api("/api/adventure/choice", {
         choiceId: "complete_final_battle_dialogue",
