@@ -2969,7 +2969,7 @@ function characterPickerThumbHtml(character, side, isRandom = false) {
 
 function portraitSrcForId(id) {
   const assetGroup = MONSTER_PORTRAIT_IDS.has(id) ? "monsters" : "characters";
-  return localAssetUrl(`/assets/${assetGroup}/${encodeURIComponent(id)}/portrait.png`);
+  return localAssetUrl(`/assets/${assetGroup}/${encodeURIComponent(id)}/portrait.webp`);
 }
 
 function withJosa(text, consonant, vowel) {
