@@ -5,6 +5,11 @@ const SFX_VOLUME = 0.28;
 const SFX_POOL_SIZE = 3;
 const BGM_FADE_MS = 900;
 
+function localAssetUrl(path) {
+  const baseUrl = window.__VERSUS_BASE_URL__ || new URL("./", window.location.href).href;
+  return new URL(String(path).replace(/^\/+/, ""), baseUrl).href;
+}
+
 const els = {
   homeScreen: document.querySelector("#homeScreen"),
   battleScreen: document.querySelector("#battleScreen"),
@@ -106,6 +111,7 @@ const CHARACTER_COLORS = {
   jitrom: "#66ff33",
   fimit: "#7894a8",
   emento: "#a686d4",
+  necoulomb: "#e0b51b",
 };
 
 const RANDOM_CHARACTER_COLOR = "#ffffff";
@@ -174,8 +180,8 @@ const DEFAULT_INSCRIPTION_OPTIONS = [
   },
 ];
 
-const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento"]);
-const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento"]);
+const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb"]);
+const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb"]);
 const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
 const MONSTER_PORTRAIT_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
 const ADVENTURE_DESTINATION_ICONS = Object.freeze({
@@ -348,26 +354,26 @@ const ADVENTURE_DESTINATION_ICONS = Object.freeze({
 
 const EFFECT_CLASSES = ["hit", "shadow-hit", "miss", "defense", "heal", "buff", "debuff", "stack-gain", "stack-spend"];
 const EFFECT_SFX = {
-  hit: "/assets/sfx/hit.wav",
-  "shadow-hit": "/assets/sfx/hit.wav",
-  miss: "/assets/sfx/miss.wav",
-  defense: "/assets/sfx/defense.wav",
-  heal: "/assets/sfx/heal.wav",
-  buff: "/assets/sfx/buff.wav",
-  debuff: "/assets/sfx/debuff.wav",
-  "stack-gain": "/assets/sfx/stack-gain.wav",
-  "stack-spend": "/assets/sfx/stack-spend.wav",
+  hit: localAssetUrl("/assets/sfx/hit.wav"),
+  "shadow-hit": localAssetUrl("/assets/sfx/hit.wav"),
+  miss: localAssetUrl("/assets/sfx/miss.wav"),
+  defense: localAssetUrl("/assets/sfx/defense.wav"),
+  heal: localAssetUrl("/assets/sfx/heal.wav"),
+  buff: localAssetUrl("/assets/sfx/buff.wav"),
+  debuff: localAssetUrl("/assets/sfx/debuff.wav"),
+  "stack-gain": localAssetUrl("/assets/sfx/stack-gain.wav"),
+  "stack-spend": localAssetUrl("/assets/sfx/stack-spend.wav"),
 };
 const BGM_TRACKS = {
-  fight: { src: "/assets/bgm/fight.mp3", loop: true, volume: 0.18 },
-  boss: { src: "/assets/bgm/boss.mp3", loop: true, volume: 0.18 },
-  village: { src: "/assets/bgm/village.mp3", loop: true, volume: 0.18 },
-  event: { src: "/assets/bgm/event.mp3", loop: true, volume: 0.18, preload: false },
-  prologue: { src: "/assets/bgm/prologue.mp3", loop: true, volume: 0.18, preload: false },
-  clear: { src: "/assets/bgm/clear.mp3", loop: false, volume: 0.22 },
-  victory: { src: "/assets/bgm/victory.wav", loop: false, volume: 0.24 },
-  defeat: { src: "/assets/bgm/defeat.wav", loop: false, volume: 0.22 },
-  draw: { src: "/assets/bgm/draw.wav", loop: false, volume: 0.2 },
+  fight: { src: localAssetUrl("/assets/bgm/fight.mp3"), loop: true, volume: 0.18 },
+  boss: { src: localAssetUrl("/assets/bgm/boss.mp3"), loop: true, volume: 0.18 },
+  village: { src: localAssetUrl("/assets/bgm/village.mp3"), loop: true, volume: 0.18 },
+  event: { src: localAssetUrl("/assets/bgm/event.mp3"), loop: true, volume: 0.18, preload: false },
+  prologue: { src: localAssetUrl("/assets/bgm/prologue.mp3"), loop: true, volume: 0.18, preload: false },
+  clear: { src: localAssetUrl("/assets/bgm/clear.mp3"), loop: false, volume: 0.22 },
+  victory: { src: localAssetUrl("/assets/bgm/victory.wav"), loop: false, volume: 0.24 },
+  defeat: { src: localAssetUrl("/assets/bgm/defeat.wav"), loop: false, volume: 0.22 },
+  draw: { src: localAssetUrl("/assets/bgm/draw.wav"), loop: false, volume: 0.2 },
 };
 const DEFENSE_ACTION_NAMES = new Set(["일반 방어", "가로막는 불길", "절대영도", "깨져버린 거울", "빠져드는 모래늪"]);
 
@@ -400,6 +406,9 @@ const state = {
 init();
 
 async function init() {
+  if (window.__VERSUS_MOBILE_RUNTIME__?.platform === "web") {
+    els.exitButton.hidden = true;
+  }
   bindEvents();
   syncInscriptionPicker();
   setBattleMode("pve");
@@ -1579,7 +1588,7 @@ function renderAdventureScene(scene) {
   avatar.classList.remove("is-empty");
   avatar.classList.add("is-adventure-scene");
   avatar.style.setProperty("--character-color", "#b46cff");
-  avatar.innerHTML = `<img class="adventure-scene-illustration" src="${escapeHtml(illustration)}" alt="색을 잃어가는 팔레티아 대륙">`;
+  avatar.innerHTML = `<img class="adventure-scene-illustration" src="${escapeHtml(localAssetUrl(illustration))}" alt="색을 잃어가는 팔레티아 대륙">`;
 }
 
 function hideInlineBattleRecord(selector) {
@@ -1838,9 +1847,9 @@ function skillIconMeta(action, characterId = currentPlayerCharacterId()) {
   }
   if (number === 0) return { glyph: "패", className: "skill-icon-passive" };
   const common = {
-    1: { glyph: "공", className: "skill-icon-attack", src: "/assets/actions/attack.webp" },
-    2: { glyph: "방", className: "skill-icon-defense", src: "/assets/actions/defense.webp" },
-    3: { glyph: "명", className: "skill-icon-focus", src: "/assets/actions/meditation.webp" },
+    1: { glyph: "공", className: "skill-icon-attack", src: localAssetUrl("/assets/actions/attack.webp") },
+    2: { glyph: "방", className: "skill-icon-defense", src: localAssetUrl("/assets/actions/defense.webp") },
+    3: { glyph: "명", className: "skill-icon-focus", src: localAssetUrl("/assets/actions/meditation.webp") },
   };
   if (common[number]) return common[number];
   return {
@@ -1858,7 +1867,7 @@ function characterSkillIconSrc(characterId, number) {
       : null;
   if (!characterId || !assetGroup) return null;
   const fileName = number === 0 ? "passive" : `skill${number}`;
-  return `/assets/${assetGroup}/${encodeURIComponent(characterId)}/skills/${fileName}.webp`;
+  return localAssetUrl(`/assets/${assetGroup}/${encodeURIComponent(characterId)}/skills/${fileName}.webp`);
 }
 
 function currentPlayerCharacterId() {
@@ -2960,7 +2969,7 @@ function characterPickerThumbHtml(character, side, isRandom = false) {
 
 function portraitSrcForId(id) {
   const assetGroup = MONSTER_PORTRAIT_IDS.has(id) ? "monsters" : "characters";
-  return `/assets/${assetGroup}/${encodeURIComponent(id)}/portrait.png`;
+  return localAssetUrl(`/assets/${assetGroup}/${encodeURIComponent(id)}/portrait.png`);
 }
 
 function withJosa(text, consonant, vowel) {

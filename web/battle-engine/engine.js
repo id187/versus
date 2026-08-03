@@ -562,7 +562,7 @@ class Battle {
     if (action.description.includes("고정 피해")) score += 70;
     score += characterLogic.aiScore(this, actor, target, action, expectedDamage, hitRate);
     score -= cost * 1.2;
-    if (cost > actor.mp) score -= 9999;
+    if (cost > actor.mp && !this.isLegalChoice(actor, action)) score -= 9999;
     if (conditionFails) score -= 12000;
     score -= this.repetitionPenalty(actor, action, personalityId);
 
@@ -941,14 +941,22 @@ class Battle {
       return;
     }
     const resolvedAction = choice.action;
-    if (actor.mp < choice.totalCost) {
+    const characterPayment = characterLogic.payActionMpCost(this, choice);
+    if (characterPayment === false) {
       this.logs.push(`MP 부족으로 행동에 실패했다. MP ${actor.mp}/${choice.totalCost}`);
       this.finishAction(choice, false, false);
       return;
     }
-    const beforeMp = actor.mp;
-    actor.mp -= choice.totalCost;
-    if (choice.totalCost) this.logs.push(fighterLogLine(actor, `MP ${beforeMp} -> ${actor.mp}`));
+    if (characterPayment !== true) {
+      if (actor.mp < choice.totalCost) {
+        this.logs.push(`MP 부족으로 행동에 실패했다. MP ${actor.mp}/${choice.totalCost}`);
+        this.finishAction(choice, false, false);
+        return;
+      }
+      const beforeMp = actor.mp;
+      actor.mp -= choice.totalCost;
+      if (choice.totalCost) this.logs.push(fighterLogLine(actor, `MP ${beforeMp} -> ${actor.mp}`));
+    }
     if (resolvedAction.isActive && choice.totalCost > 0) {
       if (resolvedAction.isAttack) {
       this.record.activeAttackMpSpent[actor.side] = choice.cost;
@@ -1200,7 +1208,8 @@ class Battle {
     }
     for (const fighter of [this.player, this.ai]) {
       if (this.gameOver) return;
-      this.restoreMp(fighter, this.turnEndMpRecovery(fighter), "턴 종료 기본 회복");
+      const recovery = this.turnEndMpRecovery(fighter);
+      this.restoreMp(fighter, characterLogic.applyTurnEndMpRecovery(this, fighter, recovery), "턴 종료 기본 회복");
     }
     for (const fighter of [this.player, this.ai]) {
       if (this.gameOver) return;
@@ -1237,7 +1246,8 @@ class Battle {
     if (hasInscription(fighter, "green")) base -= 4;
     if (hasInscription(fighter, "blue")) base += 1;
     base += Number(fighter.adventureMpRecoveryBonus || 0);
-    return Math.max(0, base + characterLogic.turnEndMpBonus(this, fighter));
+    const recovery = Math.max(0, base + characterLogic.turnEndMpBonus(this, fighter));
+    return Math.max(0, characterLogic.modifyTurnEndMpRecovery(this, fighter, recovery));
   }
 
   decrementDurations(fighter) {
@@ -1319,7 +1329,10 @@ class Battle {
     target.hp = Math.max(0, target.hp - value);
     const actual = before - target.hp;
     if (attack) this.record.attackDamageTaken[target.side] = (this.record.attackDamageTaken[target.side] || 0) + actual;
-    if (actual > 0) characterLogic.onDamageTaken(this, target, actual, attack, source);
+    if (actual > 0) {
+      characterLogic.onDamageTaken(this, target, actual, attack, source);
+      if (attack && source) characterLogic.onAttackDamageDealt(this, source, target, actual);
+    }
     const redAmberThresholdRate = Number(target.adventureRelic?.hpThresholdRate ?? 0.3);
     const redAmberRecoveryRate = Number(target.adventureRelic?.restoreHpRate ?? 0.15);
     if (
@@ -1376,7 +1389,8 @@ class Battle {
   }
 
   restoreMp(fighter, amount, reason) {
-    const value = Math.max(0, Math.trunc(amount));
+    const requested = Math.max(0, Math.trunc(amount));
+    const value = Math.max(0, Math.trunc(characterLogic.modifyMpRecovery(this, fighter, requested, reason)));
     if (value <= 0) return;
     const before = fighter.mp;
     fighter.mp = Math.min(fighter.maxMp, fighter.mp + value);

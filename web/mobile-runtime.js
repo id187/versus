@@ -1,15 +1,32 @@
-(function installMobileRuntime(global) {
+(function installClientRuntime(global) {
   "use strict";
 
+  const runtimeScript = document.currentScript;
+  const baseUrl = new URL("./", runtimeScript?.src || global.location.href).href;
+  global.__VERSUS_BASE_URL__ = baseUrl;
+
   const testMode = new URLSearchParams(global.location.search).has("mobile-runtime-test");
-  if (!global.AndroidVersus && !testMode) return;
+  const hostname = global.location.hostname.toLowerCase();
+  const localServer = hostname === "127.0.0.1" || hostname === "localhost" || hostname === "::1";
+  const hostedWeb = !localServer && ["http:", "https:"].includes(global.location.protocol);
+  if (!global.AndroidVersus && !testMode && !hostedWeb) return;
   const androidBridge = global.AndroidVersus || { exit() {} };
-  const runtimeStatus = { active: true, ready: false, error: null };
+  const runtimeStatus = {
+    active: true,
+    ready: false,
+    error: null,
+    platform: global.AndroidVersus ? "android" : "web",
+    baseUrl,
+  };
   global.__VERSUS_MOBILE_RUNTIME__ = runtimeStatus;
 
   const nativeFetch = global.fetch.bind(global);
   const moduleCache = new Map();
   let storePromise = null;
+
+  function resourceUrl(value) {
+    return new URL(String(value).replace(/^\/+/, ""), baseUrl).href;
+  }
 
   function normalizeModuleId(value) {
     const parts = [];
@@ -34,13 +51,13 @@
     if (moduleCache.has(id)) return moduleCache.get(id).exports;
 
     let request = new XMLHttpRequest();
-    request.open("GET", id, false);
+    request.open("GET", resourceUrl(id), false);
     request.send(null);
     if (request.status === 404 && id.endsWith(".js")) {
       id = `${id.slice(0, -3)}/index.js`;
       if (moduleCache.has(id)) return moduleCache.get(id).exports;
       request = new XMLHttpRequest();
-      request.open("GET", id, false);
+      request.open("GET", resourceUrl(id), false);
       request.send(null);
     }
     if (request.status < 200 || request.status >= 300) {
@@ -57,7 +74,7 @@
   }
 
   async function loadJson(path, optional = false) {
-    const response = await nativeFetch(path, { cache: "no-store" });
+    const response = await nativeFetch(resourceUrl(path), { cache: "no-store" });
     if (!response.ok) {
       if (optional) return null;
       throw new Error(`${path} 로드 실패: ${response.status}`);
@@ -88,7 +105,7 @@
         return store;
       }).catch((error) => {
         runtimeStatus.error = error?.stack || error?.message || String(error);
-        console.error("VERSUS mobile runtime failed", error);
+        console.error("VERSUS client runtime failed", error);
         throw error;
       });
     }
@@ -107,7 +124,7 @@
       const store = await gameStore();
       const method = String(init?.method || "GET").toUpperCase();
       const payload = init?.body ? JSON.parse(init.body) : {};
-      if (method === "GET" && path === "/api/health") return jsonResponse({ ok: true, app: "VERSUS", root: "android-assets" });
+      if (method === "GET" && path === "/api/health") return jsonResponse({ ok: true, app: "VERSUS", root: runtimeStatus.platform });
       if (method === "GET" && path === "/api/options") return jsonResponse(store.options());
       if (method === "GET" && path === "/api/state") return jsonResponse(store.state());
       if (method === "POST" && path === "/api/new") return jsonResponse(store.newBattle(payload));
@@ -122,7 +139,7 @@
         androidBridge.exit();
         return jsonResponse({ ok: true });
       }
-      return jsonResponse({ ok: false, error: "Unknown mobile API." }, 404);
+      return jsonResponse({ ok: false, error: "Unknown client API." }, 404);
     } catch (error) {
       return jsonResponse({ ok: false, error: error?.message || String(error) }, 500);
     }

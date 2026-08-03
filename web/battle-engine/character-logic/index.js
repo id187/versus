@@ -26,6 +26,7 @@ const LOGICS = Object.assign(Object.create(null), {
   jitrom: require("./jitrom"),
   fimit: require("./fimit"),
   emento: require("./emento"),
+  necoulomb: require("./necoulomb"),
 });
 
 function registeredLogicFor(id) {
@@ -220,6 +221,19 @@ const hooks = {
   modifyCost(battle, fighter, action, cost) {
     return Number(callActionLogic(battle, fighter, action, "modifyCost", [battle, fighter, action, cost], cost));
   },
+  payActionMpCost(battle, choice) {
+    return callActionLogic(battle, choice.actor, choice.action, "payActionMpCost", [battle, choice], null);
+  },
+  modifyMpRecovery(battle, fighter, amount, reason) {
+    let value = Number(amount);
+    for (const id of fighterLogicIds(battle, fighter)) {
+      value = Number(callById(id, "modifyMpRecovery", [battle, fighter, value, reason], value));
+    }
+    for (const id of borrowedEffectIds(battle, fighter)) {
+      value = Number(callBorrowedEffect(id, "modifyMpRecovery", [battle, fighter, value, reason], value));
+    }
+    return value;
+  },
   modifyPriority(battle, fighter, action, priority) {
     let value = Number(callActionLogic(battle, fighter, action, "modifyPriority", [battle, fighter, action, priority], priority));
     for (const id of borrowedEffectIds(battle, fighter)) {
@@ -243,7 +257,7 @@ const hooks = {
     return false;
   },
   onActiveMpSpent(battle, actor, action) {
-    callActionLogic(battle, actor, action, "onActiveMpSpent", [battle, actor]);
+    callActionLogic(battle, actor, action, "onActiveMpSpent", [battle, actor, action]);
   },
   modifyAccuracy(battle, choice, target, accuracy) {
     let value = Number(call("ashend", "modifyAccuracyStatus", [battle, choice, target, accuracy], accuracy));
@@ -354,6 +368,26 @@ const hooks = {
     }
     return value;
   },
+  modifyTurnEndMpRecovery(battle, fighter, recovery) {
+    let value = Number(recovery);
+    for (const id of fighterLogicIds(battle, fighter)) {
+      value = Number(callById(id, "modifyTurnEndMpRecovery", [battle, fighter, value], value));
+    }
+    for (const id of borrowedEffectIds(battle, fighter)) {
+      value = Number(callBorrowedEffect(id, "modifyTurnEndMpRecovery", [battle, fighter, value], value));
+    }
+    return value;
+  },
+  applyTurnEndMpRecovery(battle, fighter, recovery) {
+    let value = Number(recovery);
+    for (const id of fighterLogicIds(battle, fighter)) {
+      value = Number(callById(id, "applyTurnEndMpRecovery", [battle, fighter, value], value));
+    }
+    for (const id of borrowedEffectIds(battle, fighter)) {
+      value = Number(callBorrowedEffect(id, "applyTurnEndMpRecovery", [battle, fighter, value], value));
+    }
+    return value;
+  },
   applyPreMpTurnEnd(battle, fighter) {
     call("dethus", "preMpTurnEnd", [battle, fighter]);
   },
@@ -427,6 +461,15 @@ const hooks = {
   },
   onDamageTaken(battle, target, amount, attack, source) {
     for (const id of fighterLogicIds(battle, target)) callById(id, "onDamageTaken", [battle, target, amount, attack, source]);
+  },
+  onAttackDamageDealt(battle, actor, target, amount) {
+    if (!actor || actor === target) return;
+    for (const id of fighterLogicIds(battle, actor)) {
+      callById(id, "onAttackDamageDealt", [battle, actor, target, amount]);
+    }
+    for (const id of borrowedEffectIds(battle, actor)) {
+      callBorrowedEffect(id, "onAttackDamageDealt", [battle, actor, target, amount]);
+    }
   },
   estimatedHitCount(actor, action, useMax) {
     return callById(action.characterId || actor.characterId, "estimatedHitCount", [actor, action, useMax], null);
