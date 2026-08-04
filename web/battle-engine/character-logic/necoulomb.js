@@ -50,15 +50,10 @@ module.exports = {
   counterStateText(_fighter, name, value) {
     if (name === NEGATIVE) {
       const stacks = Math.max(0, Number(value || 0));
-      return `${NEGATIVE} ${stacks}/${MAX_NEGATIVE} · DEF x${(1 - stacks * 0.01).toFixed(2)}`;
+      return `${NEGATIVE} ${stacks}/${MAX_NEGATIVE}`;
     }
     if (name === BASE_MP_RECOVERY_ZERO && Number(value || 0) > 0) return `${BASE_MP_RECOVERY_ZERO} · ${Number(value)}턴`;
     return null;
-  },
-
-  modifyStats(_battle, fighter, atk, defense, spd) {
-    const defenseMultiplier = 1 - negativeStacks(fighter) * 0.01;
-    return [atk, defense * defenseMultiplier, spd];
   },
 
   isLegalChoice(battle, fighter, action) {
@@ -113,7 +108,7 @@ module.exports = {
   },
 
   counterResourceValue(_fighter, name, raw) {
-    if (name === NEGATIVE) return -Number(raw || 0) * 45;
+    if (name === NEGATIVE) return -Number(raw || 0) * 25;
     if (name === BASE_MP_RECOVERY_ZERO) return -Number(raw || 0) * 450;
     return null;
   },
@@ -153,7 +148,7 @@ module.exports = {
     const target = battle.opponent(actor);
     const action = choice.action;
     if (action.isSkill(CHARACTER_ID, 0)) {
-      const recoil = negativeStacks(actor) * 2;
+      const recoil = negativeStacks(actor);
       if (recoil > 0) battle.fixedDamage(actor, recoil, action.name, actor);
     } else if (action.isSkill(CHARACTER_ID, 2)) {
       const reduced = battle.reduceMp(target, totalDamage, action.name);
@@ -200,7 +195,7 @@ module.exports = {
     const missingHp = actor.maxHp - actor.hp;
 
     if (action.isSkill(CHARACTER_ID, 0)) {
-      const recoil = negativeAfterPassive * 2;
+      const recoil = negativeAfterPassive;
       value += projectedNegative * 85;
       value -= recoil * 9 * hitRate;
       if (recoil >= actor.hp && expectedDamage < target.hp) value -= 9000;

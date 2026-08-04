@@ -41,7 +41,7 @@ module.exports = {
     const target = battle.opponent(actor);
     const burn = actor.statuses["화상"];
     if (!burn || !choice.action.isAttack) return false;
-    const damage = floorInt(actor.maxHp * 0.02 * burn.stacks);
+    const damage = floorInt(actor.maxHp * 0.015 * burn.stacks);
     if (damage <= 0) return false;
     battle.fixedDamage(actor, damage, `화상 ${burn.stacks}중첩`, target);
     if ((battle.activeCharacterId?.(target) || target.characterId) === CHARACTER_ID) {

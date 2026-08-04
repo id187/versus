@@ -1,6 +1,9 @@
 "use strict";
 
 const CHARACTER_ID = "queenas";
+const WARNING_SOLDIER_HP_RATE = 0.1;
+const WARNING_SOLDIER_STAT_RATE = 0.75;
+const WARNING_TARGET_STAT_MULTIPLIER = 0.8;
 const MINION = "영병";
 const SOLDIERS = "그림자 병사 목록";
 const NEXT_NUMBER = "다음 그림자 병사 번호";
@@ -139,8 +142,8 @@ module.exports = {
       if (count(actor) >= MAX_SOLDIERS) battle.logs.push(`${MINION}이 이미 최대치다.`);
       else {
         const [atk, defense, spd] = battle.currentStats(target);
-        summon(battle, actor, { hp: floorInt(target.maxHp * 0.15), atk: floorInt(atk * 0.8), defense: floorInt(defense * 0.8), spd: floorInt(spd * 0.8), actionName: "자신 찌르기", power: 20, accuracy: 100 });
-        for (const stat of ["atk", "def", "spd"]) battle.addStatEffect(target, stat, 0.8, 4, choice.action.name);
+        summon(battle, actor, { hp: floorInt(target.maxHp * WARNING_SOLDIER_HP_RATE), atk: floorInt(atk * WARNING_SOLDIER_STAT_RATE), defense: floorInt(defense * WARNING_SOLDIER_STAT_RATE), spd: floorInt(spd * WARNING_SOLDIER_STAT_RATE), actionName: "자신 찌르기", power: 17, accuracy: 100 });
+        for (const stat of ["atk", "def", "spd"]) battle.addStatEffect(target, stat, WARNING_TARGET_STAT_MULTIPLIER, 4, choice.action.name);
       }
       return true;
     }
@@ -208,10 +211,10 @@ module.exports = {
     if (action.isSkill(CHARACTER_ID, 3)) {
       if (soldierCount >= MAX_SOLDIERS) return 0;
       const [targetAtk, targetDef, targetSpd] = battle.currentStats(target);
-      const dynamicHp = floorInt(target.maxHp * 0.15);
-      const statBonus = Math.max(0, targetAtk * 0.8 - 50) * 8
-        + Math.max(0, targetDef * 0.8 - 50) * 5
-        + Math.max(0, targetSpd * 0.8 - 50) * 3
+      const dynamicHp = floorInt(target.maxHp * WARNING_SOLDIER_HP_RATE);
+      const statBonus = Math.max(0, targetAtk * WARNING_SOLDIER_STAT_RATE - 50) * 8
+        + Math.max(0, targetDef * WARNING_SOLDIER_STAT_RATE - 50) * 5
+        + Math.max(0, targetSpd * WARNING_SOLDIER_STAT_RATE - 50) * 3
         + Math.max(0, dynamicHp - 15) * 34;
       return 980 + statBonus + Math.min(26, battle.estimateBestIncomingDamage(target, actor)) * 38;
     }
@@ -255,10 +258,10 @@ module.exports = {
       if (soldierCount >= MAX_SOLDIERS) value -= 5200;
       else {
         const [targetAtk, targetDef, targetSpd] = battle.currentStats(target);
-        const dynamicHp = floorInt(target.maxHp * 0.15);
-        const statBonus = Math.max(0, targetAtk * 0.8 - 50) * 11
-          + Math.max(0, targetDef * 0.8 - 50) * 7
-          + Math.max(0, targetSpd * 0.8 - 50) * 4
+        const dynamicHp = floorInt(target.maxHp * WARNING_SOLDIER_HP_RATE);
+        const statBonus = Math.max(0, targetAtk * WARNING_SOLDIER_STAT_RATE - 50) * 11
+          + Math.max(0, targetDef * WARNING_SOLDIER_STAT_RATE - 50) * 7
+          + Math.max(0, targetSpd * WARNING_SOLDIER_STAT_RATE - 50) * 4
           + Math.max(0, dynamicHp - 15) * 42;
         value += 920 + statBonus + Math.min(24, incoming) * 48;
         if (soldierCount === 0) value += 520;

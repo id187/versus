@@ -1,6 +1,7 @@
 "use strict";
 
 const characterLogic = require("./character-logic");
+const { selectSearchAction } = require("./ai-search");
 const {
   DEFAULT_INSCRIPTION_ID,
   RANDOM_INSCRIPTION_ID,
@@ -12,7 +13,7 @@ const {
   whitePowerPenalty,
   redPowerBonus,
 } = require("./inscriptions");
-const { Mulberry32, hashSeed } = require("./rng");
+const { Mulberry32 } = require("./rng");
 
 const MAX_MP = 100;
 const START_MP = 30;
@@ -38,14 +39,14 @@ const AI_PERSONALITY_TUNING = {
   A: { temperature: 105, topGap: 360, exploration: 0.08, repeatPenalty: 125 },
 };
 const AI_SEARCH_TUNING = {
-  R: { depth: 2, beam: 4, responses: 4, responseMass: 0.94, rootSamples: 2, innerSamples: 1, nodeBudget: 1800 },
-  C: { depth: 2, beam: 5, responses: 3, responseMass: 0.90, rootSamples: 2, innerSamples: 1, nodeBudget: 1800 },
-  D: { depth: 2, beam: 4, responses: 5, responseMass: 0.97, rootSamples: 3, innerSamples: 1, nodeBudget: 2600 },
-  M: { depth: 2, beam: 5, responses: 4, responseMass: 0.90, rootSamples: 2, innerSamples: 1, nodeBudget: 1800 },
-  G: { depth: 2, beam: 5, responses: 3, responseMass: 0.90, rootSamples: 3, innerSamples: 1, nodeBudget: 2400 },
-  E: { depth: 2, beam: 3, responses: 3, responseMass: 0.92, rootSamples: 2, innerSamples: 1, nodeBudget: 1800 },
-  J: { depth: 2, beam: 4, responses: 4, responseMass: 0.94, rootSamples: 2, innerSamples: 1, nodeBudget: 1800 },
-  A: { depth: 2, beam: 5, responses: 4, responseMass: 0.95, rootSamples: 2, innerSamples: 1, nodeBudget: 2200 },
+  R: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 4 },
+  C: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 4 },
+  D: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 4 },
+  M: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 4 },
+  G: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 4 },
+  E: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 5 },
+  J: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 3 },
+  A: { depth: 6, timeLimitMs: 1200, maxNodes: 50000, fullOrderMinDepth: 4 },
 };
 
 const AI_PERSONALITIES = [
@@ -64,8 +65,6 @@ const SEARCH_LOG_SINK = Object.freeze({
   push() { return 0; },
   slice() { return []; },
 });
-
-class SearchBudgetExceeded extends Error {}
 
 function clamp(value, low, high) {
   return Math.max(low, Math.min(high, value));
@@ -350,6 +349,7 @@ class Battle {
     this.winner = null;
     this.loser = null;
     this.turnOrder = {};
+    this.lastAiSearch = null;
     this.lastAiSearchStats = null;
   }
 
@@ -469,8 +469,10 @@ class Battle {
     return this.availableActions(fighter).find((action) => String(action.number) === value || action.key === value || action.name === value) || null;
   }
 
-  makeChoice(fighter, action) {
-    const choice = new Choice(fighter, action, this.effectiveCost(fighter, action), this.effectivePriority(fighter, action));
+  makeChoice(fighter, action, searchMetrics = null) {
+    const cost = searchMetrics ? searchMetrics.cost : this.effectiveCost(fighter, action);
+    const priority = searchMetrics ? searchMetrics.priority : this.effectivePriority(fighter, action);
+    const choice = new Choice(fighter, action, cost, priority);
     characterLogic.onMakeChoice(this, fighter, action, choice);
     if (action.isCommonAction("defense")) {
       choice.defenseBonusReduction = Number(choice.defenseBonusReduction || 0)
@@ -483,12 +485,12 @@ class Battle {
     return choice;
   }
 
-  isLegalChoice(fighter, action) {
+  isLegalChoice(fighter, action, knownCost = undefined) {
     if (fighter.forbiddenActionKey === action.key && fighter.forbiddenRemaining > 0) return false;
     if (Number(fighter.forbiddenActionKeys?.[action.key] || 0) > 0) return false;
     const characterResult = characterLogic.isLegalChoice(this, fighter, action);
     if (characterResult !== null && characterResult !== undefined) return Boolean(characterResult);
-    return fighter.mp >= this.effectiveCost(fighter, action);
+    return fighter.mp >= (knownCost === undefined ? this.effectiveCost(fighter, action) : knownCost);
   }
 
   effectiveCost(fighter, action) {
@@ -525,23 +527,40 @@ class Battle {
   }
 
   selectAiAction(actor = this.ai, target = this.player, personality = this.personality) {
-    let legal = this.availableActions(actor).filter((action) => this.isLegalChoice(actor, action));
+    const legal = this.searchLegalActions(actor, target);
     if (!legal.length) return this.availableActions(actor)[0];
-    const viable = legal.filter((action) => !characterLogic.wouldConditionFail(this, actor, target, action));
-    if (viable.length) legal = viable;
     const tuning = AI_SEARCH_TUNING[personality.id] || AI_SEARCH_TUNING.R;
-    legal = this.canonicalActions(legal);
-    const scored = this.searchRootActions(actor.side, personality.id, tuning, legal);
-    return this.weightedPersonalityChoice(scored, personality.id);
+    const result = selectSearchAction({
+      battle: this,
+      actor,
+      target,
+      personalityId: personality.id,
+      tuning,
+      legal,
+      rootScoreGap: (AI_PERSONALITY_TUNING[personality.id] || AI_PERSONALITY_TUNING.R).topGap,
+    });
+    this.lastAiSearch = result.diagnostics;
+    this.lastAiSearchStats = result.diagnostics;
+    return this.weightedPersonalityChoice(result.scored, personality.id);
   }
 
-  scoreAction(actor, target, action, personalityId) {
+  searchLegalActions(actor, target = this.opponent(actor), costForAction = null) {
+    const legal = this.availableActions(actor).filter((action) => this.isLegalChoice(
+      actor,
+      action,
+      costForAction ? costForAction(action) : undefined,
+    ));
+    const viable = legal.filter((action) => !characterLogic.wouldConditionFail(this, actor, target, action));
+    return viable.length ? viable : legal;
+  }
+
+  scoreAction(actor, target, action, personalityId, knownCost = undefined) {
     const baseDamage = this.estimateActionDamage(actor, target, action, false);
     const maxDamage = this.estimateActionDamage(actor, target, action, true);
     const hitRate = this.estimateHitRate(actor, target, action) / 100;
     const expectedDamage = baseDamage * hitRate;
     const conditionFails = characterLogic.wouldConditionFail(this, actor, target, action);
-    const cost = this.effectiveCost(actor, action);
+    const cost = knownCost === undefined ? this.effectiveCost(actor, action) : knownCost;
     let score = expectedDamage * 3;
 
     if (!conditionFails && maxDamage >= target.hp && action.isAttack) score += 10000 + maxDamage - target.hp;
@@ -570,7 +589,7 @@ class Battle {
     score += characterLogic.aiScore(this, actor, target, action, expectedDamage, hitRate);
     score += this.adaptiveBonus(actor, target, action) * 0.65;
     score -= cost * 1.2;
-    if (cost > actor.mp && !this.isLegalChoice(actor, action)) score -= 9999;
+      if (cost > actor.mp && !this.isLegalChoice(actor, action, cost)) score -= 9999;
     if (conditionFails) score -= 12000;
     score -= this.repetitionPenalty(actor, action, personalityId);
 
@@ -666,305 +685,53 @@ class Battle {
     return 220 - sameAction * 95 - sameKind * 28 - (repeatedLast ? 180 : 0);
   }
 
-  canonicalActions(actions) {
-    return [...actions].sort((left, right) => (
-      String(left.key).localeCompare(String(right.key), "en")
-      || String(left.name).localeCompare(String(right.name), "ko")
-      || Number(left.number) - Number(right.number)
-    ));
-  }
-
-  searchRootActions(actorSide, personalityId, tuning, legal) {
-    const startedAt = Date.now();
-    const context = {
-      tuning,
-      personalityId,
-      rootDepth: 0,
-      nodes: 0,
-      maxNodes: Math.max(1, Math.trunc(Number(tuning.nodeBudget || 1))),
-      seed: hashSeed(`${this.searchStateKey()}|${actorSide}|${personalityId}|joint-search-v2`),
-      transpositions: new Map(),
-      policies: new Map(),
-      legalActions: new Map(),
-      stateKeys: new WeakMap(),
-      transpositionHits: 0,
-      policyCacheHits: 0,
-      legalActionCacheHits: 0,
-    };
-    const actor = this.fighterBySide(actorSide);
-    const target = this.opponent(actor);
-    let completed = legal.map((action) => ({
-      action,
-      score: this.scoreAction(actor, target, action, personalityId),
-    }));
-    let completedDepth = 0;
-    let completedRootNodes = Object.fromEntries(legal.map((action) => [action.key, 0]));
-    let completedPolicy = {};
-
-    for (let depth = 1; depth <= Math.max(1, Math.trunc(Number(tuning.depth || 1))); depth += 1) {
-      context.rootDepth = depth;
-      try {
-        const iteration = this.searchCompletedRootDepth(actorSide, personalityId, depth, context, legal);
-        completed = iteration.scored;
-        completedRootNodes = iteration.rootNodes;
-        completedPolicy = iteration.policy;
-        completedDepth = depth;
-      } catch (error) {
-        if (!(error instanceof SearchBudgetExceeded)) throw error;
-        break;
-      }
-    }
-
-    this.lastAiSearchStats = {
-      personalityId,
-      completedDepth,
-      requestedDepth: tuning.depth,
-      nodes: context.nodes,
-      nodeBudget: context.maxNodes,
-      elapsedMs: Date.now() - startedAt,
-      rootNodes: completedRootNodes,
-      rootDepths: Object.fromEntries(legal.map((action) => [action.key, completedDepth])),
-      opponentPolicy: completedPolicy,
-      logLines: 0,
-      scores: Object.fromEntries(completed.map((item) => [item.action.key, item.score])),
-      cache: {
-        transpositionHits: context.transpositionHits,
-        policyHits: context.policyCacheHits,
-        legalActionHits: context.legalActionCacheHits,
-        transpositions: context.transpositions.size,
-      },
-    };
-    return completed;
-  }
-
-  searchCompletedRootDepth(actorSide, personalityId, depth, context, legal) {
-    const actor = this.fighterBySide(actorSide);
-    const target = this.opponent(actor);
-    const policy = this.searchOpponentPolicy(target, actor, context, false);
-    const scored = [];
-    const rootNodes = {};
-    for (const action of legal) {
-      const before = context.nodes;
-      let score = this.searchActionAgainstPolicy(actorSide, action, policy, depth, context, true);
-      score += this.scoreAction(actor, target, action, personalityId) * 0.04;
-      score += this.characterSearchPrior(actor, target, action) * 0.06;
-      scored.push({ action, score });
-      rootNodes[action.key] = context.nodes - before;
-    }
-    return {
-      scored,
-      rootNodes,
-      policy: Object.fromEntries(policy.map((item) => [item.action.key, item.weight])),
-    };
-  }
-
-  characterSearchPrior(actor, target, action) {
-    const baseDamage = this.estimateActionDamage(actor, target, action, false);
-    const hitRate = this.estimateHitRate(actor, target, action) / 100;
-    return Number(characterLogic.aiScore(this, actor, target, action, baseDamage * hitRate, hitRate) || 0);
-  }
-
-  searchPositionValue(actorSide, personalityId, depth, context) {
-    if (this.gameOver || depth <= 0) return this.evaluatePosition(actorSide, personalityId);
-    const stateKey = this.searchStateKey(context);
-    const cacheKey = `${stateKey}|${actorSide}|${personalityId}|${depth}`;
-    if (context.transpositions.has(cacheKey)) {
-      context.transpositionHits += 1;
-      return context.transpositions.get(cacheKey);
-    }
-
-    const actor = this.fighterBySide(actorSide);
-    const target = this.opponent(actor);
-    let legal = this.searchLegalActions(actor, target, context);
-    legal = this.searchOrderedActions(actor, target, legal, personalityId, context.tuning.beam);
-    const policy = this.searchOpponentPolicy(target, actor, context, true);
-    const values = legal.map((action) => this.searchActionAgainstPolicy(actorSide, action, policy, depth, context, false));
-    const value = values.length ? Math.max(...values) : this.evaluatePosition(actorSide, personalityId);
-    context.transpositions.set(cacheKey, value);
-    return value;
-  }
-
-  searchActionAgainstPolicy(actorSide, action, policy, depth, context, root) {
-    const outcomes = [];
-    for (const item of policy) {
-      const samples = [];
-      const sampleCount = root ? Number(context.tuning.rootSamples || 1) : Number(context.tuning.innerSamples || 1);
-      for (let sample = 0; sample < sampleCount; sample += 1) {
-        samples.push(this.searchJointSample(actorSide, action, item.action, depth, sample, context));
-      }
-      outcomes.push({
-        action: item.action,
-        weight: item.weight,
-        value: this.searchChanceBackup(samples, context.personalityId),
-      });
-    }
-    return this.searchOpponentBackup(outcomes, action, context.personalityId);
-  }
-
-  searchJointSample(actorSide, actorAction, targetAction, depth, sample, context) {
-    if (context.nodes >= context.maxNodes) throw new SearchBudgetExceeded();
-    context.nodes += 1;
-    const stateKey = this.searchStateKey(context);
-    const rngSeed = hashSeed(`${context.seed}|${stateKey}|${actorAction.key}|${targetAction.key}|${depth}|${sample}`);
-    const simulation = this.simulateActionPair(actorSide, actorAction, targetAction, {
-      rngSeed,
-      suppressLogs: true,
-    });
-    if (depth <= 1 || simulation.gameOver) return simulation.evaluatePosition(actorSide, context.personalityId);
-    simulation.turn += 1;
-    simulation.startTurn();
-    return simulation.searchPositionValue(actorSide, context.personalityId, depth - 1, context);
-  }
-
-  searchChanceBackup(values, personalityId) {
-    if (!values.length) return 0;
-    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-    if (personalityId === "D") return mean * 0.65 + Math.min(...values) * 0.35;
-    if (personalityId === "G") return mean * 0.55 + Math.max(...values) * 0.45;
-    if (personalityId === "C") return mean * 0.8 + Math.max(...values) * 0.2;
-    if (personalityId === "M") return mean * 0.7 + (Math.max(...values) + Math.min(...values)) * 0.15;
-    return mean;
-  }
-
-  searchOpponentBackup(outcomes, action, personalityId) {
-    if (!outcomes.length) return 0;
-    const expected = outcomes.reduce((sum, item) => sum + item.value * item.weight, 0);
-    const worst = Math.min(...outcomes.map((item) => item.value));
-    const best = Math.max(...outcomes.map((item) => item.value));
-    const likely = outcomes.reduce((current, item) => item.weight > current.weight ? item : current, outcomes[0]);
-    if (personalityId === "D") return expected * 0.62 + worst * 0.38;
-    if (personalityId === "G") return expected * 0.68 + best * 0.32;
-    if (personalityId === "C") return expected + (action.isAttack ? 140 : -45);
-    if (personalityId === "E") return expected + (action.isAttack ? 0 : 70) - Number(action.mp || 0) * 0.25;
-    if (personalityId === "J") return expected + this.disruptionBonus(action, likely.action) * 0.7;
-    if (personalityId === "M") return expected * 0.65 + best * 0.35;
-    return expected;
-  }
-
-  searchLegalActions(actor, target, context) {
-    const key = `${this.searchStateKey(context)}|legal|${actor.side}`;
-    if (context.legalActions.has(key)) {
-      context.legalActionCacheHits += 1;
-      return context.legalActions.get(key);
-    }
-    let legal = this.availableActions(actor).filter((action) => this.isLegalChoice(actor, action));
-    const viable = legal.filter((action) => !characterLogic.wouldConditionFail(this, actor, target, action));
-    if (viable.length) legal = viable;
-    if (!legal.length) legal = [normalActions()[0]];
-    legal = this.canonicalActions(legal);
-    context.legalActions.set(key, legal);
-    return legal;
-  }
-
-  searchOrderedActions(actor, target, actions, personalityId, limit) {
-    return actions
-      .map((action) => ({ action, score: this.scoreAction(actor, target, action, personalityId) }))
-      .sort((left, right) => right.score - left.score || String(left.action.key).localeCompare(String(right.action.key), "en"))
-      .slice(0, Math.max(1, Number(limit || actions.length)))
-      .map((item) => item.action);
-  }
-
-  searchOpponentPolicy(actor, target, context, prune) {
-    const stateKey = this.searchStateKey(context);
-    const cacheKey = `${stateKey}|policy|${actor.side}|${prune ? "pruned" : "full"}`;
-    if (context.policies.has(cacheKey)) {
-      context.policyCacheHits += 1;
-      return context.policies.get(cacheKey);
-    }
-    const actions = this.searchLegalActions(actor, target, context);
-    const counts = this.recentKindCounts(actor, 6);
-    let observedHistory = actor.selectedHistory;
-    if (Object.hasOwn(this.record.selected, actor.side)) observedHistory = observedHistory.slice(0, -1);
-    const scores = actions.map((action) => {
-      let score = this.scoreAction(actor, target, action, "R");
-      if (action.isAttack) score += counts.attack * 22;
-      else if (action.isDefense) score += counts.defense * 22;
-      else if (action.isCommonAction("meditation")) score += counts.meditation * 22;
-      score += observedHistory.slice(-6).filter((key) => key === action.key).length * 55;
-      if (observedHistory.at(-1) === action.key) score += 45;
-      return score;
-    });
-    const best = Math.max(...scores);
-    const raw = scores.map((score) => Math.exp((score - best) / 105));
-    const total = raw.reduce((sum, value) => sum + value, 0);
-    let policy = actions.map((action, index) => ({ action, weight: total > 0 ? raw[index] / total : 1 / actions.length }));
-    policy.sort((left, right) => right.weight - left.weight || String(left.action.key).localeCompare(String(right.action.key), "en"));
-    if (prune) policy = this.pruneSearchPolicy(policy, context.tuning);
-    context.policies.set(cacheKey, policy);
-    return policy;
-  }
-
-  pruneSearchPolicy(policy, tuning) {
-    const limit = Math.max(2, Math.trunc(Number(tuning.responses || policy.length)));
-    const targetMass = clamp(Number(tuning.responseMass || 1), 0, 1);
-    const kept = [];
-    let mass = 0;
-    for (const item of policy) {
-      if (kept.length >= limit) break;
-      kept.push(item);
-      mass += item.weight;
-      if (kept.length >= 2 && mass >= targetMass) break;
-    }
-    const handledMass = kept.reduce((sum, item) => sum + item.weight, 0);
-    return kept.map((item) => ({ action: item.action, weight: item.weight / handledMass }));
-  }
-
   simulateActionPair(actorSide, actorAction, targetAction, options = {}) {
-    const simulation = this.cloneForSimulation(options);
+    const normalizedOptions = typeof options === "number" ? { rngState: options } : options;
+    const simulation = this.cloneForSimulation(normalizedOptions);
     const actor = simulation.fighterBySide(actorSide);
     const target = simulation.opponent(actor);
-    const ownAction = simulation.matchAction(actor, actorAction);
-    const response = simulation.matchAction(target, targetAction);
-    const playerAction = actor === simulation.player ? ownAction : response;
-    const aiAction = actor === simulation.ai ? ownAction : response;
-    const playerChoice = simulation.makeChoice(simulation.player, playerAction);
-    const aiChoice = simulation.makeChoice(simulation.ai, aiAction);
-    simulation.resolveTurn(playerChoice, aiChoice);
+    const ownAction = normalizedOptions.canonicalActions
+      ? actorAction
+      : simulation.matchAction(actor, actorAction);
+    const response = normalizedOptions.canonicalActions
+      ? targetAction
+      : simulation.matchAction(target, targetAction);
+    const ownChoice = simulation.makeChoice(actor, ownAction, normalizedOptions.actorChoiceMetrics || null);
+    const targetChoice = simulation.makeChoice(target, response, normalizedOptions.targetChoiceMetrics || null);
+    if (actor === simulation.player) simulation.resolveTurn(ownChoice, targetChoice);
+    else simulation.resolveTurn(targetChoice, ownChoice);
     return simulation;
   }
 
   cloneForSimulation(options = {}) {
+    const normalizedOptions = typeof options === "number" ? { rngState: options } : options;
+    const requestedRngState = normalizedOptions.rngState ?? normalizedOptions.rngSeed;
+    const silent = Boolean(normalizedOptions.silent || normalizedOptions.suppressLogs);
     const clone = Object.create(Battle.prototype);
     clone.characters = this.characters;
     clone.inscriptions = this.inscriptions;
-    clone.rng = new Mulberry32(options.rngSeed ?? 0);
-    if (options.rngSeed == null) clone.rng.state = this.rng.state;
+    clone.rng = new Mulberry32(0);
+    clone.rng.state = Number.isFinite(Number(requestedRngState))
+      ? Number(requestedRngState) >>> 0
+      : this.rng.state;
     clone.aiRng = new Mulberry32(0);
-    clone.aiRng.state = this.aiRng?.state ?? 0;
+    clone.aiRng.state = this.aiRng?.state ?? ((clone.rng.state ^ 0xa511e9b3) >>> 0);
     clone.player = cloneFighter(this.player);
     clone.ai = cloneFighter(this.ai);
     clone.personality = { ...this.personality };
     clone.turn = this.turn;
     clone.record = cloneTurnRecord(this.record);
-    clone.logs = options.suppressLogs ? SEARCH_LOG_SINK : [];
-    clone.suppressLogs = Boolean(options.suppressLogs);
+    clone.logs = silent ? SEARCH_LOG_SINK : [];
+    clone.suppressLogs = silent;
     clone.maxTurns = this.maxTurns;
     clone.hidePersonalityUntilGameOver = this.hidePersonalityUntilGameOver;
     clone.gameOver = this.gameOver;
     clone.winner = this.winner ? clone.fighterBySide(this.winner.side) : null;
     clone.loser = this.loser ? clone.fighterBySide(this.loser.side) : null;
     clone.turnOrder = { ...this.turnOrder };
+    clone.lastAiSearch = null;
     clone.lastAiSearchStats = null;
-    clone._searchStateKey = null;
     return clone;
-  }
-
-  searchStateKey(context = null) {
-    if (context?.stateKeys?.has(this)) return context.stateKeys.get(this);
-    if (this.suppressLogs && this._searchStateKey) return this._searchStateKey;
-    const key = searchStateHash({
-      turn: this.turn,
-      maxTurns: this.maxTurns,
-      gameOver: this.gameOver,
-      winner: this.winner?.side || null,
-      turnOrder: this.turnOrder,
-      record: this.record,
-      player: fighterSearchState(this.player),
-      ai: fighterSearchState(this.ai),
-    });
-    if (context?.stateKeys) context.stateKeys.set(this, key);
-    if (this.suppressLogs) this._searchStateKey = key;
-    return key;
   }
 
   fighterBySide(side) {
@@ -978,7 +745,7 @@ class Battle {
       || normalActions()[0];
   }
 
-  evaluatePosition(actorSide, personalityId) {
+  evaluatePosition(actorSide, personalityId, searchLeaf = false) {
     const me = this.fighterBySide(actorSide);
     const opponent = this.opponent(me);
     if (this.gameOver) {
@@ -996,7 +763,10 @@ class Battle {
     if (personalityId === "C") value += (opponent.maxHp - opponent.hp) * 32 - (me.maxHp - me.hp) * 10;
     else if (personalityId === "D") value += (me.hp / me.maxHp) * 2600 - this.estimateBestIncomingDamage(opponent, me) * 42;
     else if (personalityId === "G") value += (opponent.maxHp - opponent.hp) * 18 + Math.max(...this.availableActions(me).map((action) => this.estimateActionDamage(me, opponent, action, true))) * 40;
-    else if (personalityId === "E") value += me.mp * 24 + this.resourceValue(me) * 1.7;
+    else if (personalityId === "E") {
+      value += me.mp * 24 + this.resourceValue(me) * 1.7;
+      if (!searchLeaf) value += this.futurePotentialScore(me.side) * 0.5;
+    }
     else if (personalityId === "J") value += this.statusPressureValue(opponent) * 1.9 - this.statusPressureValue(me) * 0.55;
     else if (personalityId === "A") value += this.deceptionStateValue(me);
     return value;
@@ -1043,19 +813,39 @@ class Battle {
     return 0;
   }
 
+  futurePotentialScore(actorSide) {
+    if (this.gameOver) return 0;
+    const actor = this.fighterBySide(actorSide);
+    const target = this.opponent(actor);
+    const actorScores = this.searchLegalActions(actor, target).map((action) => this.scoreAction(actor, target, action, "E"));
+    const targetScores = this.searchLegalActions(target, actor).map((action) => this.scoreAction(target, actor, action, "R"));
+    const actorBest = actorScores.length ? Math.max(...actorScores) : 0;
+    const targetBest = targetScores.length ? Math.max(...targetScores) : 0;
+    return actorBest - targetBest * 0.45
+      + (this.resourceValue(actor) - this.resourceValue(target) * 0.85) * 1.2
+      + (actor.mp - target.mp) * 14
+      + (this.statusPressureValue(target) - this.statusPressureValue(actor)) * 0.6;
+  }
+
   patternReadValue(actor, target) {
-    const recent = target.selectedHistory.slice(-4);
+    let targetHistory = target.selectedHistory;
+    if (Object.hasOwn(this.record.selected, target.side)) targetHistory = targetHistory.slice(0, -1);
+    let actorHistory = actor.selectedHistory;
+    if (Object.hasOwn(this.record.selected, actor.side)) actorHistory = actorHistory.slice(0, -1);
+    const recent = targetHistory.slice(-4);
     const attacks = recent.filter((key) => this.actionKeyIsAttack(target, key)).length;
     const defenses = recent.filter((key) => this.actionKeyIsDefense(target, key)).length;
     let repeats = 0;
     for (let index = 1; index < recent.length; index += 1) if (recent[index - 1] === recent[index]) repeats += 1;
     let value = attacks * 0.35 + defenses * 0.18 + repeats * 0.45;
-    if (actor.selectedHistory.length && target.selectedHistory.at(-1) === actor.selectedHistory.at(-1)) value -= 0.15;
+    if (actorHistory.length && targetHistory.at(-1) === actorHistory.at(-1)) value -= 0.15;
     return value;
   }
 
   deceptionStateValue(actor) {
-    const recent = actor.selectedHistory.slice(-6);
+    let history = actor.selectedHistory;
+    if (Object.hasOwn(this.record.selected, actor.side)) history = history.slice(0, -1);
+    const recent = history.slice(-6);
     if (!recent.length) return 0;
     const unique = new Set(recent).size;
     let repeats = 0;
@@ -1769,12 +1559,18 @@ function actionFromSkill(number, skill, characterId = null, ownerCharacterId = c
   });
 }
 
+let cachedNormalActions = null;
+const actionListCache = new WeakMap();
+
 function normalActions() {
-  return [
-    new Action({ number: 1, name: "일반 공격", target: "상대", mp: 0, power: 10, accuracy: 100, priority: 0, description: "효과 없음.", common: true, kind: "normal_attack" }),
-    new Action({ number: 2, name: "일반 방어", target: "자신", mp: 0, power: null, accuracy: null, priority: 3, description: "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다.", common: true, kind: "defense" }),
-    new Action({ number: 3, name: "명상", target: "자신", mp: 0, power: null, accuracy: null, priority: 0, description: "자신의 MP를 15 회복한다.", common: true, kind: "meditation" }),
-  ];
+  if (!cachedNormalActions) {
+    cachedNormalActions = [
+      new Action({ number: 1, name: "일반 공격", target: "상대", mp: 0, power: 10, accuracy: 100, priority: 0, description: "효과 없음.", common: true, kind: "normal_attack" }),
+      new Action({ number: 2, name: "일반 방어", target: "자신", mp: 0, power: null, accuracy: null, priority: 3, description: "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다.", common: true, kind: "defense" }),
+      new Action({ number: 3, name: "명상", target: "자신", mp: 0, power: null, accuracy: null, priority: 0, description: "자신의 MP를 15 회복한다.", common: true, kind: "meditation" }),
+    ];
+  }
+  return cachedNormalActions;
 }
 
 function activeCharacterDataForFighter(fighter, battle = null) {
@@ -1789,12 +1585,21 @@ function availableActions(fighter, battle = null) {
   const activeData = activeCharacterDataForFighter(fighter, battle);
   const activeId = activeData?.id || fighter.characterId;
   const transformed = Boolean(activeId && activeId !== fighter.characterId);
-  return [
-    ...normalActions(),
-    ...(activeData.skills || []).map((skill, index) => (
-      actionFromSkill(index + 4, skill, activeId, fighter.characterId, transformed)
-    )),
-  ];
+  let variants = actionListCache.get(activeData);
+  if (!variants) {
+    variants = new Map();
+    actionListCache.set(activeData, variants);
+  }
+  const variantKey = `${fighter.characterId}|${transformed ? 1 : 0}`;
+  if (!variants.has(variantKey)) {
+    variants.set(variantKey, [
+      ...normalActions(),
+      ...(activeData.skills || []).map((skill, index) => (
+        actionFromSkill(index + 4, skill, activeId, fighter.characterId, transformed)
+      )),
+    ]);
+  }
+  return variants.get(variantKey);
 }
 
 function actionKind(action) {
@@ -2158,44 +1963,109 @@ function structuredCloneCompat(value) {
   return globalThis.structuredClone ? globalThis.structuredClone(value) : JSON.parse(JSON.stringify(value));
 }
 
-function cloneStateValue(value) {
-  if (value === null || typeof value !== "object") return value;
-  if (value instanceof Set) return new Set([...value].map(cloneStateValue));
-  if (Array.isArray(value)) return value.map(cloneStateValue);
-  const clone = {};
-  for (const [key, item] of Object.entries(value)) clone[key] = cloneStateValue(item);
-  return clone;
-}
-
-function fighterSearchState(fighter) {
-  const state = { characterId: fighter.characterId, inscriptionId: fighter.inscriptionId };
-  for (const key of Object.keys(fighter)) {
-    if (["data", "inscription", "inscriptions"].includes(key)) continue;
-    state[key] = fighter[key];
+function cloneSimulationValue(value) {
+  if (value === null || value === undefined || typeof value !== "object") return value;
+  if (value instanceof Set) return new Set(value);
+  if (Array.isArray(value)) {
+    const clone = new Array(value.length);
+    for (let index = 0; index < value.length; index += 1) {
+      clone[index] = cloneSimulationValue(value[index]);
+    }
+    return clone;
   }
-  return state;
-}
-
-function searchStateHash(value) {
-  const serialized = JSON.stringify(value, (_key, item) => (
-    item instanceof Set ? { $set: [...item].sort() } : item
-  ));
-  return `${hashSeed(serialized).toString(36)}:${hashSeed(`search:${serialized}`).toString(36)}`;
+  const clone = {};
+  for (const key of Object.keys(value)) clone[key] = cloneSimulationValue(value[key]);
+  return clone;
 }
 
 function cloneFighter(source) {
   const fighter = Object.create(Fighter.prototype);
-  for (const key of Object.keys(source)) {
-    const value = source[key];
-    if (key === "data" || key === "inscription" || key === "inscriptions") fighter[key] = value;
-    else fighter[key] = cloneStateValue(value);
+  fighter.side = source.side;
+  fighter.data = source.data;
+  fighter.inscription = source.inscription;
+  fighter.inscriptionId = source.inscriptionId;
+  fighter.maxHp = source.maxHp;
+  fighter.hp = source.hp;
+  fighter.maxMp = source.maxMp;
+  fighter.mp = source.mp;
+  fighter.baseAtk = source.baseAtk;
+  fighter.baseDef = source.baseDef;
+  fighter.baseSpd = source.baseSpd;
+  fighter.adventureMpRecoveryBonus = source.adventureMpRecoveryBonus;
+  fighter.adventureTurnEndHpRecovery = source.adventureTurnEndHpRecovery;
+  fighter.adventureSkillCostMultipliers = { ...source.adventureSkillCostMultipliers };
+  fighter.adventureSkillPowerMultipliers = { ...source.adventureSkillPowerMultipliers };
+  fighter.adventureSkillAccuracyModifiers = { ...source.adventureSkillAccuracyModifiers };
+  fighter.adventureSkillPriorityModifiers = { ...source.adventureSkillPriorityModifiers };
+  fighter.adventureAllSkillCostMultiplier = source.adventureAllSkillCostMultiplier;
+  fighter.adventureDamageMultiplier = source.adventureDamageMultiplier;
+  fighter.adventureCommonAttackPowerBonus = source.adventureCommonAttackPowerBonus;
+  fighter.adventureCommonDefenseReductionBonus = source.adventureCommonDefenseReductionBonus;
+  fighter.adventureMeditationRecoveryBonus = source.adventureMeditationRecoveryBonus;
+  fighter.adventureBattleRhythm = source.adventureBattleRhythm
+    ? { ...source.adventureBattleRhythm }
+    : null;
+  fighter.adventureRelic = source.adventureRelic ? { ...source.adventureRelic } : null;
+  fighter.adventureTurnEndFixedDamage = source.adventureTurnEndFixedDamage;
+  fighter.adventureSurviveDefeatCount = source.adventureSurviveDefeatCount;
+  fighter.adventureSkipNextAction = source.adventureSkipNextAction;
+  fighter.adventureSkipNextActionLabel = source.adventureSkipNextActionLabel;
+  fighter.statuses = {};
+  for (const name of Object.keys(source.statuses)) {
+    fighter.statuses[name] = { ...source.statuses[name] };
   }
+  fighter.statEffects = new Array(source.statEffects.length);
+  for (let index = 0; index < source.statEffects.length; index += 1) {
+    fighter.statEffects[index] = { ...source.statEffects[index] };
+  }
+  fighter.costEffects = new Array(source.costEffects.length);
+  for (let index = 0; index < source.costEffects.length; index += 1) {
+    fighter.costEffects[index] = { ...source.costEffects[index] };
+  }
+  fighter.counters = cloneSimulationValue(source.counters);
+  fighter.defenseStreak = source.defenseStreak;
+  fighter.defenseMult = source.defenseMult;
+  fighter.defenseName = source.defenseName;
+  fighter.evasionChance = source.evasionChance;
+  fighter.guaranteedEvasion = source.guaranteedEvasion;
+  fighter.selectedHistory = source.selectedHistory.slice();
+  fighter.selectedAttackActiveHistory = source.selectedAttackActiveHistory.slice();
+  fighter.hitRecords = new Set(source.hitRecords);
+  fighter.lastSuccessfulActionKey = source.lastSuccessfulActionKey;
+  fighter.forbiddenActionKey = source.forbiddenActionKey;
+  fighter.forbiddenRemaining = source.forbiddenRemaining;
+  fighter.forbiddenActionKeys = { ...source.forbiddenActionKeys };
+  fighter.attackSelectionCount1To5 = source.attackSelectionCount1To5;
+  fighter.lastMeditationSuccessTurn = source.lastMeditationSuccessTurn;
+  if (Object.hasOwn(source, "ementoForgottenActionKey")) {
+    fighter.ementoForgottenActionKey = source.ementoForgottenActionKey;
+  }
+  if (Object.hasOwn(source, "ementoForecastActionKey")) {
+    fighter.ementoForecastActionKey = source.ementoForecastActionKey;
+  }
+  if (Object.hasOwn(source, "ementoProphecyRemaining")) {
+    fighter.ementoProphecyRemaining = source.ementoProphecyRemaining;
+  }
+  if (Object.hasOwn(source, "ementoDreamFailurePending")) {
+    fighter.ementoDreamFailurePending = source.ementoDreamFailurePending;
+  }
+  fighter.inscriptions = source.inscriptions;
   return fighter;
 }
 
 function cloneTurnRecord(source) {
   const record = Object.create(TurnRecord.prototype);
-  for (const [key, value] of Object.entries(source)) record[key] = cloneStateValue(value);
+  record.selected = { ...source.selected };
+  record.selectedKey = { ...source.selectedKey };
+  record.selectedKind = { ...source.selectedKind };
+  record.actionSuccess = { ...source.actionSuccess };
+  record.attackHit = { ...source.attackHit };
+  record.attackDamageTaken = { ...source.attackDamageTaken };
+  record.activeAttackMpSpent = { ...source.activeAttackMpSpent };
+  record.freezeRemoved = { ...source.freezeRemoved };
+  record.defenseReduced = { ...source.defenseReduced };
+  record.gainedInsight = { ...source.gainedInsight };
+  record.madnessDecided = { ...source.madnessDecided };
   return record;
 }
 

@@ -95,7 +95,7 @@ module.exports = {
     const actor = choice.actor;
     const action = choice.action;
     const flow = Number(actor.counters[FLOW] || 0);
-    const multipliers = [1 + flow * 0.05];
+    const multipliers = [1 + flow * 0.04];
     if (action.isSkill(CHARACTER_ID, 0)) {
       if (choice.prevAttackActive === skillKey(2)) multipliers.push(1.8);
       else if (flow % 2 === 0) multipliers.push(1.4);
@@ -107,7 +107,7 @@ module.exports = {
   estimatedDamageMultipliers(_battle, actor, target, action) {
     const flow = projectedFlow(actor, action);
     const previous = previousAttack(actor);
-    const multipliers = [1 + flow * 0.05];
+    const multipliers = [1 + flow * 0.04];
     if (action.isSkill(CHARACTER_ID, 0)) {
       if (previous === skillKey(2)) multipliers.push(1.8);
       else if (flow % 2 === 0) multipliers.push(1.4);
@@ -123,7 +123,7 @@ module.exports = {
     const trio = [skillKey(0), skillKey(1), skillKey(2)];
     const trioWasReady = trio.every((key) => actor.hitRecords.has(key));
     if (action.isAttack && trioWasReady) {
-      battle.fixedDamage(target, floorInt(target.maxHp * 0.06), "삼위일권", actor);
+      battle.fixedDamage(target, floorInt(target.maxHp * 0.05), "삼위일권", actor);
       for (const key of trio) actor.hitRecords.delete(key);
       if (battle.gameOver) return;
     } else if (action.isActive && action.isAttack && trio.includes(action.key)) {
@@ -156,7 +156,7 @@ module.exports = {
     if (!original) return true;
     const copied = Object.assign(Object.create(Object.getPrototypeOf(original)), original, {
       mp: 0,
-      power: floorInt(Number(original.power || 0) * 1.7),
+      power: floorInt(Number(original.power || 0) * 1.5),
       accuracy: 100,
       priority: 0,
     });
@@ -196,7 +196,7 @@ module.exports = {
       if (missing.size === 1) value += 1250;
     }
     if (first !== second) value += 420;
-    if (missing.size === 0) value += floorInt(target.maxHp * 0.06) * 85;
+    if (missing.size === 0) value += floorInt(target.maxHp * 0.05) * 85;
     return value;
   },
 
@@ -211,7 +211,7 @@ module.exports = {
     const missingMp = Math.max(0, actor.maxMp - actor.mp);
 
     if (action.isAttack && missing.size === 0) {
-      value += floorInt(target.maxHp * 0.06) * 95;
+      value += floorInt(target.maxHp * 0.05) * 95;
     }
     if (action.isActive && action.isAttack && missing.size > 0) {
       if (previous) value += action.key !== previous ? 360 : -260;

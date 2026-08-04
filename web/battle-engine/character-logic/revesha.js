@@ -106,7 +106,7 @@ module.exports = {
     const actor = choice.actor;
     const target = battle.opponent(actor);
     if (target.defenseName === "깨져버린 거울") {
-      battle.fixedDamage(actor, floorInt(totalDamage * 1.3), "깨져버린 거울", target);
+      battle.fixedDamage(actor, floorInt(totalDamage * 0.8), "깨져버린 거울", target);
     }
   },
 

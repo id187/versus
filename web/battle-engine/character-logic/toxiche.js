@@ -53,8 +53,8 @@ module.exports = {
     const actor = choice.actor;
     const action = choice.action;
     if (!action.isSkill(CHARACTER_ID, 1)) return false;
-    battle.addStatEffect(actor, "atk", 1.6, 4, action.name);
-    battle.addStatEffect(actor, "def", 0.8, 4, action.name);
+    battle.addStatEffect(actor, "atk", 1.8, 4, action.name);
+    battle.addStatEffect(actor, "def", 0.9, 4, action.name);
     actor.counters["신려탈피"] = 2;
     battle.logs.push("다음 턴 액티브 스킬의 우선도가 1 증가한다.");
     return true;

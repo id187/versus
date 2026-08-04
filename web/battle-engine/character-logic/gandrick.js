@@ -117,7 +117,7 @@ module.exports = {
 
   targetDamageMultipliers(_battle, _choice, target) {
     if (target.counters["탄환형태"] !== "철의 탄환") return [];
-    return [Math.max(0, 1 - Number(target.counters["탄환"] || 0) * 0.05)];
+    return [Math.max(0, 1 - Number(target.counters["탄환"] || 0) * 0.04)];
   },
 
   estimatedHitCount(actor, action, useMax) {
@@ -126,8 +126,10 @@ module.exports = {
     return useMax ? bullets : (1 + bullets) / 2;
   },
 
-  estimatedDamageMultipliers(_battle, _actor, _target, action) {
-    return action.isAttack ? [1.2] : [];
+  estimatedDamageMultipliers(_battle, actor, _target, action) {
+    if (!action.isAttack) return [];
+    const bullets = Number(actor.counters["탄환"] || 0);
+    return [actor.counters["탄환형태"] === "마의 탄환" ? 1.2 + (6 - bullets) * 0.1 : 1.2];
   },
 
   onHitAfterDefenseAsActor(battle, choice) {
@@ -136,7 +138,7 @@ module.exports = {
     if (choice.action.isSkill(CHARACTER_ID, 2)) {
       battle.addStatEffect(target, "def", 0.7, 3, choice.action.name);
       if (actor.counters["탄환형태"] === "철의 탄환") {
-        battle.addStatEffect(target, "atk", 0.7, 3, choice.action.name);
+        battle.addStatEffect(target, "atk", 0.8, 3, choice.action.name);
       }
     } else if (choice.action.isSkill(CHARACTER_ID, 3)) {
       if (!(actor.counters["탄환형태"] === "철의 탄환" && choice.selectedBullets === 6)) {
@@ -152,7 +154,7 @@ module.exports = {
     const form = actor.counters["탄환형태"];
     if (form === "마의 탄환") {
       addCounter(battle, actor, "탄환", 2, 6);
-      battle.fixedDamage(battle.opponent(actor), 4, "재장전", actor);
+      battle.fixedDamage(battle.opponent(actor), 6, "재장전", actor);
     } else if (form === "철의 탄환") addCounter(battle, actor, "탄환", 4, 6);
     else addCounter(battle, actor, "탄환", 3, 6);
     return true;
@@ -165,28 +167,31 @@ module.exports = {
     }
     const form = fighter.counters["탄환형태"];
     const bullets = Number(fighter.counters["탄환"] || 0);
-    if (form === "마의 탄환") battle.fixedDamage(fighter, 6 - bullets, "마의 탄환", fighter);
-    else if (form === "철의 탄환") battle.heal(fighter, bullets, "철의 탄환");
+    if (form === "마의 탄환") battle.fixedDamage(fighter, Math.floor((6 - bullets) * 0.5), "마의 탄환", fighter);
+    else if (form === "철의 탄환") battle.heal(fighter, Math.floor(bullets * 0.5), "철의 탄환");
   },
 
   wouldConditionFail(_battle, actor, _target, action) {
     return action.isAttack ? Number(actor.counters["탄환"] || 0) <= 0 : null;
   },
 
-  aiScore(battle, actor, _target, action) {
+  aiScore(battle, actor, target, action) {
     let value = 0;
     const bullets = Number(actor.counters["탄환"] || 0);
     const form = actor.counters["탄환형태"];
     if (form == null && battle.turn <= 5) {
       const attacks = Number(actor.attackSelectionCount1To5 || 0);
-      if (action.isAttack) {
-        if (attacks >= 3) value -= 8200;
-        else if (attacks === 2 && battle.turn >= 4) value -= 1200;
-      } else {
-        if (attacks >= 3) value += 2600;
-        else if (attacks === 2 && battle.turn >= 4) value += 900;
-        if (action.isSkill(CHARACTER_ID, 1)) value += 260;
-      }
+      const incoming = battle.estimateBestIncomingDamage(target, actor);
+      const actorHpRatio = actor.maxHp > 0 ? actor.hp / actor.maxHp : 0;
+      const targetHpRatio = target.maxHp > 0 ? target.hp / target.maxHp : 0;
+      const demonPreference = Math.max(-900, Math.min(900,
+        (actorHpRatio - 0.65) * 1600 + (1 - targetHpRatio) * 800 - incoming * 7 - 220));
+      const attacksAfterChoice = attacks + (action.isAttack ? 1 : 0);
+      const remainingTurns = Math.max(0, 5 - battle.turn);
+      if (attacksAfterChoice >= 4) value += demonPreference;
+      else if (attacksAfterChoice + remainingTurns < 4) value -= demonPreference;
+      else value += (action.isAttack ? 1 : -1) * demonPreference * 0.18;
+      if (action.isSkill(CHARACTER_ID, 1) && demonPreference < 0) value += 260;
     }
     if (form === "철의 탄환") {
       if (action.isSkill(CHARACTER_ID, 1)) value += Math.max(0, 6 - bullets) * 110;
