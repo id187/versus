@@ -3991,6 +3991,42 @@ button:focus-visible {
     overflow-y: auto;
   }
 
+  .rules-screen {
+    height: 100dvh;
+    min-height: 0;
+    grid-template-rows: 52px minmax(0, 1fr);
+    gap: 6px;
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .rules-screen .app-header {
+    min-height: 52px;
+  }
+
+  .rules-screen .rules-layout {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .rules-screen .rules-tabs {
+    gap: 6px;
+    padding: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .rules-screen .rules-content {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .battle-screen {
     height: 100dvh;
     min-height: 0;
