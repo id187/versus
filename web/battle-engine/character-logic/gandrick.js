@@ -39,6 +39,13 @@ module.exports = {
     return fighter.counters["탄환형태"] ? [`${fighter.counters["탄환형태"]} 형태`] : [];
   },
 
+  portraitVariant(_battle, fighter) {
+    const form = fighter.counters["탄환형태"];
+    if (form === "마의 탄환") return "demonic-bullet";
+    if (form === "철의 탄환") return "iron-bullet";
+    return null;
+  },
+
   counterStateText(_fighter, name, value) {
     return name === "탄환" ? `탄환 ${Math.trunc(value)}/6` : null;
   },

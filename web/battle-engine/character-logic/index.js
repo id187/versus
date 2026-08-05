@@ -27,6 +27,7 @@ const LOGICS = Object.assign(Object.create(null), {
   fimit: require("./fimit"),
   emento: require("./emento"),
   necoulomb: require("./necoulomb"),
+  xerox: require("./xerox"),
 });
 
 function registeredLogicFor(id) {
@@ -122,6 +123,14 @@ const hooks = {
   activeCharacterId(battle, fighter) {
     return activeCharacterIdFor(battle, fighter);
   },
+  actionDefinitionForKey(actionKey) {
+    const match = /^([^:]+):(.+)$/.exec(String(actionKey || ""));
+    if (!match) return null;
+    return callById(match[1], "actionDefinitionForKey", [actionKey], null);
+  },
+  portraitVariant(battle, fighter) {
+    return call(fighter, "portraitVariant", [battle, fighter], null);
+  },
   adjustInitialStats(fighter) {
     call(fighter, "adjustInitialStats", [fighter]);
   },
@@ -216,6 +225,7 @@ const hooks = {
   },
   isLegalChoice(battle, fighter, action) {
     if (call("emento", "isLegalChoiceStatus", [battle, fighter, action], null) === false) return false;
+    if (call("xerox", "isLegalChoiceStatus", [battle, fighter, action], null) === false) return false;
     return callActionLogic(battle, fighter, action, "isLegalChoice", [battle, fighter, action], null);
   },
   modifyCost(battle, fighter, action, cost) {

@@ -91,6 +91,7 @@ module.exports = {
   onActionStartStatus(battle, choice) {
     const actor = choice.actor;
     const original = choice.action;
+    if (choice.actionReplacementLocked) return false;
     const status = actor.statuses[MADNESS];
     if (!status || !original.isActive) return false;
     const chance = Math.min(100, Number(status.stacks) * 10);

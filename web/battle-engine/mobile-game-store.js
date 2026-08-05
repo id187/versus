@@ -30,6 +30,7 @@ const {
   rollAdventureAmbush,
   settleAdventureVictory,
 } = require("./adventure");
+const { normalizeAdventureSave } = require("../adventure-save");
 
 const FIREBASE_ROOMS_PATH = "versusRoomsJs";
 const PVP_DEFAULT_PERSONALITY_ID = "R";
@@ -167,6 +168,18 @@ class MobileGameStore {
     return state;
   }
 
+  restoreAdventure(payload) {
+    const save = normalizeAdventureSave(payload?.save);
+    let state = this.newAdventure(save.start);
+    for (const command of save.commands) {
+      state = command.type === "action"
+        ? this.chooseAction({ action: command.action })
+        : this.adventureChoice({ choiceId: command.choiceId });
+    }
+    state.restored = true;
+    return state;
+  }
+
   chooseAction(payload) {
     const battle = this.requireBattle();
     if (this.adventureState && this.adventureState.phase !== "battle") {
@@ -188,6 +201,9 @@ class MobileGameStore {
       if (this.adventureState) {
         const playerWon = battle.winner?.side === battle.player.side;
         if (playerWon) {
+          if (!this.adventureState.isFinalBattle) {
+            battle.logs.push(...adventurePostBattleLines(this.adventureDialogue, battle, this.adventureState));
+          }
           settleAdventureVictory(battle, this.adventureState);
           if (this.adventureState.isFinalBattle) {
             battle.logs.push("흑백의 마왕 모노크렘이 쓰러졌다.");
@@ -201,15 +217,8 @@ class MobileGameStore {
               battle.logs.push("여정을 마쳤다.");
             }
           } else {
-            const dialogue = adventurePostBattleDialogue(this.adventureDialogue, battle, this.adventureState);
-            if (dialogue) {
-              this.adventureState.phase = "post_battle_dialogue";
-              this.adventureState.dialogue = dialogue;
-              this.adventureState.choices = [];
-            } else {
-              this.adventureState.phase = "reward";
-              this.adventureState.choices = adventureRewardChoices([], this.adventureState);
-            }
+            this.adventureState.phase = "reward";
+            this.adventureState.choices = adventureRewardChoices([], this.adventureState);
           }
         } else {
           this.adventureState.phase = "defeat";
@@ -229,8 +238,6 @@ class MobileGameStore {
     let battle = this.requireBattle();
     if (!this.adventureState) throw new Error("진행 중인 Adventure가 없습니다.");
     const choiceId = String(payload.choiceId || "");
-    const completesPostBattleDialogue = this.adventureState.phase === "post_battle_dialogue"
-      && choiceId === "complete_post_battle_dialogue";
     const completesFinalBattleDialogue = this.adventureState.phase === "final_battle_dialogue"
       && choiceId === "complete_final_battle_dialogue";
     const completesFinalBattleEnding = this.adventureState.phase === "final_battle_ending"
@@ -239,18 +246,13 @@ class MobileGameStore {
       && choiceId === "route_reroll"
       && Number(this.adventureState.routeRerollCount || 0) > 0;
     const requestedChoice = this.adventureState.choices?.find((choice) => choice.id === choiceId);
-    if (!requestedChoice && !isRouteReroll && !completesPostBattleDialogue && !completesFinalBattleDialogue && !completesFinalBattleEnding) {
+    if (!requestedChoice && !isRouteReroll && !completesFinalBattleDialogue && !completesFinalBattleEnding) {
       throw new Error("현재 표시된 Adventure 선택지가 아닙니다.");
     }
     if (requestedChoice?.disabled) throw new Error(requestedChoice.disabledReason || "현재 선택할 수 없는 선택지입니다.");
     battle.logs = [];
     let log;
-    if (this.adventureState.phase === "post_battle_dialogue") {
-      this.adventureState.phase = "reward";
-      this.adventureState.choices = adventureRewardChoices([], this.adventureState);
-      delete this.adventureState.dialogue;
-      log = [];
-    } else if (this.adventureState.phase === "final_battle_dialogue") {
+    if (this.adventureState.phase === "final_battle_dialogue") {
       this.adventureState.phase = "battle";
       this.adventureState.choices = [];
       delete this.adventureState.dialogue;
@@ -274,6 +276,7 @@ class MobileGameStore {
       this.lockAiAction();
       log = [
         `STAGE ${this.adventureState.stage} 전투 시작: ${battle.player.name} vs ${battle.ai.label}`,
+        ...adventureEncounterLines(this.adventureDialogue, battle, this.adventureState),
         `${battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
         `${battle.player.name} 각인: ${battle.player.inscriptionName}`,
       ];
@@ -339,6 +342,7 @@ class MobileGameStore {
           "선제 공격.",
           `[@AI]${battle.ai.name}에게 ${strike.hpLoss}의 피해. HP ${strike.hpBefore} -> ${strike.hpAfter} (선제 공격)`,
           `STAGE ${this.adventureState.stage} 전투 시작: ${battle.player.name} vs ${battle.ai.label}`,
+          ...adventureEncounterLines(this.adventureDialogue, battle, this.adventureState),
           `${battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
           ...adventureBattleStartEffectLines(this.adventureState),
         ];
@@ -360,6 +364,7 @@ class MobileGameStore {
           `${destinationName}에 가던 길이 막혔다.`,
           `기습 확률 ${ambush.chance}% / 판정값 ${ambush.roll}`,
           `STAGE ${this.adventureState.stage} 전투 시작: ${battle.player.name} vs ${battle.ai.label}`,
+          ...adventureEncounterLines(this.adventureDialogue, battle, this.adventureState),
           `${battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
           ...adventureBattleStartEffectLines(this.adventureState),
         ];
@@ -384,6 +389,7 @@ class MobileGameStore {
         this.lockAiAction();
         log = [
           `STAGE ${this.adventureState.stage} 전투 시작: ${battle.player.name} vs ${battle.ai.label}`,
+          ...adventureEncounterLines(this.adventureDialogue, battle, this.adventureState),
           `${battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
           ...adventureBattleStartEffectLines(this.adventureState),
         ];
@@ -433,6 +439,7 @@ class MobileGameStore {
         battle.startTurn();
         this.lockAiAction();
         log.push(`STAGE ${this.adventureState.stage} 전투 시작: ${battle.player.name} vs ${battle.ai.label}`);
+        log.push(...adventureEncounterLines(this.adventureDialogue, battle, this.adventureState));
         log.push(`${battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`);
         log.push(...adventureBattleStartEffectLines(this.adventureState));
       } else if (this.adventureState.phase === "defeat") {
@@ -826,22 +833,27 @@ function adventurePrologueLines(prologue, character, playerName) {
     .filter(Boolean);
 }
 
-function adventurePostBattleDialogue(dialogueData, battle, adventure) {
+function adventureEncounterLines(dialogueData, battle, adventure) {
   const monsterId = String(adventure?.monsterId || battle?.ai?.characterId || "");
-  const playerId = String(battle?.player?.characterId || "");
-  const entries = dialogueData?.post_battle?.[monsterId]?.[playerId];
-  if (!Array.isArray(entries) || entries.length === 0) return null;
+  const entries = dialogueData?.encounters?.[monsterId]?.pre_battle;
+  if (!Array.isArray(entries)) return [];
   const monsterName = String(battle.ai.name || adventure?.monsterName || "상대");
   const playerName = String(battle.player.name || "플레이어");
-  return {
-    id: `${monsterId}:${playerId}`,
-    title: `전투 후 · ${monsterName}`,
-    monsterId,
-    playerId,
-    monsterName,
-    playerName,
-    lines: entries.map((line) => formatAdventureDialogueLine(line, { monster: monsterName, player: playerName })).filter(Boolean),
-  };
+  return entries.map((line) => formatAdventureDialogueLine(line, { monster: monsterName, player: playerName })).filter(Boolean);
+}
+
+function adventurePostBattleLines(dialogueData, battle, adventure) {
+  const monsterId = String(adventure?.monsterId || battle?.ai?.characterId || "");
+  const playerId = String(battle?.player?.characterId || "");
+  const postBattle = dialogueData?.encounters?.[monsterId]?.post_battle;
+  const entries = [
+    ...(Array.isArray(postBattle?.common) ? postBattle.common : []),
+    ...(Array.isArray(postBattle?.characters?.[playerId]) ? postBattle.characters[playerId] : []),
+  ];
+  if (entries.length === 0) return [];
+  const monsterName = String(battle.ai.name || adventure?.monsterName || "상대");
+  const playerName = String(battle.player.name || "플레이어");
+  return entries.map((line) => formatAdventureDialogueLine(line, { monster: monsterName, player: playerName })).filter(Boolean);
 }
 
 function adventureFinalBattleDialogue(dialogueData, battle, section) {

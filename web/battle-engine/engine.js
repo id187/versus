@@ -425,6 +425,8 @@ class Battle {
     if (!actionKey) return null;
     const common = normalActions().find((action) => action.key === actionKey);
     if (common) return common;
+    const specialDefinition = characterLogic.actionDefinitionForKey(actionKey);
+    if (specialDefinition) return new Action(specialDefinition);
     const match = /^([^:]+):(\d+)$/.exec(String(actionKey));
     if (!match) return null;
     const data = this.characterDataById(match[1]);
@@ -474,14 +476,15 @@ class Battle {
     const priority = searchMetrics ? searchMetrics.priority : this.effectivePriority(fighter, action);
     const choice = new Choice(fighter, action, cost, priority);
     characterLogic.onMakeChoice(this, fighter, action, choice);
-    if (action.isCommonAction("defense")) {
+    const selectedAction = choice.action || action;
+    if (selectedAction.isCommonAction("defense")) {
       choice.defenseBonusReduction = Number(choice.defenseBonusReduction || 0)
         + Number(fighter.adventureCommonDefenseReductionBonus || 0);
     }
-    this.record.selected[fighter.side] = action.name;
-    this.record.selectedKey[fighter.side] = action.key;
-    this.record.selectedKind[fighter.side] = actionKind(action);
-    fighter.selectedHistory.push(action.key);
+    this.record.selected[fighter.side] = selectedAction.name;
+    this.record.selectedKey[fighter.side] = selectedAction.key;
+    this.record.selectedKind[fighter.side] = actionKind(selectedAction);
+    fighter.selectedHistory.push(selectedAction.key);
     return choice;
   }
 
@@ -1684,6 +1687,7 @@ function fighterState(battle, fighter, sideOverride = null) {
     activeCharacterId: activeId,
     activeCharacterName: activeData?.name || fighter.name,
     transformed,
+    portraitVariant: characterLogic.portraitVariant(battle, fighter),
     label: fighter.label,
     hp: fighter.hp,
     max_hp: fighter.maxHp,

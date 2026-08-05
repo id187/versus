@@ -2,9 +2,11 @@ const LOG_DELAY_MS = 280;
 const DIALOGUE_LOG_DELAY_MS = 1200;
 const FINAL_BATTLE_DIALOGUE_HOLD_MS = 3000;
 const EFFECT_SETTLE_MS = 620;
-const SFX_VOLUME = 0.28;
 const SFX_POOL_SIZE = 3;
 const BGM_FADE_MS = 900;
+const AUDIO_SETTINGS_KEY = "versus.audio-settings.v1";
+const DEFAULT_AUDIO_SETTINGS = Object.freeze({ bgm: 0.35, sfx: 0.5, muted: false });
+const AdventureSave = window.VersusAdventureSave;
 
 function localAssetUrl(path) {
   const baseUrl = window.__VERSUS_BASE_URL__ || new URL("./", window.location.href).href;
@@ -13,16 +15,35 @@ function localAssetUrl(path) {
 
 const els = {
   homeScreen: document.querySelector("#homeScreen"),
+  playScreen: document.querySelector("#playScreen"),
   battleScreen: document.querySelector("#battleScreen"),
   battleScreenTitle: document.querySelector("#battleScreen .header-title strong"),
+  rulesScreen: document.querySelector("#rulesScreen"),
   codexScreen: document.querySelector("#codexScreen"),
+  settingsScreen: document.querySelector("#settingsScreen"),
+  openPlayButton: document.querySelector("#openPlayButton"),
   openAdventureButton: document.querySelector("#openAdventureButton"),
   openBattleButton: document.querySelector("#openBattleButton"),
   openPvpButton: document.querySelector("#openPvpButton"),
+  openRulesButton: document.querySelector("#openRulesButton"),
   openCodexButton: document.querySelector("#openCodexButton"),
+  openSettingsButton: document.querySelector("#openSettingsButton"),
   exitButton: document.querySelector("#exitButton"),
   battleBackButton: document.querySelector("#battleBackButton"),
+  rulesBackButton: document.querySelector("#rulesBackButton"),
   codexBackButton: document.querySelector("#codexBackButton"),
+  settingsBackButton: document.querySelector("#settingsBackButton"),
+  playBackButton: document.querySelector("#playBackButton"),
+  bgmVolumeSlider: document.querySelector("#bgmVolumeSlider"),
+  bgmVolumeValue: document.querySelector("#bgmVolumeValue"),
+  sfxVolumeSlider: document.querySelector("#sfxVolumeSlider"),
+  sfxVolumeValue: document.querySelector("#sfxVolumeValue"),
+  audioMuteButton: document.querySelector("#audioMuteButton"),
+  audioResetButton: document.querySelector("#audioResetButton"),
+  rulesSubtitle: document.querySelector("#rulesSubtitle"),
+  rulesContent: document.querySelector("#rulesContent"),
+  rulesTabs: [...document.querySelectorAll("[data-rules-tab]")],
+  rulesPanels: [...document.querySelectorAll("[data-rules-panel]")],
   inscriptionButton: document.querySelector("#inscriptionButton"),
   inscriptionPopover: document.querySelector("#inscriptionPopover"),
   playerSelect: document.querySelector("#playerSelect"),
@@ -59,6 +80,10 @@ const els = {
   characterPickerCloseButton: document.querySelector("#characterPickerCloseButton"),
   characterPickerTitle: document.querySelector("#characterPickerTitle"),
   characterPickerGrid: document.querySelector("#characterPickerGrid"),
+  adventureRestartModal: document.querySelector("#adventureRestartModal"),
+  adventureRestartScrim: document.querySelector("#adventureRestartScrim"),
+  adventureRestartCancelButton: document.querySelector("#adventureRestartCancelButton"),
+  adventureRestartConfirmButton: document.querySelector("#adventureRestartConfirmButton"),
 };
 
 const fighterIds = {
@@ -113,6 +138,7 @@ const CHARACTER_COLORS = {
   fimit: "#7894a8",
   emento: "#a686d4",
   necoulomb: "#e0b51b",
+  xerox: "#8371e6",
 };
 
 const RANDOM_CHARACTER_COLOR = "#ffffff";
@@ -181,8 +207,11 @@ const DEFAULT_INSCRIPTION_OPTIONS = [
   },
 ];
 
-const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb"]);
-const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb"]);
+const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb", "xerox"]);
+const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb", "xerox"]);
+const CHARACTER_PORTRAIT_VARIANTS = Object.freeze({
+  gandrick: new Set(["demonic-bullet", "iron-bullet"]),
+});
 const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
 const MONSTER_PORTRAIT_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
 const ADVENTURE_DESTINATION_ICONS = Object.freeze({
@@ -354,6 +383,12 @@ const ADVENTURE_DESTINATION_ICONS = Object.freeze({
 });
 
 const EFFECT_CLASSES = ["hit", "shadow-hit", "miss", "defense", "heal", "buff", "debuff", "stack-gain", "stack-spend"];
+const PORTRAIT_TRANSFORM_DURATION_MS = 820;
+const PORTRAIT_TRANSFORM_CLASSES = [
+  "is-portrait-transforming",
+  "is-portrait-transforming-demonic-bullet",
+  "is-portrait-transforming-iron-bullet",
+];
 const EFFECT_SFX = {
   hit: localAssetUrl("/assets/sfx/hit.wav"),
   "shadow-hit": localAssetUrl("/assets/sfx/hit.wav"),
@@ -366,15 +401,15 @@ const EFFECT_SFX = {
   "stack-spend": localAssetUrl("/assets/sfx/stack-spend.wav"),
 };
 const BGM_TRACKS = {
-  fight: { src: localAssetUrl("/assets/bgm/fight.mp3"), loop: true, volume: 0.18 },
-  boss: { src: localAssetUrl("/assets/bgm/boss.mp3"), loop: true, volume: 0.18 },
-  village: { src: localAssetUrl("/assets/bgm/village.mp3"), loop: true, volume: 0.18 },
-  event: { src: localAssetUrl("/assets/bgm/event.mp3"), loop: true, volume: 0.18, preload: false },
-  prologue: { src: localAssetUrl("/assets/bgm/prologue.mp3"), loop: true, volume: 0.18, preload: false },
-  clear: { src: localAssetUrl("/assets/bgm/clear.mp3"), loop: false, volume: 0.22 },
-  victory: { src: localAssetUrl("/assets/bgm/victory.wav"), loop: false, volume: 0.24 },
-  defeat: { src: localAssetUrl("/assets/bgm/defeat.wav"), loop: false, volume: 0.22 },
-  draw: { src: localAssetUrl("/assets/bgm/draw.wav"), loop: false, volume: 0.2 },
+  fight: { src: localAssetUrl("/assets/bgm/fight.mp3"), loop: true, gain: 1 },
+  boss: { src: localAssetUrl("/assets/bgm/boss.mp3"), loop: true, gain: 1 },
+  village: { src: localAssetUrl("/assets/bgm/village.mp3"), loop: true, gain: 1 },
+  event: { src: localAssetUrl("/assets/bgm/event.mp3"), loop: true, gain: 1, preload: false },
+  prologue: { src: localAssetUrl("/assets/bgm/prologue.mp3"), loop: true, gain: 1, preload: false },
+  clear: { src: localAssetUrl("/assets/bgm/clear.mp3"), loop: false, gain: 1.2 },
+  victory: { src: localAssetUrl("/assets/bgm/victory.wav"), loop: false, gain: 1.3 },
+  defeat: { src: localAssetUrl("/assets/bgm/defeat.wav"), loop: false, gain: 1.2 },
+  draw: { src: localAssetUrl("/assets/bgm/draw.wav"), loop: false, gain: 1.1 },
 };
 const DEFENSE_ACTION_NAMES = new Set(["일반 방어", "가로막는 불길", "절대영도", "깨져버린 거울", "빠져드는 모래늪"]);
 
@@ -391,10 +426,13 @@ const state = {
   logToken: 0,
   logAnimating: false,
   adventureRestartRequested: false,
+  adventureRestartConfirmResolve: null,
+  adventureSave: null,
   customSelects: [],
   characterPickers: [],
   activeCharacterPicker: null,
   selectedInscriptionId: DEFAULT_INSCRIPTION_OPTIONS[0].id,
+  portraitKeys: { player: null, ai: null },
   effectTimers: [],
   sfx: new Map(),
   bgm: new Map(),
@@ -402,6 +440,7 @@ const state = {
   bgmFadeTimers: [],
   currentBgm: null,
   currentBgmType: null,
+  audioSettings: { ...DEFAULT_AUDIO_SETTINGS },
 };
 
 init();
@@ -410,6 +449,9 @@ async function init() {
   if (window.__VERSUS_MOBILE_RUNTIME__?.platform === "web") {
     els.exitButton.hidden = true;
   }
+  state.audioSettings = loadAudioSettings();
+  syncAudioSettingsControls();
+  preloadPortraitVariants();
   bindEvents();
   syncInscriptionPicker();
   setBattleMode("pve");
@@ -419,13 +461,37 @@ async function init() {
   await loadOptions();
 }
 
+function preloadPortraitVariants() {
+  for (const [id, variants] of Object.entries(CHARACTER_PORTRAIT_VARIANTS)) {
+    for (const variant of variants) {
+      const image = new Image();
+      image.src = portraitSrcForId(id, variant);
+    }
+  }
+}
+
 function bindEvents() {
+  els.openPlayButton.addEventListener("click", () => showScreen("play"));
   els.openAdventureButton.addEventListener("click", openAdventureMode);
   els.openBattleButton.addEventListener("click", () => openBattleMode("pve"));
   els.openPvpButton.addEventListener("click", () => openBattleMode("pvp"));
+  els.openRulesButton.addEventListener("click", () => showScreen("rules"));
   els.openCodexButton.addEventListener("click", () => showScreen("codex"));
+  els.openSettingsButton.addEventListener("click", () => showScreen("settings"));
   els.battleBackButton.addEventListener("click", leaveBattleScreen);
+  els.rulesBackButton.addEventListener("click", () => showScreen("home"));
   els.codexBackButton.addEventListener("click", () => showScreen("home"));
+  els.settingsBackButton.addEventListener("click", () => showScreen("home"));
+  els.playBackButton.addEventListener("click", () => showScreen("home"));
+  els.bgmVolumeSlider.addEventListener("input", () => setAudioVolume("bgm", els.bgmVolumeSlider.value));
+  els.sfxVolumeSlider.addEventListener("input", () => setAudioVolume("sfx", els.sfxVolumeSlider.value));
+  els.sfxVolumeSlider.addEventListener("change", () => playEffectSound("buff"));
+  els.audioMuteButton.addEventListener("click", toggleAudioMuted);
+  els.audioResetButton.addEventListener("click", resetAudioSettings);
+  for (const tab of els.rulesTabs) {
+    tab.addEventListener("click", () => selectRulesTab(tab.dataset.rulesTab));
+    tab.addEventListener("keydown", handleRulesTabKeydown);
+  }
   els.exitButton.addEventListener("click", exitApp);
   els.inscriptionButton.addEventListener("click", toggleInscriptionPopover);
   els.startButton.addEventListener("click", startConfiguredBattle);
@@ -440,6 +506,9 @@ function bindEvents() {
   els.enemyInfoCloseButton.addEventListener("click", closeInfoModal);
   els.characterPickerScrim.addEventListener("click", closeCharacterPicker);
   els.characterPickerCloseButton.addEventListener("click", closeCharacterPicker);
+  els.adventureRestartScrim.addEventListener("click", () => closeAdventureRestartConfirm(false));
+  els.adventureRestartCancelButton.addEventListener("click", () => closeAdventureRestartConfirm(false));
+  els.adventureRestartConfirmButton.addEventListener("click", () => closeAdventureRestartConfirm(true));
   document.addEventListener("click", closeCustomSelectsOnOutside);
   document.addEventListener("click", closeInscriptionPopoverOnOutside);
   document.addEventListener("keydown", (event) => {
@@ -448,6 +517,7 @@ function bindEvents() {
       closeInscriptionPopover();
       closeCharacterPicker();
       closeInfoModal();
+      closeAdventureRestartConfirm(false);
     }
   });
   window.addEventListener("pagehide", notifyPvpLeaveOnPageHide);
@@ -461,20 +531,118 @@ function openBattleMode(mode) {
   showScreen("battle");
 }
 
-function openAdventureMode() {
+async function openAdventureMode() {
   els.pvpRoomInput.value = "";
   setBattleMode("adventure");
   resetBattleScreen();
+  prepareAdventureSetup();
+  showScreen("battle");
+  state.adventureSave = AdventureSave?.loadAdventureSave(adventureStorage()) || null;
+  if (!state.adventureSave) return;
+
+  setBusy(true);
+  clearLogs();
+  els.turnChip.textContent = "CONTINUE";
+  renderEmptyActions("저장된 여정을 불러오는 중");
+  try {
+    const data = await api("/api/adventure/restore", { save: state.adventureSave });
+    if (AdventureSave.isAdventureTerminal(data.adventure)) {
+      clearStoredAdventure();
+      prepareAdventureSetup();
+      return;
+    }
+    state.adventure = { ...data.adventure };
+    state.battle = data;
+    syncSetupFromBattle(data);
+    renderBattle(data);
+    playRestoredAdventureBgm(data);
+    await pushTurnLog(restoredAdventureLogTitle(data), data.log?.length ? data.log : ["저장된 여정을 불러왔습니다."], false);
+    await continueRestoredAdventureDialogue(data);
+  } catch (error) {
+    clearStoredAdventure();
+    prepareAdventureSetup();
+    clearLogs();
+    pushTurnLog("오류", ["저장된 여정을 불러오지 못해 새 여정 준비 화면으로 돌아왔습니다.", error.message], false);
+  } finally {
+    if (state.adventureRestartRequested) {
+      state.adventureRestartRequested = false;
+      state.busy = false;
+      document.body.classList.remove("is-waiting");
+      syncSetupLock();
+      await startAdventure();
+    } else {
+      setBusy(false);
+    }
+  }
+}
+
+function prepareAdventureSetup() {
+  state.battle = null;
   state.adventure = {
     stage: 1,
     totalStages: 10,
     phase: "setup",
   };
   previewSelectedMatch();
-  showScreen("battle");
   els.turnChip.textContent = "PROLOGUE";
   pushTurnLog("Adventure", ["캐릭터를 고르고 새 여정을 시작하세요."], false);
   renderEmptyActions("새 여정을 시작하세요.");
+}
+
+async function continueRestoredAdventureDialogue(data) {
+  const phase = data.adventure?.phase;
+  const dialogue = data.adventure?.dialogue;
+  if (!Array.isArray(dialogue?.lines) || !dialogue.lines.length) return;
+
+  if (phase === "final_battle_dialogue") {
+    await pushDialogueLog(dialogue.title || "전투 전 · 모노크렘", dialogue.lines);
+    if (state.adventureRestartRequested) return;
+    await sleep(FINAL_BATTLE_DIALOGUE_HOLD_MS);
+    if (state.adventureRestartRequested) return;
+    const battleData = await adventureChoiceRequest({ choiceId: "complete_final_battle_dialogue" });
+    if (state.adventureRestartRequested) return;
+    state.battle = battleData;
+    state.adventure = { ...battleData.adventure };
+    renderEmptyActions("최종 결전을 시작하는 중");
+    await pushTurnLog(`STAGE ${battleData.adventure.stage}`, battleData.log, true);
+    if (state.adventureRestartRequested) return;
+    renderBattle(battleData);
+    return;
+  }
+
+  if (phase === "final_battle_ending") {
+    playBgm("clear", 300);
+    await pushDialogueLog(dialogue.title || "전투 후 · 모노크렘", dialogue.lines);
+    if (state.adventureRestartRequested) return;
+    const completeData = await adventureChoiceRequest({ choiceId: "complete_final_battle_ending" });
+    if (state.adventureRestartRequested) return;
+    state.battle = completeData;
+    state.adventure = { ...completeData.adventure };
+    syncSetupLock();
+    renderBattle(completeData);
+  }
+}
+
+function playRestoredAdventureBgm(data) {
+  const phase = data.adventure?.phase;
+  if (phase === "prologue") return playBgm("prologue", 300);
+  if (phase === "battle" || phase === "final_battle_dialogue") {
+    return playBgm(data.adventure?.isFinalBattle ? "boss" : "fight", 300);
+  }
+  if (phase === "final_battle_ending" || phase === "complete") return playBgm("clear", 300);
+  if (phase === "defeat") return playBgm("defeat", 300);
+  if (phase === "event") {
+    return playBgm(data.adventure?.currentEvent?.bgm === "village" ? "village" : "event", 300);
+  }
+  return playBgm("village", 300);
+}
+
+function restoredAdventureLogTitle(data) {
+  const phase = data.adventure?.phase;
+  if (phase === "prologue") return "PROLOGUE";
+  if (phase === "event") return data.adventure?.currentEvent?.name || "이벤트";
+  if (phase === "town") return "마을";
+  return `STAGE ${data.adventure?.stage || 1} · 이어하기`;
 }
 
 function resetBattleScreen() {
@@ -484,6 +652,7 @@ function resetBattleScreen() {
   state.pvp = null;
   state.busy = false;
   state.adventureRestartRequested = false;
+  state.portraitKeys = { player: null, ai: null };
   document.body.classList.remove("is-waiting");
   closeCustomSelects();
   closeInscriptionPopover();
@@ -590,7 +759,7 @@ function prepareSfx() {
     const pool = Array.from({ length: SFX_POOL_SIZE }, () => {
       const audio = new Audio(src);
       audio.preload = "auto";
-      audio.volume = SFX_VOLUME;
+      audio.volume = effectiveSfxVolume();
       return audio;
     });
     state.sfx.set(type, { pool, cursor: 0 });
@@ -612,7 +781,7 @@ function prepareBgm() {
     const audio = new Audio(track.src);
     audio.preload = track.preload === false ? "none" : "auto";
     audio.loop = Boolean(track.loop);
-    audio.volume = track.volume;
+    audio.volume = effectiveBgmVolume(track);
     state.bgm.set(type, audio);
   }
 }
@@ -627,30 +796,166 @@ function primeAudio() {
   state.audioPrimed = true;
 }
 
+function loadAudioSettings() {
+  try {
+    const stored = window.localStorage.getItem(AUDIO_SETTINGS_KEY);
+    return stored ? normalizeAudioSettings(JSON.parse(stored)) : { ...DEFAULT_AUDIO_SETTINGS };
+  } catch {
+    return { ...DEFAULT_AUDIO_SETTINGS };
+  }
+}
+
+function saveAudioSettings() {
+  try {
+    window.localStorage.setItem(AUDIO_SETTINGS_KEY, JSON.stringify(state.audioSettings));
+  } catch {
+    // Settings still work for this session when storage is unavailable.
+  }
+}
+
+function normalizeAudioSettings(settings) {
+  return {
+    bgm: normalizeAudioVolume(settings?.bgm, DEFAULT_AUDIO_SETTINGS.bgm),
+    sfx: normalizeAudioVolume(settings?.sfx, DEFAULT_AUDIO_SETTINGS.sfx),
+    muted: settings?.muted === true,
+  };
+}
+
+function normalizeAudioVolume(value, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.min(1, Math.max(0, number)) : fallback;
+}
+
+function setAudioVolume(type, percentage) {
+  if (!Object.hasOwn(DEFAULT_AUDIO_SETTINGS, type) || type === "muted") return;
+  state.audioSettings[type] = normalizeAudioVolume(Number(percentage) / 100, DEFAULT_AUDIO_SETTINGS[type]);
+  syncAudioSettingsControls();
+  applyAudioSettings();
+  saveAudioSettings();
+}
+
+function toggleAudioMuted() {
+  state.audioSettings.muted = !state.audioSettings.muted;
+  syncAudioSettingsControls();
+  applyAudioSettings();
+  saveAudioSettings();
+  if (!state.audioSettings.muted) playEffectSound("buff");
+}
+
+function resetAudioSettings() {
+  state.audioSettings = { ...DEFAULT_AUDIO_SETTINGS };
+  syncAudioSettingsControls();
+  applyAudioSettings();
+  saveAudioSettings();
+  playEffectSound("buff");
+}
+
+function syncAudioSettingsControls() {
+  const bgmPercent = Math.round(state.audioSettings.bgm * 100);
+  const sfxPercent = Math.round(state.audioSettings.sfx * 100);
+  els.bgmVolumeSlider.value = String(bgmPercent);
+  els.sfxVolumeSlider.value = String(sfxPercent);
+  els.bgmVolumeValue.value = `${bgmPercent}%`;
+  els.sfxVolumeValue.value = `${sfxPercent}%`;
+  els.bgmVolumeSlider.style.setProperty("--range-progress", `${bgmPercent}%`);
+  els.sfxVolumeSlider.style.setProperty("--range-progress", `${sfxPercent}%`);
+  els.audioMuteButton.setAttribute("aria-pressed", String(state.audioSettings.muted));
+  els.audioMuteButton.textContent = state.audioSettings.muted ? "음소거 해제" : "전체 음소거";
+  els.audioMuteButton.classList.toggle("is-muted", state.audioSettings.muted);
+  els.settingsScreen.classList.toggle("is-audio-muted", state.audioSettings.muted);
+}
+
+function applyAudioSettings() {
+  for (const { pool } of state.sfx.values()) {
+    for (const audio of pool) audio.volume = effectiveSfxVolume();
+  }
+  clearBgmFades();
+  for (const [type, audio] of state.bgm.entries()) {
+    audio.volume = effectiveBgmVolume(BGM_TRACKS[type]);
+  }
+}
+
+function effectiveSfxVolume() {
+  return state.audioSettings.muted ? 0 : state.audioSettings.sfx;
+}
+
+function effectiveBgmVolume(track) {
+  if (state.audioSettings.muted) return 0;
+  return Math.min(1, state.audioSettings.bgm * (track?.gain || 1));
+}
+
 function showScreen(name) {
   if (name !== "battle") {
     stopPvpPolling();
   }
-  for (const screen of [els.homeScreen, els.battleScreen, els.codexScreen]) {
+  for (const screen of [els.homeScreen, els.playScreen, els.battleScreen, els.rulesScreen, els.codexScreen, els.settingsScreen]) {
     screen.classList.remove("is-active");
   }
-  if (name === "battle") {
+  if (name === "play") {
+    stopBgm();
+    els.playScreen.classList.add("is-active");
+  } else if (name === "battle") {
     els.battleScreen.classList.add("is-active");
   } else if (name === "codex") {
     primeAudio();
     playBgm("village");
     els.codexScreen.classList.add("is-active");
     renderCodex();
+  } else if (name === "rules") {
+    primeAudio();
+    playBgm("village");
+    els.rulesScreen.classList.add("is-active");
+  } else if (name === "settings") {
+    primeAudio();
+    playBgm("village");
+    syncAudioSettingsControls();
+    els.settingsScreen.classList.add("is-active");
   } else {
     stopBgm();
     els.homeScreen.classList.add("is-active");
   }
 }
 
+const RULES_TAB_LABELS = Object.freeze({
+  "how-to-play": "How to Play",
+  adventure: "Adventure",
+  pve: "PvE",
+  pvp: "PvP",
+});
+
+function selectRulesTab(tabId, { focus = false } = {}) {
+  const selectedId = RULES_TAB_LABELS[tabId] ? tabId : "how-to-play";
+  for (const tab of els.rulesTabs) {
+    const isSelected = tab.dataset.rulesTab === selectedId;
+    tab.classList.toggle("is-selected", isSelected);
+    tab.setAttribute("aria-selected", String(isSelected));
+    tab.tabIndex = isSelected ? 0 : -1;
+    if (isSelected && focus) tab.focus();
+  }
+  for (const panel of els.rulesPanels) {
+    panel.hidden = panel.dataset.rulesPanel !== selectedId;
+  }
+  els.rulesSubtitle.textContent = RULES_TAB_LABELS[selectedId];
+  els.rulesContent.scrollTop = 0;
+}
+
+function handleRulesTabKeydown(event) {
+  const currentIndex = els.rulesTabs.indexOf(event.currentTarget);
+  if (currentIndex < 0) return;
+  let nextIndex = currentIndex;
+  if (["ArrowRight", "ArrowDown"].includes(event.key)) nextIndex = (currentIndex + 1) % els.rulesTabs.length;
+  else if (["ArrowLeft", "ArrowUp"].includes(event.key)) nextIndex = (currentIndex - 1 + els.rulesTabs.length) % els.rulesTabs.length;
+  else if (event.key === "Home") nextIndex = 0;
+  else if (event.key === "End") nextIndex = els.rulesTabs.length - 1;
+  else return;
+  event.preventDefault();
+  selectRulesTab(els.rulesTabs[nextIndex].dataset.rulesTab, { focus: true });
+}
+
 function leaveBattleScreen() {
   const request = currentPvpLeaveRequest();
   els.pvpRoomInput.value = "";
-  showScreen("home");
+  showScreen("play");
   if (request) {
     state.battle = null;
     state.pvp = null;
@@ -728,6 +1033,10 @@ async function applyStartupHash() {
     showScreen("battle");
   } else if (hash === "#codex") {
     showScreen("codex");
+  } else if (hash === "#rules") {
+    showScreen("rules");
+  } else if (hash === "#settings") {
+    showScreen("settings");
   }
 }
 
@@ -976,17 +1285,48 @@ function previewSelectedMatch() {
   els.aiModeText.textContent = personality;
 }
 
-function startConfiguredBattle() {
+async function startConfiguredBattle() {
+  if (
+    state.battleMode === "adventure"
+    && state.adventureSave
+    && !await openAdventureRestartConfirm()
+  ) {
+    return;
+  }
   if (
     state.battleMode === "adventure"
     && state.busy
-    && ["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
+    && ["final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
   ) {
     requestAdventureRestart();
     return;
   }
   if (state.battleMode === "adventure") return startAdventure();
   return state.battleMode === "pvp" ? startPvpEntry() : startBattle();
+}
+
+function openAdventureRestartConfirm() {
+  if (!els.adventureRestartModal.hidden || state.adventureRestartConfirmResolve) {
+    return Promise.resolve(false);
+  }
+  closeCustomSelects();
+  closeInscriptionPopover();
+  closeCharacterPicker();
+  closeInfoModal();
+  els.adventureRestartModal.hidden = false;
+  return new Promise((resolve) => {
+    state.adventureRestartConfirmResolve = resolve;
+    window.requestAnimationFrame(() => els.adventureRestartCancelButton.focus());
+  });
+}
+
+function closeAdventureRestartConfirm(confirmed = false) {
+  if (els.adventureRestartModal.hidden) return;
+  els.adventureRestartModal.hidden = true;
+  const resolve = state.adventureRestartConfirmResolve;
+  state.adventureRestartConfirmResolve = null;
+  if (resolve) resolve(Boolean(confirmed));
+  if (!confirmed) els.startButton.focus();
 }
 
 async function startPvpEntry() {
@@ -1069,10 +1409,12 @@ async function startAdventure() {
   setBusy(true);
   clearLogs();
   try {
-    const data = await api("/api/adventure/new", {
+    const start = {
       playerIndex: els.playerSelect.value,
       playerInscriptionId: state.selectedInscriptionId,
-    });
+      seed: createAdventureSeed(),
+    };
+    const data = await newAdventureRequest(start);
     state.adventure = { ...data.adventure };
     state.battle = data;
     syncSetupFromBattle(data);
@@ -1095,20 +1437,19 @@ async function chooseAction(actionNumber) {
   setBusy(true);
   try {
     const previousTurn = state.battle.turn;
-    const data = await api("/api/action", { action: actionNumber });
+    const data = state.battleMode === "adventure"
+      ? await adventureActionRequest({ action: actionNumber })
+      : await api("/api/action", { action: actionNumber });
     const isGameOver = Boolean(data.is_over || data.gameOver);
     if (data.adventure) {
       state.adventure = { ...data.adventure };
     }
-    const hasPostBattleDialogue = data.adventure?.phase === "post_battle_dialogue"
-      && Array.isArray(data.adventure?.dialogue?.lines)
-      && data.adventure.dialogue.lines.length > 0;
     const hasFinalBattleEnding = data.adventure?.phase === "final_battle_ending"
       && Array.isArray(data.adventure?.dialogue?.lines)
       && data.adventure.dialogue.lines.length > 0;
-    if (hasPostBattleDialogue || hasFinalBattleEnding) syncSetupLock();
+    if (hasFinalBattleEnding) syncSetupLock();
     if (isGameOver) {
-      renderEmptyActions(hasPostBattleDialogue || hasFinalBattleEnding ? "전투 종료 처리 중" : "전투 결과 처리 중");
+      renderEmptyActions(hasFinalBattleEnding ? "전투 종료 처리 중" : "전투 결과 처리 중");
     }
     await pushTurnLog(`TURN ${previousTurn}`, data.log, true, {
       settleEffects: isGameOver,
@@ -1124,7 +1465,7 @@ async function chooseAction(actionNumber) {
         data.adventure.dialogue.lines,
       );
       if (state.adventureRestartRequested) return;
-      const completeData = await api("/api/adventure/choice", {
+      const completeData = await adventureChoiceRequest({
         choiceId: "complete_final_battle_ending",
       });
       if (state.adventureRestartRequested) return;
@@ -1132,22 +1473,6 @@ async function chooseAction(actionNumber) {
       state.adventure = { ...completeData.adventure };
       syncSetupLock();
       renderBattle(completeData);
-    } else if (hasPostBattleDialogue) {
-      playBgm("victory", 300);
-      await pushDialogueLog(
-        data.adventure.dialogue.title || "전투 후",
-        data.adventure.dialogue.lines,
-      );
-      if (state.adventureRestartRequested) return;
-      const rewardData = await api("/api/adventure/choice", {
-        choiceId: "complete_post_battle_dialogue",
-      });
-      if (state.adventureRestartRequested) return;
-      state.battle = rewardData;
-      state.adventure = { ...rewardData.adventure };
-      syncSetupLock();
-      renderBattle(rewardData);
-      playBgm("village", 300);
     } else if (isGameOver) {
       playResultBgm(data, data.adventure?.phase === "reward" ? "village" : null);
     }
@@ -1181,7 +1506,7 @@ async function chooseAdventureChoice(choiceId) {
   if (state.busy || state.battleMode !== "adventure" || !["prologue", "reward", "route", "town", "event"].includes(previousPhase)) return;
   setBusy(true);
   try {
-    const data = await api("/api/adventure/choice", { choiceId });
+    const data = await adventureChoiceRequest({ choiceId });
     state.battle = data;
     state.adventure = { ...data.adventure };
     const hasFinalBattleDialogue = data.adventure?.phase === "final_battle_dialogue"
@@ -1225,7 +1550,7 @@ async function chooseAdventureChoice(choiceId) {
       if (state.adventureRestartRequested) return;
       await sleep(FINAL_BATTLE_DIALOGUE_HOLD_MS);
       if (state.adventureRestartRequested) return;
-      const battleData = await api("/api/adventure/choice", {
+      const battleData = await adventureChoiceRequest({
         choiceId: "complete_final_battle_dialogue",
       });
       if (state.adventureRestartRequested) return;
@@ -1475,7 +1800,7 @@ function renderBattle(data, options = {}) {
     renderEmptyActions("여정을 마쳤습니다.");
   } else if (adventureChoices.length) {
     renderAdventureChoices(adventureChoices);
-  } else if (["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(adventure?.phase)) {
+  } else if (["final_battle_dialogue", "final_battle_ending"].includes(adventure?.phase)) {
     renderEmptyActions(state.adventureRestartRequested ? "새 여정을 시작하는 중" : "대화 진행 중...");
   } else if (["town_complete", "event_complete"].includes(adventure?.phase)) {
     renderEmptyActions(adventure.phase === "event_complete"
@@ -1571,9 +1896,22 @@ function renderFighter(side, fighter) {
   document.querySelector(ids.sideName).textContent = fighter.name;
   document.querySelector(ids.sideTitle).textContent = fighter.title || "";
   avatar.style.setProperty("--character-color", characterColor(fighter.id));
+  const variant = portraitVariantForSubject(fighter, fighter.id);
+  const nextPortraitKey = fighter.id ? `${fighter.id}:${variant || "base"}` : null;
+  const previousPortraitKey = state.portraitKeys[side];
+  const shouldAnimatePortraitTransform = Boolean(
+    variant
+    && previousPortraitKey
+    && previousPortraitKey.startsWith(`${fighter.id}:`)
+    && previousPortraitKey !== nextPortraitKey
+  );
+  state.portraitKeys[side] = nextPortraitKey;
   const portrait = portraitHtml(fighter, side);
   avatar.classList.toggle("is-empty", !portrait);
   avatar.innerHTML = portrait;
+  if (shouldAnimatePortraitTransform) {
+    playPortraitTransform(avatar, variant);
+  }
   setBar(ids.hpBar, fighter.hp, maxHp);
   setBar(ids.mpBar, fighter.mp, maxMp);
   document.querySelector(ids.hpText).textContent = `${formatStat(fighter.hp)}/${formatStat(maxHp)}`;
@@ -1582,6 +1920,15 @@ function renderFighter(side, fighter) {
     `ATK ${formatStat(fighter.atk)} / DEF ${formatStat(defense)} / SPD ${formatStat(fighter.spd)}`;
   document.querySelector(ids.state).textContent = stateText;
   hideInlineBattleRecord(ids.record);
+}
+
+function playPortraitTransform(avatar, variant) {
+  for (const className of PORTRAIT_TRANSFORM_CLASSES) avatar.classList.remove(className);
+  void avatar.offsetWidth;
+  avatar.classList.add("is-portrait-transforming", `is-portrait-transforming-${variant}`);
+  registerEffectTimeout(window.setTimeout(() => {
+    for (const className of PORTRAIT_TRANSFORM_CLASSES) avatar.classList.remove(className);
+  }, PORTRAIT_TRANSFORM_DURATION_MS));
 }
 
 function renderAdventureScene(scene) {
@@ -1863,6 +2210,7 @@ function skillIconMeta(action, characterId = currentPlayerCharacterId()) {
 
 function characterSkillIconSrc(characterId, number) {
   if (number >= 1 && number <= 3) return null;
+  if (characterId === "xerox" && number === 8) return null;
   const assetGroup = CHARACTER_SKILL_ICON_IDS.has(characterId)
     ? "characters"
     : MONSTER_SKILL_ICON_IDS.has(characterId)
@@ -2331,7 +2679,7 @@ function playEffectSound(type) {
   bank.cursor = (soundIndex + 1) % bank.pool.length;
   sound.pause();
   sound.currentTime = 0;
-  sound.volume = SFX_VOLUME;
+  sound.volume = effectiveSfxVolume();
   sound.play().catch(() => {
     // Some browsers suppress audio until after the first user gesture.
   });
@@ -2342,8 +2690,9 @@ function playBgm(type, fadeMs = BGM_FADE_MS) {
   const track = BGM_TRACKS[type];
   const next = state.bgm.get(type);
   if (!track || !next) return;
+  const targetVolume = effectiveBgmVolume(track);
   if (state.currentBgm === next && !next.paused) {
-    next.volume = track.volume;
+    next.volume = targetVolume;
     return;
   }
 
@@ -2358,13 +2707,13 @@ function playBgm(type, fadeMs = BGM_FADE_MS) {
 
   next.loop = Boolean(track.loop);
   next.currentTime = 0;
-  next.volume = previous && previous !== next ? 0 : track.volume;
+  next.volume = previous && previous !== next ? 0 : targetVolume;
   state.currentBgm = next;
   state.currentBgmType = type;
   next.play()
     .then(() => {
-      if (next.volume !== track.volume) {
-        fadeAudio(next, track.volume, fadeMs);
+      if (next.volume !== targetVolume) {
+        fadeAudio(next, targetVolume, fadeMs);
       }
     })
     .catch(() => {
@@ -2451,6 +2800,7 @@ function clearBattleEffects() {
     for (const type of EFFECT_CLASSES) {
       stage.classList.remove(`is-fx-${type}`);
     }
+    for (const className of PORTRAIT_TRANSFORM_CLASSES) stage.classList.remove(className);
     stage.querySelectorAll(".battle-fx-effect, .battle-fx-value").forEach((element) => element.remove());
   }
 }
@@ -2801,7 +3151,7 @@ function setBusy(isBusy) {
       renderAdventureChoices(adventureChoices);
     } else if (
       state.battleMode === "adventure"
-      && ["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
+      && ["final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
     ) {
       renderEmptyActions(state.adventureRestartRequested ? "새 여정을 시작하는 중" : "대화 진행 중...");
     } else if (state.battleMode === "adventure" && ["town_complete", "event_complete", "complete"].includes(state.adventure?.phase)) {
@@ -2821,7 +3171,7 @@ function syncSetupLock() {
   const playerSetupLocked = pvpLocked || (state.battleMode === "adventure" && state.busy);
   const canRestartDuringDialogue = state.battleMode === "adventure"
     && state.busy
-    && ["post_battle_dialogue", "final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
+    && ["final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
     && !state.adventureRestartRequested;
   const startLocked = pvpLocked || (state.busy && !canRestartDuringDialogue);
   els.startButton.disabled = startLocked;
@@ -2868,6 +3218,60 @@ async function exitApp() {
   }
   window.close();
   document.body.innerHTML = '<main class="exit-screen">VERSUS 종료</main>';
+}
+
+async function newAdventureRequest(start) {
+  const data = await api("/api/adventure/new", start);
+  state.adventureSave = AdventureSave.createAdventureSave(start);
+  AdventureSave.storeAdventureSave(adventureStorage(), state.adventureSave);
+  return data;
+}
+
+async function adventureActionRequest(payload) {
+  const data = await api("/api/action", payload);
+  recordAdventureCommand("action", payload, data);
+  return data;
+}
+
+async function adventureChoiceRequest(payload) {
+  const data = await api("/api/adventure/choice", payload);
+  recordAdventureCommand("choice", payload, data);
+  return data;
+}
+
+function recordAdventureCommand(type, payload, data) {
+  if (!state.adventureSave) return;
+  try {
+    state.adventureSave = AdventureSave.appendAdventureCommand(state.adventureSave, type, payload);
+    AdventureSave.storeAdventureSave(adventureStorage(), state.adventureSave);
+  } catch {
+    clearStoredAdventure();
+    return;
+  }
+  if (AdventureSave.isAdventureTerminal(data?.adventure)) clearStoredAdventure();
+}
+
+function clearStoredAdventure() {
+  state.adventureSave = null;
+  AdventureSave?.clearAdventureSave(adventureStorage());
+}
+
+function adventureStorage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function createAdventureSeed() {
+  if (globalThis.crypto?.randomUUID) return `adventure-${globalThis.crypto.randomUUID()}`;
+  const values = new Uint32Array(4);
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(values);
+    return `adventure-${[...values].map((value) => value.toString(16).padStart(8, "0")).join("")}`;
+  }
+  return `adventure-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 async function api(path, body, baseUrl = "") {
@@ -2955,7 +3359,7 @@ function portraitHtml(subject, side) {
       monochrome: state.adventure?.monster?.id === id,
     });
   }
-  const src = portraitSrcForId(id);
+  const src = portraitSrcForId(id, portraitVariantForSubject(subject, id));
   return `<img class="character-portrait" src="${escapeHtml(src)}" alt="${escapeHtml(name)}">`;
 }
 
@@ -2970,9 +3374,16 @@ function characterPickerThumbHtml(character, side, isRandom = false) {
   return `<img class="character-picker-portrait" src="${escapeHtml(src)}" alt="${escapeHtml(character.name)}">`;
 }
 
-function portraitSrcForId(id) {
+function portraitVariantForSubject(subject, id) {
+  const variant = String(subject?.portraitVariant || "").trim();
+  return CHARACTER_PORTRAIT_VARIANTS[id]?.has(variant) ? variant : null;
+}
+
+function portraitSrcForId(id, variant = null) {
   const assetGroup = MONSTER_PORTRAIT_IDS.has(id) ? "monsters" : "characters";
-  return localAssetUrl(`/assets/${assetGroup}/${encodeURIComponent(id)}/portrait.webp`);
+  const safeVariant = CHARACTER_PORTRAIT_VARIANTS[id]?.has(variant) ? variant : null;
+  const filename = safeVariant ? `portrait-${safeVariant}.webp` : "portrait.webp";
+  return localAssetUrl(`/assets/${assetGroup}/${encodeURIComponent(id)}/${filename}`);
 }
 
 function withJosa(text, consonant, vowel) {

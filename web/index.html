@@ -11,16 +11,31 @@
     <section class="screen home-screen is-active" id="homeScreen" aria-label="시작 화면">
       <div class="home-bg" aria-hidden="true"></div>
       <div class="home-panel">
-        <div class="brand-lockup">
-          <span class="brand-mark" aria-hidden="true">V</span>
+        <div class="home-heading">
           <h1>VERSUS</h1>
         </div>
         <nav class="main-menu" aria-label="메인 메뉴">
+          <button class="menu-button" id="openPlayButton" type="button">Play</button>
+          <button class="menu-button" id="openRulesButton" type="button">Rules</button>
+          <button class="menu-button" id="openCodexButton" type="button">Characters</button>
+          <button class="menu-button" id="openSettingsButton" type="button">Settings</button>
+          <button class="menu-button secondary-menu-button" id="exitButton" type="button">Exit</button>
+        </nav>
+      </div>
+    </section>
+
+    <section class="screen home-screen play-screen" id="playScreen" aria-label="플레이 모드 선택">
+      <div class="home-bg" aria-hidden="true"></div>
+      <div class="home-panel play-panel">
+        <div class="play-heading">
+          <span>VERSUS</span>
+          <h1>Play</h1>
+        </div>
+        <nav class="main-menu play-menu" aria-label="플레이 모드">
           <button class="menu-button" id="openAdventureButton" type="button">Adventure</button>
           <button class="menu-button" id="openBattleButton" type="button">PvE</button>
           <button class="menu-button" id="openPvpButton" type="button">PvP</button>
-          <button class="menu-button" id="openCodexButton" type="button">Characters</button>
-          <button class="menu-button" id="exitButton" type="button">Exit</button>
+          <button class="menu-button secondary-menu-button" id="playBackButton" type="button">Back</button>
         </nav>
       </div>
     </section>
@@ -154,6 +169,482 @@
       </div>
     </section>
 
+    <section class="screen rules-screen" id="rulesScreen" aria-label="게임 안내">
+      <header class="app-header">
+        <button class="ghost-button" id="rulesBackButton" type="button">뒤로</button>
+        <div class="header-title">
+          <strong>RULES</strong>
+          <span id="rulesSubtitle">How to Play</span>
+        </div>
+      </header>
+
+      <div class="rules-layout">
+        <nav class="rules-tabs" aria-label="게임 안내 목차" role="tablist">
+          <button class="rules-tab is-selected" id="rulesTabHowTo" type="button" role="tab" aria-selected="true" aria-controls="rulesPanelHowTo" data-rules-tab="how-to-play">
+            <strong>How to Play</strong>
+            <span>전투의 기본</span>
+          </button>
+          <button class="rules-tab" id="rulesTabAdventure" type="button" role="tab" aria-selected="false" aria-controls="rulesPanelAdventure" data-rules-tab="adventure" tabindex="-1">
+            <strong>Adventure</strong>
+            <span>10스테이지 여정</span>
+          </button>
+          <button class="rules-tab" id="rulesTabPve" type="button" role="tab" aria-selected="false" aria-controls="rulesPanelPve" data-rules-tab="pve" tabindex="-1">
+            <strong>PvE</strong>
+            <span>AI와 대전</span>
+          </button>
+          <button class="rules-tab" id="rulesTabPvp" type="button" role="tab" aria-selected="false" aria-controls="rulesPanelPvp" data-rules-tab="pvp" tabindex="-1">
+            <strong>PvP</strong>
+            <span>플레이어와 대전</span>
+          </button>
+        </nav>
+
+        <main class="rules-content" id="rulesContent">
+          <article class="rules-panel" id="rulesPanelHowTo" role="tabpanel" aria-labelledby="rulesTabHowTo" data-rules-panel="how-to-play">
+            <header class="rules-hero">
+              <span class="rules-kicker">BATTLE</span>
+              <h2>한 턴에 하나의 행동을 고르고,<br>상대의 HP를 먼저 0으로 만드세요.</h2>
+              <p>VERSUS는 두 캐릭터가 행동을 동시에 선택하는 1대1 턴제 전투 게임입니다. 오로지 상대의 선택을 읽는 판단과 MP 관리... 그리고 약간의 운만이 승패를 가릅니다.</p>
+            </header>
+
+            <section class="rules-section" aria-labelledby="quickStartTitle">
+              <div class="rules-section-heading">
+                <span>01</span>
+                <div>
+                  <h3 id="quickStartTitle">첫 전투 시작하기</h3>
+                  <p>처음에는 아래 세 단계만 기억해도 충분합니다.</p>
+                </div>
+              </div>
+              <div class="rules-step-grid">
+                <article class="rules-step-card">
+                  <b>1</b>
+                  <h4>캐릭터와 각인 선택</h4>
+                  <p>상단의 내 캐릭터 선택란과 그 왼쪽 보석 버튼을 사용합니다. 보석 버튼은 전투 전 공통 보정인 각인이며, 처음에는 추가 효과가 없는 Gray로 시작해도 좋습니다.</p>
+                </article>
+                <article class="rules-step-card">
+                  <b>2</b>
+                  <h4>매 턴 행동 하나 선택</h4>
+                  <p>일반 공격·일반 방어·명상 또는 캐릭터 고유 스킬 중 하나를 누릅니다. 양쪽 선택은 동시에 확정됩니다.</p>
+                </article>
+                <article class="rules-step-card">
+                  <b>3</b>
+                  <h4>상대 HP를 0으로</h4>
+                  <p>행동이나 효과를 처리하던 중 HP가 0이 되면 즉시 패배합니다. 남아 있던 행동과 턴 종료 효과도 처리하지 않습니다.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="rules-section" aria-labelledby="battleScreenGuideTitle">
+              <div class="rules-section-heading">
+                <span>02</span>
+                <div>
+                  <h3 id="battleScreenGuideTitle">전투 화면 읽기</h3>
+                  <p>실제 PvE 화면의 번호와 아래 설명을 함께 확인하세요.</p>
+                </div>
+              </div>
+              <figure class="battle-guide-figure">
+                <div class="battle-guide-image-wrap">
+                  <img src="./assets/help/pve-battle-example.jpg" alt="네쿨롱과 간드릭의 PvE 전투 화면 예시">
+                  <span class="battle-guide-marker marker-character" aria-hidden="true">1</span>
+                  <span class="battle-guide-marker marker-inscription" aria-hidden="true">2</span>
+                  <span class="battle-guide-marker marker-enemy" aria-hidden="true">3</span>
+                  <span class="battle-guide-marker marker-player" aria-hidden="true">4</span>
+                  <span class="battle-guide-marker marker-arena" aria-hidden="true">5</span>
+                  <span class="battle-guide-marker marker-log" aria-hidden="true">6</span>
+                  <span class="battle-guide-marker marker-actions" aria-hidden="true">7</span>
+                </div>
+                <figcaption>화면 크기에 따라 배치는 달라질 수 있지만 각 영역의 역할은 같습니다.</figcaption>
+              </figure>
+              <div class="rules-callout-grid">
+                <article class="is-setup-callout"><b>1</b><div><h4>캐릭터 선택</h4><p>상단의 내 캐릭터에서 사용할 캐릭터를 고릅니다. PvE에서는 오른쪽에서 상대 캐릭터와 AI 성향도 정하며, ???는 무작위 선택입니다.</p></div></article>
+                <article class="is-setup-callout"><b>2</b><div><h4>각인 선택</h4><p>내 캐릭터 왼쪽의 보석 버튼입니다. 각인은 캐릭터 스킬과 별개로 전투 전에 하나 고르는 공통 보정입니다. 처음이라면 효과가 없는 Gray가 가장 단순합니다.</p></div></article>
+                <article><b>3</b><div><h4>상대 상태</h4><p>상대의 HP·MP·능력치와 공개된 고유 상태를 확인합니다. 상대 정보를 누르면 스킬 설명도 볼 수 있습니다.</p></div></article>
+                <article><b>4</b><div><h4>내 상태</h4><p>내 남은 자원과 버프·디버프를 확인합니다. 스킬을 누르기 전에 MP가 충분한지 먼저 살펴보세요.</p></div></article>
+                <article><b>5</b><div><h4>전장과 턴</h4><p>현재 턴과 양쪽 캐릭터가 표시됩니다. TURN 숫자가 바뀌면 새로운 행동을 선택할 차례입니다.</p></div></article>
+                <article><b>6</b><div><h4>전투 로그</h4><p>선공, 명중, 피해, 회복과 효과 발동 결과가 순서대로 기록됩니다. 이전·다음 버튼으로 지난 턴도 확인할 수 있습니다.</p></div></article>
+                <article><b>7</b><div><h4>행동 선택</h4><p>패시브와 일곱 행동이 표시됩니다. 파란 숫자는 MP 소모량이며, 버튼에 마우스를 올리거나 정보를 열면 전체 효과를 볼 수 있습니다.</p></div></article>
+              </div>
+            </section>
+
+            <section class="rules-section" aria-labelledby="turnFlowTitle">
+              <div class="rules-section-heading">
+                <span>03</span>
+                <div>
+                  <h3 id="turnFlowTitle">한 턴의 처리 순서</h3>
+                  <p>선택 이후에는 게임이 아래 순서대로 자동 판정합니다.</p>
+                </div>
+              </div>
+              <ol class="rules-flow-list">
+                <li><b>행동 선택</b><span>양쪽이 행동을 하나씩 고르고 동시에 확정합니다.</span></li>
+                <li><b>선공 결정</b><span>우선도가 높은 행동이 먼저 실행됩니다. 우선도가 같다면 SPD가 높은 쪽의 선공 확률이 더 높아집니다.</span></li>
+                <li><b>행동 처리</b><span>MP 소모 → 명중·회피 판정 → 조건 확인 → 피해와 효과 순서로 처리합니다.</span></li>
+                <li><b>후공 행동</b><span>전투가 끝나지 않았다면 두 번째 행동을 처리합니다.</span></li>
+                <li><b>턴 종료</b><span>기본 MP 10 회복과 턴 종료 효과를 처리한 뒤 지속 효과의 남은 턴을 줄입니다.</span></li>
+              </ol>
+              <div class="rules-subheading">
+                <span>ACTION ORDER</span>
+                <h4>행동 하나의 내부 처리</h4>
+                <p>스킬 설명의 타이밍 문구는 아래 단계 중 하나를 가리킵니다.</p>
+              </div>
+              <ol class="rules-flow-list is-detailed">
+                <li><b>행동 개시</b><span>자신의 차례가 오면 행동을 시작하고 <code>행동 개시 시</code> 효과를 처리합니다. 이 단계에서 행동에 실패하면 MP를 소모하지 않고 행동 종료로 넘어갑니다.</span></li>
+                <li><b>MP 소모</b><span>선택할 때 확정된 MP를 지불합니다. 선택 당시 MP가 부족한 행동은 고를 수 없으며, 이후 이 시점에 MP가 부족해졌다면 소모하지 않고 실패합니다.</span></li>
+                <li><b>명중·회피</b><span>스킬 명중률을 먼저 판정하고, 통과하면 상대의 회피를 판정합니다. 명중률이 `-`인 행동은 이 단계를 건너뜁니다.</span></li>
+                <li><b>조건 검토</b><span><code>조건 검토 시</code> 효과와 실패 조건을 확인하고 위력·피해 배율 같은 수치를 확정합니다. 여기서 실패해도 이미 쓴 MP는 돌아오지 않습니다.</span></li>
+                <li><b>피해 계산</b><span>공격 행동이라면 위력, ATK, DEF, 피해 증감과 [방어]를 반영해 최종 공격 피해를 계산합니다.</span></li>
+                <li><b>명중과 일반 효과</b><span>공격은 피해를 먼저 입힌 뒤 <code>명중 시</code> 효과를 처리합니다. 공격이 아닌 행동은 설명에 적힌 일반 효과를 위에서부터 처리합니다.</span></li>
+                <li><b>성공</b><span>행동이 정상 처리되었다면 <code>성공 시</code> 효과를 적용합니다. 빗나가거나 회피된 공격은 성공으로 보지 않습니다.</span></li>
+                <li><b>행동 종료</b><span>행동을 시작했다면 성공·실패·명중 여부와 관계없이 <code>행동 종료 시</code> 효과를 확인합니다.</span></li>
+              </ol>
+              <aside class="rules-note rules-warning-note">
+                <strong>실패하거나 빗나가면?</strong>
+                <p>빗나감·회피는 조건 검토부터 성공까지를 건너뛰지만, 이미 소모한 MP는 반환되지 않고 행동 종료 시점은 거칩니다. 조건 검토에서 실패해도 MP는 돌아오지 않습니다. 자신의 차례 전에 HP가 0이 되면 행동을 개시하지 않아 MP도 쓰지 않고 행동 종료 효과도 없습니다. 처리 도중 HP가 0이 되면 즉시 전투가 끝납니다.</p>
+              </aside>
+            </section>
+
+            <section class="rules-section" aria-labelledby="effectTimingTitle">
+              <div class="rules-section-heading">
+                <span>04</span>
+                <div>
+                  <h3 id="effectTimingTitle">효과 문구와 타이밍 읽기</h3>
+                  <p>같은 효과라도 어떤 타이밍에 적혀 있는지에 따라 발동 여부가 달라집니다.</p>
+                </div>
+              </div>
+              <div class="rules-timing-grid">
+                <article><strong>전투 시작 시</strong><p>첫 턴을 고르기 전에 한 번 처리합니다. 시작 MP, 각인 공개와 전투 전체에 적용되는 효과가 주로 여기에 해당합니다.</p></article>
+                <article><strong>선택 시</strong><p>행동 버튼을 고르는 순간 처리합니다. 그 턴의 MP 소모량과 우선도도 이때 확정되며, 이후 실패·빗나감·회피가 발생해도 선택 기록은 남습니다.</p></article>
+                <article><strong>행동 개시 시</strong><p>선공·후공이 정해진 뒤 실제로 자신의 행동 차례가 왔을 때 처리합니다. MP 소모보다 앞입니다.</p></article>
+                <article><strong>MP 소모 시</strong><p>행동 선택 시 확정된 값만큼 MP를 지불하는 시점입니다. 현재 MP가 부족하면 소모하지 않고 행동에 실패합니다.</p></article>
+                <article><strong>명중 판정 시</strong><p>스킬 자체의 명중률을 판정한 뒤 상대의 회피를 판정하는 시점입니다. 둘 다 통과해야 조건 검토로 넘어갑니다.</p></article>
+                <article><strong>조건 검토 시</strong><p>명중·회피 판정을 통과한 뒤 피해를 계산하기 전에 조건을 확인합니다. 위력이나 피해 배율 변경도 여기서 반영합니다.</p></article>
+                <article><strong>피해 계산 시</strong><p>공격 피해를 정하는 동안 적용합니다. 실제 HP가 감소하는 `명중` 단계보다 앞입니다.</p></article>
+                <article><strong>명중 시</strong><p>공격 피해가 적용된 뒤 발동합니다. 빗나가거나 회피되면 발동하지 않습니다.</p></article>
+                <article><strong>성공 시</strong><p>행동이 끝까지 정상 처리되었을 때 발동합니다. 회복량이 0이어도 실패하지 않았다면 성공이며, 빗나가거나 회피된 공격은 성공이 아닙니다.</p></article>
+                <article><strong>행동 종료 시</strong><p>행동을 개시했다면 성공 여부와 관계없이 마지막에 확인합니다. 빗나간 행동도 이 시점은 거칩니다.</p></article>
+                <article><strong>턴 종료 시</strong><p>양쪽 행동이 끝난 뒤 기본 MP 회복, 각인 효과, 그 밖의 턴 종료 효과 순으로 처리하고 지속 턴을 감소시킵니다.</p></article>
+              </div>
+              <div class="rules-effect-examples">
+                <article>
+                  <span>예시 1</span>
+                  <strong>명중 시, 상대의 DEF가 3턴 동안 0.7배가 된다.</strong>
+                  <p>공격이 명중해 피해를 준 뒤 DEF 감소를 적용합니다. 공격이 빗나가거나 상대가 회피하면 적용하지 않습니다.</p>
+                </article>
+                <article>
+                  <span>예시 2</span>
+                  <strong>조건 검토 시, 자신의 MP가 0이면 위력이 10 증가한다.</strong>
+                  <p>스킬 MP를 먼저 소모한 뒤 현재 MP가 0인지 확인합니다. 조건을 만족하면 증가한 위력으로 피해를 계산합니다.</p>
+                </article>
+              </div>
+              <aside class="rules-note">
+                <strong>설명은 위에서 아래로</strong>
+                <p>같은 타이밍에 여러 문장이 있다면 별도 지시가 없는 한 스킬 설명에 적힌 순서대로 처리합니다. 캐릭터 효과가 공통 규칙과 다르게 명시되어 있다면 해당 캐릭터 효과를 우선합니다.</p>
+              </aside>
+            </section>
+
+            <section class="rules-section" aria-labelledby="skillReadingTitle">
+              <div class="rules-section-heading">
+                <span>05</span>
+                <div>
+                  <h3 id="skillReadingTitle">스킬 수치 읽는 법</h3>
+                  <p>모든 행동은 같은 형식으로 표시됩니다.</p>
+                </div>
+              </div>
+              <div class="rules-skill-example">
+                <div>
+                  <span>예시</span>
+                  <strong>전하 방출</strong>
+                </div>
+                <p>상대 / MP 24 / 위력 20 / 명중률 90 / 우선도 0</p>
+              </div>
+              <div class="rules-term-grid">
+                <article><strong>MP</strong><p>스킬 사용 자원입니다. 전투 시작 시 30, 기본 최대치는 100이며 턴 종료마다 10을 회복합니다.</p></article>
+                <article><strong>위력</strong><p>공격의 기본 세기입니다. 실제 피해는 공격자의 ATK와 방어자의 DEF 및 여러 효과를 함께 계산합니다.</p></article>
+                <article><strong>명중률</strong><p>먼저 스킬 명중을 판정하고, 통과하면 상대의 회피를 판정합니다. 빗나가도 이미 쓴 MP는 돌아오지 않습니다.</p></article>
+                <article><strong>우선도</strong><p>숫자가 높은 행동이 반드시 먼저 실행됩니다. 같은 경우에만 SPD를 이용해 선공 확률을 계산합니다.</p></article>
+              </div>
+            </section>
+
+            <section class="rules-section" aria-labelledby="commonActionsTitle">
+              <div class="rules-section-heading">
+                <span>06</span>
+                <div>
+                  <h3 id="commonActionsTitle">모든 캐릭터의 공통 행동</h3>
+                  <p>MP가 없을 때도 사용할 수 있는 기본 선택지입니다.</p>
+                </div>
+              </div>
+              <div class="rules-card-grid">
+                <article class="rules-info-card">
+                  <span>ATTACK</span>
+                  <h4>일반 공격</h4>
+                  <p>MP 0 · 위력 10 · 명중률 100 · 우선도 0. 안정적으로 피해를 주는 가장 단순한 공격입니다.</p>
+                </article>
+                <article class="rules-info-card">
+                  <span>DEFENSE</span>
+                  <h4>일반 방어</h4>
+                  <p>우선도 3으로 빠르게 발동해 그 턴의 공격 피해를 줄입니다. 연속 사용 시 경감률이 50% → 40% → 30% 순으로 약해집니다.</p>
+                </article>
+                <article class="rules-info-card">
+                  <span>FOCUS</span>
+                  <h4>명상</h4>
+                  <p>즉시 MP 15를 회복합니다. 턴 종료의 기본 MP 10 회복도 별도로 받으므로 다음 턴을 준비하기 좋습니다.</p>
+                </article>
+              </div>
+              <aside class="rules-note">
+                <strong>초보자 팁</strong>
+                <p>비싼 스킬만 반복하면 금방 MP가 바닥납니다. 상대가 공격할 것 같다면 방어하고, 여유가 생긴 턴에는 명상으로 다음 공격을 준비하세요. 캐릭터의 패시브는 버튼을 누르지 않아도 조건에 맞으면 자동으로 적용됩니다.</p>
+              </aside>
+            </section>
+
+            <section class="rules-section" aria-labelledby="combatMathTitle">
+              <div class="rules-section-heading">
+                <span>07</span>
+                <div>
+                  <h3 id="combatMathTitle">능력치·선공·피해 계산</h3>
+                  <p>화면에 표시되는 수치가 실제 판정에 어떻게 사용되는지 설명합니다.</p>
+                </div>
+              </div>
+              <div class="rules-stat-grid">
+                <article><strong>HP</strong><p>생명력입니다. 처리 도중 0이 되는 즉시 패배하며 최대치를 넘겨 회복할 수 없습니다.</p></article>
+                <article><strong>MP</strong><p>액티브 스킬 자원입니다. 기본 최대 100, 시작 시 30이며 턴 종료마다 기본 10을 회복합니다.</p></article>
+                <article><strong>ATK</strong><p>공격자가 주는 공격 피해 계산에 사용합니다. 높을수록 같은 위력의 피해가 커집니다.</p></article>
+                <article><strong>DEF</strong><p>방어자가 받는 공격 피해 계산에 사용합니다. 높을수록 같은 공격의 피해가 작아집니다.</p></article>
+                <article><strong>SPD</strong><p>양쪽 행동의 우선도가 같을 때만 선공 확률을 정합니다. 높아도 선공을 보장하지는 않습니다.</p></article>
+              </div>
+              <div class="rules-formula-grid">
+                <article>
+                  <span>같은 우선도일 때</span>
+                  <strong>내 선공 확률 = 내 SPD ÷ (내 SPD + 상대 SPD)</strong>
+                  <p>우선도가 다르면 이 계산을 하지 않고 우선도가 높은 행동이 반드시 먼저 실행됩니다.</p>
+                </article>
+                <article>
+                  <span>공격 피해</span>
+                  <strong>위력 × (공격자 ATK + 50) ÷ (방어자 DEF + 50) × 기타 배율</strong>
+                  <p>모든 배율을 반영한 뒤 마지막에 소수점 이하를 버립니다. 명중하고 조건에 실패하지 않은 공격 피해는 최소 1입니다.</p>
+                </article>
+              </div>
+              <div class="rules-term-grid">
+                <article><strong>공격 행동</strong><p>위력이 있는 행동입니다. 명중 판정과 피해 공식을 사용합니다. 위력이 <code>-</code>라면 상대에게 고정 피해를 주더라도 비공격 행동입니다.</p></article>
+                <article><strong>고정 피해</strong><p>ATK·DEF와 공격 피해 공식을 사용하지 않으며 [방어]로 줄어들지 않습니다. <code>중첩당 X</code>는 합계를 한 번 입히며, <code>N회</code>라고 적힌 경우만 별도 피해로 처리합니다.</p></article>
+                <article><strong>소수점 처리</strong><p>HP·MP·위력·중첩·고정 피해 같은 정수 수치는 별도 명시가 없으면 소수점 이하를 버립니다. 능력치 배율은 계산 중 유지합니다.</p></article>
+                <article><strong>회복과 최대치</strong><p>HP와 MP는 최대치를 넘겨 회복할 수 없습니다. 실제 회복량이 0이어도 행동 자체가 실패하지 않았다면 성공으로 처리합니다.</p></article>
+              </div>
+            </section>
+
+            <section class="rules-section" aria-labelledby="statusRulesTitle">
+              <div class="rules-section-heading">
+                <span>08</span>
+                <div>
+                  <h3 id="statusRulesTitle">능력치 변화·고유 상태·지속시간</h3>
+                  <p>여러 버프와 디버프가 동시에 걸렸을 때의 공통 처리입니다.</p>
+                </div>
+              </div>
+              <div class="rules-card-grid">
+                <article class="rules-info-card"><span>STACK</span><h4>서로 다른 효과는 곱연산</h4><p>ATK 1.2배와 다른 ATK 1.2배가 함께 적용되면 1.4배가 아니라 1.44배가 됩니다. 증가와 감소도 각각 곱합니다.</p></article>
+                <article class="rules-info-card"><span>REFRESH</span><h4>같은 스킬은 갱신</h4><p>동일한 스킬로 생긴 능력치 변화는 중첩하지 않습니다. 다시 적용하면 기존 배율과 지속시간을 새 효과로 갱신합니다.</p></article>
+                <article class="rules-info-card"><span>UNIQUE STATE</span><h4>고유 상태와 중첩</h4><p>상태의 주어와 <code>보유자</code>는 그 상태에 걸린 캐릭터입니다. 최대 중첩이 적혀 있지 않으면 공통 상한은 없습니다.</p></article>
+              </div>
+              <div class="rules-term-grid">
+                <article><strong>상태 재부여</strong><p>지속 상태를 다시 부여하면 지속시간을 갱신합니다. 중첩형은 중첩 수도 더하며, 더 짧은 지속시간만 들어온 경우에는 기존 시간을 줄이지 않습니다.</p></article>
+                <article><strong>조건의 기준값</strong><p>별도 시점이 없으면 조건 검토 시 값을 사용합니다. MP 소모량·우선도는 선택 시, ATK·DEF와 피해 배율은 피해 계산 시 확정합니다.</p></article>
+                <article><strong><code>이 행동 전부터</code></strong><p>해당 행동을 개시하기 직전의 상태·중첩·기록만 봅니다. 그 행동을 처리하면서 새로 생긴 값은 조건에 포함하지 않습니다.</p></article>
+                <article><strong>지속시간 감소</strong><p>그 턴에 새로 생긴 효과도 턴 종료 처리가 모두 끝난 뒤 남은 턴이 1 감소하며, 0이 되면 제거됩니다.</p></article>
+              </div>
+              <div class="rules-subheading">
+                <span>TURN END ORDER</span>
+                <h4>턴 종료 처리 순서</h4>
+                <p>양쪽 행동이 끝나고 전투가 계속될 때 아래 순서로 처리합니다.</p>
+              </div>
+              <ol class="rules-flow-list compact">
+                <li><b>기본 MP 회복</b><span>양쪽이 각자 변경된 기본 MP 회복량만큼 MP를 회복합니다.</span></li>
+                <li><b>각인 효과</b><span><code>턴 종료 시</code>라고 적힌 각인 효과를 처리합니다.</span></li>
+                <li><b>그 밖의 효과</b><span>턴 종료 효과를 각 캐릭터에게 적용된 순서대로 처리합니다.</span></li>
+                <li><b>지속 턴 감소</b><span>모든 종료 효과가 끝난 뒤 새로 생긴 효과를 포함해 남은 턴을 1 줄입니다.</span></li>
+                <li><b>만료 효과 제거</b><span>남은 턴이 0이 된 효과를 제거합니다. 도중 HP가 0이면 즉시 전투를 끝냅니다.</span></li>
+              </ol>
+            </section>
+
+            <section class="rules-section" aria-labelledby="inscriptionRulesTitle">
+              <div class="rules-section-heading">
+                <span>09</span>
+                <div>
+                  <h3 id="inscriptionRulesTitle">각인 전체 효과</h3>
+                  <p>각인은 전투 시작 전에 하나 고르는 공통 보정입니다. 양쪽의 실제 각인은 전투 시작 로그에 공개됩니다.</p>
+                </div>
+              </div>
+              <div class="rules-table-wrap">
+                <table class="rules-table">
+                  <thead><tr><th>각인</th><th>효과</th></tr></thead>
+                  <tbody>
+                    <tr><th>Gray</th><td>효과 없음</td></tr>
+                    <tr><th>White</th><td>액티브 공격기 위력 2 감소([연격]은 1 감소) / 일반 공격 피해 +1 / 일반 방어 경감 +1 / 명상 MP +1</td></tr>
+                    <tr><th>Red</th><td>액티브 공격기 MP 3 증가 / 위력 3 증가([연격]은 1 증가)</td></tr>
+                    <tr><th>Orange</th><td>명중률 10 증가(최대 100) / ATK 0.9배</td></tr>
+                    <tr><th>Yellow</th><td>HP 30% 이상일 때 SPD 0.7배 / 30% 미만일 때 SPD 1.7배 및 회피율 10%</td></tr>
+                    <tr><th>Green</th><td>턴 종료 시 HP 2 회복 / 기본 MP 회복량 4 감소</td></tr>
+                    <tr><th>Blue</th><td>시작 MP 10 증가 / 기본 MP 회복량 1 증가 / DEF 0.9배</td></tr>
+                    <tr><th>Indigo</th><td>직전 턴과 같은 행동 선택 시 자신의 소모 MP +2 / 상대의 소모 MP +5(첫 턴 제외)</td></tr>
+                    <tr><th>Violet</th><td>ATK와 DEF 1.1배 / 명중률 5 감소</td></tr>
+                    <tr><th>Random</th><td>전투 시작 시 위 각인 중 하나로 무작위 확정</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <aside class="rules-note"><strong>모드별 상대 각인</strong><p>PvE의 AI 각인은 전투 시작 시 무작위로 정해집니다. PvP는 양쪽 플레이어가 직접 고릅니다. Random을 골랐다면 전투 시작 직후 실제 각인 하나로 확정됩니다.</p></aside>
+            </section>
+
+            <section class="rules-section" aria-labelledby="keywordRulesTitle">
+              <div class="rules-section-heading">
+                <span>10</span>
+                <div>
+                  <h3 id="keywordRulesTitle">공통 키워드와 효과 처리</h3>
+                  <p>캐릭터 설명에 대괄호나 피해 조건이 나오면 아래 공통 의미를 사용합니다.</p>
+                </div>
+              </div>
+              <div class="rules-keyword-grid">
+                <article><strong><code>피해를 입을 때마다</code></strong><p>공격 피해 또는 고정 피해 한 번으로 실제 HP가 감소한 직후마다 발동합니다.</p></article>
+                <article><strong><code>공격 피해를 입을 때마다</code></strong><p>공격 피해에만 발동하며 고정 피해는 포함하지 않습니다. 여러 피해를 합쳐 한 번 입히면 한 번의 피해로 봅니다.</p></article>
+                <article><strong>효과 처리 순서</strong><p>설명 순서대로 처리하며 피해 반응은 피해 직후 발동합니다. 행동자와 대상이 함께 발동하면 행동자부터, 같은 캐릭터의 여러 효과는 적용된 순서대로 처리합니다.</p></article>
+                <article><strong>즉시 전투 종료</strong><p>효과 처리 중 HP가 0이 되면 남은 효과, 후공 행동과 턴 종료 처리를 모두 중단합니다.</p></article>
+              </div>
+              <div class="rules-subheading">
+                <span>DEFENSE</span>
+                <h4>[방어]</h4>
+                <p><code>자신이 이 턴에 입는 공격 피해를 경감</code>하는 행동입니다. 아래 감소율은 모든 [방어] 행동에 공통으로 적용됩니다.</p>
+              </div>
+              <div class="rules-table-wrap is-compact">
+                <table class="rules-table defense-table">
+                  <thead><tr><th>연속 사용</th><th>1회</th><th>2회</th><th>3회</th><th>4회</th><th>5회</th><th>6회 이후</th></tr></thead>
+                  <tbody><tr><th>피해 경감</th><td>50%</td><td>40%</td><td>30%</td><td>20%</td><td>10%</td><td>0%</td></tr></tbody>
+                </table>
+              </div>
+              <p class="rules-detail-copy">[방어]에 성공할 때마다 다음 [방어]의 감소율이 10%p씩 낮아집니다. 실패하지 않은 다른 행동을 하면 다시 50%로 초기화됩니다.</p>
+              <aside class="rules-note">
+                <strong>규칙이 충돌하면</strong>
+                <p><b>특정 스킬에 적힌 예외</b> → <b>공통 키워드 규칙</b> → <b>일반 전투 규칙</b> 순서로 우선합니다. 따라서 Characters의 스킬 설명이 이 How to Play와 다르게 명시한다면 그 스킬 설명을 따릅니다.</p>
+              </aside>
+            </section>
+          </article>
+
+          <article class="rules-panel" id="rulesPanelAdventure" role="tabpanel" aria-labelledby="rulesTabAdventure" data-rules-panel="adventure" hidden>
+            <header class="rules-hero adventure-guide-hero">
+              <span class="rules-kicker">10 STAGE JOURNEY</span>
+              <h2>전투와 선택을 거듭해<br>최종 결전까지 살아남으세요.</h2>
+              <p>Adventure는 한 캐릭터로 10스테이지를 이어가는 연속 도전입니다. 전투 보상과 이벤트 결과가 다음 스테이지까지 누적됩니다.</p>
+            </header>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>01</span><div><h3>시작과 목표</h3><p>캐릭터와 각인을 고른 뒤 새 여정을 시작합니다.</p></div></div>
+              <div class="rules-step-grid">
+                <article class="rules-step-card"><b>1</b><h4>캐릭터 선택</h4><p>여정 동안 사용할 캐릭터와 각인을 고릅니다. 상대와 AI 성향은 Adventure 규칙에 따라 자동으로 정해집니다.</p></article>
+                <article class="rules-step-card"><b>2</b><h4>전투 또는 행선지 선택</h4><p>몬스터와 싸우거나 마을·이벤트 같은 행선지를 골라 스테이지를 진행합니다.</p></article>
+                <article class="rules-step-card"><b>3</b><h4>STAGE 10 돌파</h4><p>스테이지가 오를수록 적이 강해집니다. 마지막 스테이지의 최종 결전에서 승리하면 여정을 완료합니다.</p></article>
+              </div>
+              <aside class="rules-note"><strong>자동 저장</strong><p>진행 중인 여정은 행동과 선택마다 이 기기에 자동 저장됩니다. 게임을 종료해도 Adventure에 다시 들어오면 이어서 진행하며, 패배하거나 클리어하면 저장이 초기화됩니다. 진행 중 ‘새 여정’을 누르면 현재 저장을 지우고 새 모험을 시작합니다.</p></aside>
+            </section>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>02</span><div><h3>전투가 끝난 뒤</h3><p>일반 PvE와 달리 다음 전투로 이어지는 자원이 있습니다.</p></div></div>
+              <div class="rules-card-grid">
+                <article class="rules-info-card"><span>CARRY OVER</span><h4>HP와 MP 유지</h4><p>승리하면 최대 HP의 20%를 회복하고 현재 MP를 유지합니다. 전투 중 버프·디버프와 캐릭터 고유 자원은 초기화됩니다.</p></article>
+                <article class="rules-info-card"><span>REWARD</span><h4>능력치 강화</h4><p>기본 전투 보상으로 ATK·DEF·SPD 중 하나를 골라 10% 강화합니다. 일부 이벤트는 보상의 수나 강화량을 바꿀 수 있습니다.</p></article>
+                <article class="rules-info-card"><span>ROUTE</span><h4>다음 행선지</h4><p>보상을 고른 뒤 표시된 행선지 중 하나를 선택합니다. 전투뿐 아니라 회복, 강화, 위험한 거래도 등장합니다.</p></article>
+              </div>
+            </section>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>03</span><div><h3>행선지 이해하기</h3><p>눈앞의 이득뿐 아니라 남은 HP와 MP도 함께 생각하세요.</p></div></div>
+              <div class="rules-term-grid">
+                <article><strong>전투</strong><p>몬스터를 쓰러뜨리면 능력치 보상을 얻습니다. 패배하면 여정이 종료됩니다.</p></article>
+                <article><strong>마을</strong><p>한 여정에서 최대 두 번 방문할 수 있습니다. HP·MP 회복 또는 무작위 능력치 강화를 선택합니다.</p></article>
+                <article><strong>이벤트</strong><p>선택에 따라 회복·영구 강화·다음 전투 효과를 얻거나 HP와 MP를 잃을 수 있습니다.</p></article>
+                <article><strong>기습</strong><p>비전투 행선지로 향하다 적의 기습을 받을 수 있습니다. 항상 안전한 선택지는 아니라는 뜻입니다.</p></article>
+              </div>
+              <aside class="rules-note"><strong>운영 팁</strong><p>HP는 승리 후 일부만 회복되지만 MP는 그대로 이어집니다. 전투를 끝내기 직전에도 다음 스테이지를 생각해 자원을 남겨 두세요. 첫 전투 뒤에는 마을에서 여정을 정비할 수 있습니다.</p></aside>
+            </section>
+          </article>
+
+          <article class="rules-panel" id="rulesPanelPve" role="tabpanel" aria-labelledby="rulesTabPve" data-rules-panel="pve" hidden>
+            <header class="rules-hero pve-guide-hero">
+              <span class="rules-kicker">PLAYER VS AI</span>
+              <h2>원하는 대전을 빠르게 만들고<br>캐릭터의 운영을 익히세요.</h2>
+              <p>PvE는 한 번의 전투로 승패를 가르는 기본 모드입니다. 상대 캐릭터와 AI 성향을 직접 정할 수 있어 연습과 상성 연구에 적합합니다.</p>
+            </header>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>01</span><div><h3>전투 설정</h3><p>상단 설정을 왼쪽부터 차례대로 선택합니다.</p></div></div>
+              <ol class="rules-flow-list compact">
+                <li><b>내 캐릭터</b><span>직접 선택하거나 ???를 유지해 무작위 캐릭터를 사용합니다.</span></li>
+                <li><b>각인</b><span>캐릭터 옆 보석 버튼을 눌러 공통 전투 보정 하나를 고릅니다. Gray는 추가 효과가 없습니다.</span></li>
+                <li><b>상대 캐릭터</b><span>연습할 상대를 고릅니다. ???를 선택하면 무작위 상대가 등장합니다.</span></li>
+                <li><b>AI 성향</b><span>AI가 어떤 판단을 더 선호할지 정합니다. 승리 조건과 사용할 수 있는 행동은 모든 성향이 같습니다.</span></li>
+                <li><b>전투 시작</b><span>상대 AI의 각인이 무작위로 정해지고 양쪽 각인이 전투 로그에 공개됩니다.</span></li>
+              </ol>
+            </section>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>02</span><div><h3>AI 성향</h3><p>처음에는 합리 또는 RANDOM으로 시작해도 좋습니다.</p></div></div>
+              <div class="rules-personality-grid">
+                <article><strong>합리</strong><span>안정적인 기대값</span></article>
+                <article><strong>돌격</strong><span>빠른 처치와 압박</span></article>
+                <article><strong>방어</strong><span>위험 회피와 생존</span></article>
+                <article><strong>광기</strong><span>높은 선택 변동성</span></article>
+                <article><strong>도박</strong><span>큰 보상과 변수</span></article>
+                <article><strong>인내</strong><span>자원과 지속 효과</span></article>
+                <article><strong>방해</strong><span>제한과 디버프</span></article>
+                <article><strong>교란</strong><span>패턴을 섞는 선택</span></article>
+              </div>
+              <aside class="rules-note"><strong>RANDOM은 무엇인가요?</strong><p>AI 성향 하나를 무작위로 정하고 전투가 끝날 때까지 실제 성향을 숨깁니다. 로그와 행동 패턴을 보고 상대의 의도를 추측해 보세요.</p></aside>
+            </section>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>03</span><div><h3>연습 추천 순서</h3><p>처음부터 모든 효과를 외울 필요는 없습니다.</p></div></div>
+              <div class="rules-card-grid">
+                <article class="rules-info-card"><span>STEP 1</span><h4>내 캐릭터 읽기</h4><p>Characters에서 패시브, 고유 상태와 네 액티브 스킬을 먼저 확인합니다.</p></article>
+                <article class="rules-info-card"><span>STEP 2</span><h4>같은 상대 반복</h4><p>상대와 AI 성향을 고정하면 어떤 선택이 효과적이었는지 비교하기 쉽습니다.</p></article>
+                <article class="rules-info-card"><span>STEP 3</span><h4>로그로 결과 확인</h4><p>예상과 다른 결과가 나왔다면 선공·명중·조건 발동 내용을 전투 로그에서 확인합니다.</p></article>
+              </div>
+            </section>
+          </article>
+
+          <article class="rules-panel" id="rulesPanelPvp" role="tabpanel" aria-labelledby="rulesTabPvp" data-rules-panel="pvp" hidden>
+            <header class="rules-hero pvp-guide-hero">
+              <span class="rules-kicker">PLAYER VS PLAYER</span>
+              <h2>같은 규칙 아래에서<br>상대 플레이어의 선택을 읽으세요.</h2>
+              <p>PvP에서는 AI 대신 다른 플레이어와 싸웁니다. 양쪽이 행동을 하나씩 선택해야 턴이 진행되며, 상대의 선택은 판정 전까지 공개되지 않습니다.</p>
+            </header>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>01</span><div><h3>방에 입장하기</h3><p>양쪽 모두 캐릭터와 각인을 먼저 고릅니다.</p></div></div>
+              <div class="rules-card-grid">
+                <article class="rules-info-card"><span>PRIVATE MATCH</span><h4>같은 방 코드 입력</h4><p>친구와 같은 방 코드를 입력하고 PvP 입장을 누릅니다. 먼저 들어온 플레이어는 상대가 입장할 때까지 대기합니다.</p></article>
+                <article class="rules-info-card"><span>QUICK MATCH</span><h4>방 코드 비우기</h4><p>방 코드를 입력하지 않으면 같은 방식으로 대기 중인 플레이어와 자동으로 연결됩니다.</p></article>
+                <article class="rules-info-card"><span>REJOIN</span><h4>진행 중인 방 재접속</h4><p>연결이 끊겼다면 같은 브라우저에서 기존 방 코드를 다시 입력해 재접속할 수 있습니다.</p></article>
+              </div>
+            </section>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>02</span><div><h3>PvP 턴 진행</h3><p>기본 전투 규칙은 PvE와 완전히 같습니다.</p></div></div>
+              <ol class="rules-flow-list compact">
+                <li><b>매칭 대기</b><span>두 플레이어가 방에 들어오면 전투가 자동으로 시작됩니다. 양쪽의 캐릭터와 각인은 로그에 공개됩니다.</span></li>
+                <li><b>행동 선택</b><span>각자 행동을 하나 고릅니다. 한 번 제출한 행동은 해당 턴이 끝날 때까지 바꿀 수 없습니다.</span></li>
+                <li><b>상대 대기</b><span>먼저 선택했다면 상대가 행동을 고를 때까지 기다립니다. 상대가 무엇을 골랐는지는 아직 보이지 않습니다.</span></li>
+                <li><b>동시 판정</b><span>양쪽 선택이 모이면 우선도와 SPD에 따라 선공을 정하고 한 턴 전체를 처리합니다.</span></li>
+                <li><b>다음 턴</b><span>새 상태와 로그를 확인한 뒤 다시 행동을 선택합니다. 상대 HP를 먼저 0으로 만들면 승리합니다.</span></li>
+              </ol>
+            </section>
+
+            <section class="rules-section">
+              <div class="rules-section-heading"><span>03</span><div><h3>알아두기</h3><p>네트워크 대전에서는 잠깐의 대기 시간이 생길 수 있습니다.</p></div></div>
+              <div class="rules-term-grid">
+                <article><strong>AI 성향 없음</strong><p>PvP에는 AI가 없으므로 성향 선택도 없습니다. 상대는 실제 플레이어의 판단으로 움직입니다.</p></article>
+                <article><strong>선택은 비공개</strong><p>행동을 먼저 제출해도 상대에게 내용이 공개되지 않습니다. 예측과 심리전이 그대로 유지됩니다.</p></article>
+                <article><strong>방을 나갈 때</strong><p>뒤로 가거나 페이지를 닫으면 방을 떠난 것으로 처리될 수 있으며 상대 전투도 종료됩니다.</p></article>
+                <article><strong>응답을 기다리기</strong><p>선택 후 화면이 잠시 잠기면 중복 클릭하지 말고 상대 선택과 서버 응답을 기다리세요.</p></article>
+              </div>
+            </section>
+          </article>
+        </main>
+      </div>
+    </section>
+
     <section class="screen codex-screen" id="codexScreen" aria-label="캐릭터 도감">
       <header class="app-header">
         <button class="ghost-button" id="codexBackButton" type="button">뒤로</button>
@@ -165,6 +656,51 @@
       <div class="codex-layout">
         <nav class="codex-list" id="codexList" aria-label="캐릭터 목록"></nav>
         <article class="codex-detail" id="codexDetail"></article>
+      </div>
+    </section>
+
+    <section class="screen settings-screen" id="settingsScreen" aria-label="설정">
+      <header class="app-header">
+        <button class="ghost-button" id="settingsBackButton" type="button">뒤로</button>
+        <div class="header-title">
+          <strong>Settings</strong>
+          <span>Sound</span>
+        </div>
+      </header>
+      <div class="settings-layout">
+        <article class="settings-panel">
+          <header class="settings-heading">
+            <span>SOUND</span>
+            <h2>음량 설정</h2>
+            <p>음악과 전투 효과음의 크기를 조절합니다.</p>
+          </header>
+
+          <div class="volume-control-list">
+            <label class="volume-control" for="bgmVolumeSlider">
+              <span class="volume-control-copy">
+                <strong>BGM</strong>
+                <small>배경 음악</small>
+              </span>
+              <output id="bgmVolumeValue" for="bgmVolumeSlider">35%</output>
+              <input id="bgmVolumeSlider" type="range" min="0" max="100" step="1" value="35">
+            </label>
+
+            <label class="volume-control" for="sfxVolumeSlider">
+              <span class="volume-control-copy">
+                <strong>효과음</strong>
+                <small>공격과 방어 등의 전투 소리</small>
+              </span>
+              <output id="sfxVolumeValue" for="sfxVolumeSlider">50%</output>
+              <input id="sfxVolumeSlider" type="range" min="0" max="100" step="1" value="50">
+            </label>
+          </div>
+
+          <div class="settings-actions">
+            <button class="settings-mute-button" id="audioMuteButton" type="button" aria-pressed="false">전체 음소거</button>
+            <button class="ghost-button" id="audioResetButton" type="button">기본값으로 복원</button>
+          </div>
+          <p class="settings-save-note">변경한 음량은 이 기기에 자동으로 저장됩니다.</p>
+        </article>
       </div>
     </section>
 
@@ -192,9 +728,23 @@
         <div class="character-picker-grid" id="characterPickerGrid"></div>
       </article>
     </section>
+
+    <section class="adventure-restart-modal" id="adventureRestartModal" hidden>
+      <button class="modal-scrim" id="adventureRestartScrim" type="button" aria-label="취소"></button>
+      <article class="adventure-restart-panel" role="dialog" aria-modal="true" aria-labelledby="adventureRestartTitle" aria-describedby="adventureRestartDescription">
+        <span>NEW ADVENTURE</span>
+        <h2 id="adventureRestartTitle">새 여정을 시작할까요?</h2>
+        <p id="adventureRestartDescription">현재 진행 중인 모험은 삭제되며 되돌릴 수 없습니다.</p>
+        <div class="adventure-restart-actions">
+          <button class="ghost-button" id="adventureRestartCancelButton" type="button">취소</button>
+          <button class="adventure-restart-confirm" id="adventureRestartConfirmButton" type="button">새 여정</button>
+        </div>
+      </article>
+    </section>
   </main>
 
   <script src="./mobile-runtime.js"></script>
+  <script src="./adventure-save.js"></script>
   <script src="./app.js" defer></script>
 </body>
 </html>

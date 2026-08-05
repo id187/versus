@@ -129,6 +129,7 @@
       if (method === "GET" && path === "/api/state") return jsonResponse(store.state());
       if (method === "POST" && path === "/api/new") return jsonResponse(store.newBattle(payload));
       if (method === "POST" && path === "/api/adventure/new") return jsonResponse(store.newAdventure(payload));
+      if (method === "POST" && path === "/api/adventure/restore") return jsonResponse(store.restoreAdventure(payload));
       if (method === "POST" && path === "/api/adventure/choice") return jsonResponse(store.adventureChoice(payload));
       if (method === "POST" && path === "/api/action") return jsonResponse(store.chooseAction(payload));
       if (method === "POST" && path === "/api/pvp/join") return jsonResponse(await store.pvpJoin(payload));
