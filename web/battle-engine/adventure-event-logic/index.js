@@ -14,7 +14,9 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
   switch (effect.type) {
     case "forge_skill_power": {
       const action = randomActiveSkill(battle, fighter, { requiresPower: true });
-      const spent = spendMp(battle, fighter, mpCost || 20, "무기 벼리기");
+      const spent = mpCost > 0
+        ? spendMp(battle, fighter, mpCost, "무기 벼리기")
+        : { mpBefore: fighter.mp, mpAfter: fighter.mp, mpSpent: 0 };
       result = { ...result, ...spent, skill: applySkillModifier(fighter, adventure, action, "power", effect.skillPowerMultiplier || 1.2) };
       break;
     }
@@ -66,7 +68,7 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       result = { ...result, hp: loseHp(fighter, hpCost), removedPenalties: removePenaltyBundles(battle, adventure, Number(effect.removePenaltyCount || 1)) };
       break;
     case "mirror_retreat":
-      result = { ...result, heal: restoreHp(battle, fighter, Number(effect.restoreHpRate || 0.1), "거울 호수"), ambush: adjustAmbushIndex(adventure, Number(effect.ambushChanceStep || -1)) };
+      result = { ...result, heal: restoreHp(battle, fighter, Number(effect.restoreHpRate || 0.1), "달빛 호수"), ambush: adjustAmbushIndex(adventure, Number(effect.ambushChanceStep || -1)) };
       break;
     case "library_tactics":
       result.nextBattleEffect = addNextBattleEffect(adventure, {
@@ -184,11 +186,7 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       adventure.routeRerollCount = Number(adventure.routeRerollCount || 0) + Number(effect.routeRerollCount || 1);
       result.routeRerollCount = adventure.routeRerollCount;
       break;
-    case "crossroads_force_town":
-      adventure.forceTownNextRoute = Boolean(effect.forceTownNextRoute)
-        && Number(adventure.eventVisitCounts?.town || 0) < 2;
-      result.forceTownNextRoute = adventure.forceTownNextRoute;
-      result.forceTownUnavailable = Boolean(effect.forceTownNextRoute) && !adventure.forceTownNextRoute;
+    case "crossroads_hidden_gold":
       break;
     case "crossroads_skip_stage":
       result.hp = loseHp(fighter, hpCost);
@@ -346,23 +344,6 @@ function applyExtendedAdventureEventChoice({ battle, adventure, event, choice, h
       adventure.rewardSpecialization = specialization;
       result.rewardSpecialization = { ...specialization };
       result.battleCount = specialization.battlesRemaining;
-      break;
-    }
-    case "sealed_relic": {
-      const relic = {
-        kind: String(effect.relic || ""),
-        battlesRemaining: Math.max(1, Math.trunc(Number(effect.battleCount || 3))),
-        used: false,
-        hpThresholdRate: Number(effect.hpThresholdRate || 0.3),
-        restoreHpRate: Number(effect.restoreHpRate || 0.15),
-        mpThreshold: Math.max(0, Math.trunc(Number(effect.mpThreshold || 20))),
-        restoreMp: Math.max(0, Math.trunc(Number(effect.restoreMp || 15))),
-        rerollMissCount: Math.max(0, Math.trunc(Number(effect.rerollMissCount || 0))),
-      };
-      adventure.playerRelic = relic;
-      fighter.adventureRelic = { ...relic };
-      result.relic = { ...relic };
-      result.battleCount = relic.battlesRemaining;
       break;
     }
     default:

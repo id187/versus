@@ -62,13 +62,20 @@ function shadowAttack(battle, owner, soldier) {
   if (!battle.accuracyCheck(choice)) return;
   const damage = battle.calculateAttackDamage(choice);
   const before = target.hp;
+  const canReorderLogs = typeof battle.logs.splice === "function";
+  const nestedLogStart = canReorderLogs ? battle.logs.length : 0;
   const result = battle.damage(target, damage, `그림자 병사 ${soldier.number}의 ${action.name} 공격 피해`, true, owner);
+  const nestedLogs = canReorderLogs ? battle.logs.splice(nestedLogStart) : [];
   if (result.amount > 0) {
     battle.logs.push(`${target.name}에게 ${result.amount}의 피해. ${target.name} HP ${before} -> ${result.afterHp}`);
+    if (nestedLogs.length) battle.logs.push(...nestedLogs);
     if (result.revived) require("./index").printDefeatEscape(battle, target, result.revived);
     if (!battle.gameOver) battle.applyOnHitEffects(choice, result.amount);
   }
-  else battle.logs.push(`${target.name}에게 향한 공격 피해가 모두 대신 처리되었다.`);
+  else {
+    battle.logs.push(`${target.name}에게 향한 공격 피해가 모두 대신 처리되었다.`);
+    if (nestedLogs.length) battle.logs.push(...nestedLogs);
+  }
 }
 
 module.exports = {
@@ -185,8 +192,12 @@ module.exports = {
     const amount = randomIntInclusive(battle, 1, 10);
     battle.logs.push(`${PASSIVE} 피해가 ${amount}로 결정되었다.`);
     const before = fighter.hp;
+    const canReorderLogs = typeof battle.logs.splice === "function";
+    const nestedLogStart = canReorderLogs ? battle.logs.length : 0;
     const result = battle.damage(fighter, amount, PASSIVE, false, null);
+    const nestedLogs = canReorderLogs ? battle.logs.splice(nestedLogStart) : [];
     battle.logs.push(`${fighter.name}은 ${PASSIVE}으로 ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${result.afterHp}`);
+    if (nestedLogs.length) battle.logs.push(...nestedLogs);
     if (result.revived) require("./index").printDefeatEscape(battle, fighter, result.revived);
     if (result.amount > 0 && !battle.gameOver) battle.restoreMp(fighter, result.amount, PASSIVE);
   },

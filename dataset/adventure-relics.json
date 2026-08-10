@@ -1,0 +1,355 @@
+[
+  {
+    "id": "obsidian_whetstone",
+    "name": "흑요석 숫돌",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "DMG",
+    "description": "모든 공격 행동의 위력이 15% 증가한다.",
+    "effects": [{ "type": "attack_power_multiplier", "multiplier": 1.15 }]
+  },
+  {
+    "id": "crimson_catalyst",
+    "name": "붉은 촉매",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "ACTIVE",
+    "description": "공격 액티브 스킬의 위력이 20% 증가한다.",
+    "effects": [{ "type": "active_attack_power_multiplier", "multiplier": 1.2 }]
+  },
+  {
+    "id": "falcon_lens",
+    "name": "매의 렌즈",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "ACC",
+    "description": "공격 액티브 스킬의 명중률이 10 증가한다.",
+    "effects": [{ "type": "active_accuracy_bonus", "amount": 10 }]
+  },
+  {
+    "id": "quicksilver_feather",
+    "name": "수은 깃털",
+    "pool": "shop",
+    "price": 45,
+    "symbol": "PRI",
+    "description": "모든 액티브 스킬의 우선도가 1 증가한다.",
+    "effects": [{ "type": "active_priority_bonus", "amount": 1 }]
+  },
+  {
+    "id": "broken_crown",
+    "name": "부서진 왕관",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "50%",
+    "description": "HP가 50% 이하일 때 공격 행동의 위력이 30% 증가한다.",
+    "effects": [{ "type": "low_hp_attack_multiplier", "threshold": 0.5, "multiplier": 1.3 }]
+  },
+  {
+    "id": "last_casing",
+    "name": "마지막 탄피",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "20MP",
+    "description": "MP가 20 이하일 때 공격 행동의 위력이 30% 증가한다.",
+    "effects": [{ "type": "low_mp_attack_multiplier", "threshold": 20, "multiplier": 1.3 }]
+  },
+  {
+    "id": "flawless_scabbard",
+    "name": "무결의 검집",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "FULL",
+    "description": "HP가 최대일 때 공격 행동의 위력이 35% 증가한다.",
+    "effects": [{ "type": "full_hp_attack_multiplier", "multiplier": 1.35 }]
+  },
+  {
+    "id": "loaded_coin",
+    "name": "납을 먹인 동전",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "20%",
+    "description": "공격 행동이 20% 확률로 위력 1.5배가 된다.",
+    "effects": [{ "type": "attack_proc_multiplier", "chance": 0.2, "multiplier": 1.5 }]
+  },
+  {
+    "id": "duelist_ribbon",
+    "name": "결투가의 리본",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "DEF→ATK",
+    "description": "직전 행동이 방어였다면 공격 행동의 위력이 25% 증가한다.",
+    "effects": [{ "type": "after_defense_attack_multiplier", "multiplier": 1.25 }]
+  },
+  {
+    "id": "echo_nail",
+    "name": "메아리 못",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "REPEAT",
+    "description": "직전 행동과 같은 공격 행동을 사용하면 위력이 20% 증가한다.",
+    "effects": [{ "type": "repeat_attack_multiplier", "multiplier": 1.2 }]
+  },
+  {
+    "id": "silver_buckle",
+    "name": "은빛 버클",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "GUARD",
+    "description": "일반 방어의 공격 피해 경감률이 10%p 증가한다.",
+    "effects": [{ "type": "common_defense_bonus", "amount": 0.1 }]
+  },
+  {
+    "id": "iron_ward",
+    "name": "철갑 부적",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "-10%",
+    "description": "받는 공격 피해가 10% 감소한다.",
+    "effects": [{ "type": "incoming_attack_multiplier", "multiplier": 0.9 }]
+  },
+  {
+    "id": "ember_ring",
+    "name": "불씨 반지",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "HP+2",
+    "description": "매 턴 종료 시 HP를 2 회복한다.",
+    "effects": [{ "type": "turn_end_hp_recovery", "amount": 2 }]
+  },
+  {
+    "id": "apothecary_cord",
+    "name": "약제사의 끈",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "REST",
+    "description": "전투 종료 시 HP 자동 회복량이 최대 HP의 10%만큼 증가한다.",
+    "effects": [{ "type": "post_battle_heal_bonus", "amount": 0.1 }]
+  },
+  {
+    "id": "last_cloak",
+    "name": "최후의 망토",
+    "pool": "shop",
+    "price": 40,
+    "symbol": "30%",
+    "description": "HP가 30% 이하일 때 받는 공격 피해가 25% 감소한다.",
+    "effects": [{ "type": "low_hp_incoming_multiplier", "threshold": 0.3, "multiplier": 0.75 }]
+  },
+  {
+    "id": "healing_loop",
+    "name": "회복의 고리",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "HEAL",
+    "description": "받는 HP 회복량이 20% 증가한다.",
+    "effects": [{ "type": "healing_multiplier", "multiplier": 1.2 }]
+  },
+  {
+    "id": "guardian_bell",
+    "name": "수호자의 방울",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "DEF+MP",
+    "description": "일반 방어로 공격 피해를 감소시킬 때마다 MP를 5 회복한다.",
+    "effects": [{ "type": "defense_mp_restore", "amount": 5 }]
+  },
+  {
+    "id": "blue_conduit",
+    "name": "푸른 도관",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "MP-10%",
+    "description": "모든 액티브 스킬의 MP 소모량이 10% 감소한다.",
+    "effects": [{ "type": "active_cost_multiplier", "multiplier": 0.9 }]
+  },
+  {
+    "id": "silent_incense",
+    "name": "고요의 향로",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "MP+5",
+    "description": "명상의 MP 회복량이 5 증가한다.",
+    "effects": [{ "type": "meditation_bonus", "amount": 5 }]
+  },
+  {
+    "id": "mana_battery",
+    "name": "마력 축전지",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "START",
+    "description": "전투 시작 시 MP를 10 회복한다.",
+    "effects": [{ "type": "battle_start_mp_recovery", "amount": 10 }]
+  },
+  {
+    "id": "frugal_quill",
+    "name": "절약의 깃펜",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "≤20MP",
+    "description": "기본 MP 소모량이 20 이하인 액티브 스킬의 MP 소모량이 3 감소한다.",
+    "effects": [{ "type": "low_cost_flat_reduction", "threshold": 20, "amount": 3 }]
+  },
+  {
+    "id": "overload_coil",
+    "name": "과부하 코일",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "OVER",
+    "description": "공격 액티브 스킬의 위력이 25% 증가하지만 모든 액티브 스킬의 MP 소모량이 20% 증가한다.",
+    "effects": [
+      { "type": "active_attack_power_multiplier", "multiplier": 1.25 },
+      { "type": "active_cost_multiplier", "multiplier": 1.2 }
+    ]
+  },
+  {
+    "id": "prayer_beads",
+    "name": "기도 구슬",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "MEDITATE",
+    "description": "명상할 때마다 HP를 5 회복한다.",
+    "effects": [{ "type": "meditation_hp_recovery", "amount": 5 }]
+  },
+  {
+    "id": "small_pendulum",
+    "name": "작은 진자",
+    "pool": "shop",
+    "price": 35,
+    "symbol": "NEXT",
+    "description": "명상 다음에 사용하는 액티브 스킬의 MP 소모량이 10 감소한다.",
+    "effects": [{ "type": "after_meditation_cost_reduction", "amount": 10 }]
+  },
+  {
+    "id": "empty_vial",
+    "name": "빈 약병",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "0MP",
+    "description": "액티브 스킬 사용 후 MP가 0이 되면 MP를 8 회복한다.",
+    "effects": [{ "type": "zero_mp_recovery", "amount": 8 }]
+  },
+  {
+    "id": "gray_metronome",
+    "name": "잿빛 박자계",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "CHANGE",
+    "description": "직전 행동과 다른 공격 행동을 사용하면 위력이 15% 증가한다.",
+    "effects": [{ "type": "changed_action_attack_multiplier", "multiplier": 1.15 }]
+  },
+  {
+    "id": "tactical_rivet",
+    "name": "전술 못",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "ATK→DEF",
+    "description": "직전 행동이 공격이었다면 일반 방어의 공격 피해 경감률이 8%p 증가한다.",
+    "effects": [{ "type": "after_attack_defense_bonus", "amount": 0.08 }]
+  },
+  {
+    "id": "victory_coin",
+    "name": "승전 주화",
+    "pool": "shop",
+    "price": 25,
+    "symbol": "+5G",
+    "description": "전투에서 승리할 때마다 5G를 추가로 얻는다.",
+    "effects": [{ "type": "victory_gold_bonus", "amount": 5 }]
+  },
+  {
+    "id": "merchant_bell",
+    "name": "상인의 종",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "-5G",
+    "description": "이후 유물 상점의 유물 가격이 5G 감소한다.",
+    "effects": [{ "type": "shop_discount", "amount": 5 }]
+  },
+  {
+    "id": "pathfinder_boots",
+    "name": "길잡이 장화",
+    "pool": "shop",
+    "price": 30,
+    "symbol": "AMBUSH",
+    "description": "행선지에서 판정하는 기습 확률이 20%p 감소한다.",
+    "effects": [{ "type": "ambush_chance_reduction", "amount": 20 }]
+  },
+  {
+    "id": "reversal_gear",
+    "name": "역행의 톱니",
+    "pool": "event",
+    "symbol": "REVIVE",
+    "description": "모험당 한 번, HP가 0이 되면 최대 HP의 30%로 부활한 뒤 파괴된다.",
+    "effects": [{ "type": "revive_once", "hpRate": 0.3 }]
+  },
+  {
+    "id": "greed_key",
+    "name": "탐욕의 열쇠",
+    "pool": "event",
+    "symbol": "G",
+    "description": "행동 조건 검토 시 보유한 10G마다 공격 행동의 위력이 5% 증가한다. 최대 40%.",
+    "effects": [{ "type": "gold_attack_multiplier", "goldStep": 10, "bonusPerStep": 0.05, "maxBonus": 0.4 }]
+  },
+  {
+    "id": "relic_merchant_vip_pass",
+    "name": "유물상의 VIP 증표",
+    "pool": "event",
+    "symbol": "VIP",
+    "description": "이후 유물 상점의 유물 가격이 10G 감소한다.",
+    "effects": [{ "type": "shop_discount", "amount": 10 }]
+  },
+  {
+    "id": "cursed_die",
+    "name": "저주받은 주사위",
+    "pool": "event",
+    "symbol": "10%",
+    "description": "공격 행동이 10% 확률로 위력 2.5배가 된다.",
+    "effects": [{ "type": "attack_proc_multiplier", "chance": 0.1, "multiplier": 2.5 }]
+  },
+  {
+    "id": "bloodstained_chalice",
+    "name": "피에 젖은 성배",
+    "pool": "event",
+    "symbol": "DRAIN",
+    "description": "공격 행동으로 실제 준 피해의 20%만큼 HP를 회복한다.",
+    "effects": [{ "type": "attack_lifesteal", "rate": 0.2 }]
+  },
+  {
+    "id": "broken_knight_spur",
+    "name": "부러진 기사의 박차",
+    "pool": "event",
+    "symbol": "COUNTER",
+    "description": "일반 방어로 공격 피해를 감소시키면 다음 공격 행동의 위력이 40% 증가한다.",
+    "effects": [{ "type": "defense_counter_attack_multiplier", "multiplier": 1.4 }]
+  },
+  {
+    "id": "beast_heart",
+    "name": "마수의 심장",
+    "pool": "event",
+    "symbol": "30MP",
+    "description": "MP 소모량 30 이상의 액티브 스킬을 사용할 때마다 사용 후 MP를 10 회복한다.",
+    "effects": [{ "type": "high_cost_mp_recovery", "threshold": 30, "amount": 10 }]
+  },
+  {
+    "id": "forbidden_bookmark",
+    "name": "금서의 책갈피",
+    "pool": "event",
+    "symbol": "MEDITATE",
+    "description": "명상 다음에 사용하는 액티브 스킬의 MP 소모량이 15 감소한다.",
+    "effects": [{ "type": "after_meditation_cost_reduction", "amount": 15 }]
+  },
+  {
+    "id": "glass_eye",
+    "name": "유리 눈",
+    "pool": "event",
+    "symbol": "RETRY",
+    "description": "자신의 공격이 빗나가거나 회피될 때마다 명중과 회피를 한 번 다시 판정한다.",
+    "effects": [{ "type": "accuracy_reroll" }]
+  },
+  {
+    "id": "demonic_mirror_shard",
+    "name": "마경의 파편",
+    "pool": "event",
+    "symbol": "SAME",
+    "description": "상대와 같은 번호의 행동을 선택하면 자신의 공격 행동 위력이 40% 증가한다.",
+    "effects": [{ "type": "matching_action_attack_multiplier", "multiplier": 1.4 }]
+  }
+]

@@ -88,15 +88,17 @@
         loadJson("/dataset/characters.json"),
         loadJson("/dataset/adventure-monsters.json"),
         loadJson("/dataset/adventure-events.json"),
+        loadJson("/dataset/adventure-relics.json"),
         loadJson("/dataset/adventure-dialogue.json"),
         loadJson("/dataset/inscriptions.json"),
         loadJson("/dataset/firebase.json", true),
-      ]).then(([characters, adventureMonsters, adventureEvents, adventureDialogue, inscriptions, firebaseConfig]) => {
+      ]).then(([characters, adventureMonsters, adventureEvents, adventureRelics, adventureDialogue, inscriptions, firebaseConfig]) => {
         const { MobileGameStore } = loadModule("/battle-engine/mobile-game-store.js");
         const store = new MobileGameStore({
           characters,
           adventureMonsters,
           adventureEvents,
+          adventureRelics,
           adventureDialogue,
           inscriptions,
           firebaseConfig,

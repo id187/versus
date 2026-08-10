@@ -1,6 +1,6 @@
 {
   "prologue": {
-    "illustration": "/assets/adventure/scenes/palettia-prologue.png",
+    "illustration": "",
     "common": [
       {
         "text": "수많은 색채가 공존하면서도 대립하던 대륙, 팔레티아."
@@ -1030,6 +1030,240 @@
             }
           ]
         }
+      }
+    },
+    "demon_pawn_opawn": {
+      "pre_battle": [
+        {
+          "speaker": "monster",
+          "text": "선봉은 내가 맡는다. 네 진군은 여기서 끝이다."
+        }
+      ],
+      "post_battle": {
+        "common": [
+          {
+            "speaker": "monster",
+            "text": "선봉을 맡고도 길을 열지 못하다니… 아직 멀었군."
+          }
+        ],
+        "characters": {
+          "toxiche": [{ "speaker": "player", "text": "남이 정한 진군로만 따른다면, 끝에 남는 게 네 뜻인지는 알 수 없지." }],
+          "cryne": [{ "speaker": "player", "text": "선봉에서 명령을 따랐다는 이유로 그 뒤의 희생이 가벼워지진 않는다." }],
+          "plote": [{ "speaker": "player", "text": "앞만 보고 짓밟은 자리에는 네가 지킬 꽃 한 송이도 남지 않겠네." }],
+          "ashend": [{ "speaker": "player", "text": "마왕이 내려 준 지위는 결국 그자의 사슬이다. 나도 그 사슬을 끊고 왔다." }],
+          "karossy": [{ "speaker": "player", "text": "앞만 보고 달리니까 옆에서 오는 번개를 못 봤지!" }],
+          "nihfle": [{ "speaker": "player", "text": "선봉의 가치는 승급이 아니라 뒤따르는 이들을 지키는 데 있다." }],
+          "serpen": [{ "speaker": "player", "text": "곧게 나아가던 흐름도 때가 오면 기운다. 네 진군은 여기까지야." }],
+          "melague": [{ "speaker": "player", "text": "네 계급이 얼마나 오르든 관심 없어. 내 저주를 풀 길에서 비켜." }],
+          "balef": [{ "speaker": "player", "text": "힘과 지위를 위해 그자를 섬긴다면, 그란과 다를 것도 없군." }],
+          "revesha": [{ "speaker": "player", "text": "네가 바라던 승급이 구원인지 유혹인지, 패배가 먼저 답했군." }],
+          "gandrick": [{ "speaker": "player", "text": "내 총 안의 놈도 더 큰 힘을 약속하지. 그래서 더 믿지 않아." }],
+          "charinel": [{ "speaker": "player", "text": "더 높은 지위까지 탐냈다면 빼앗기지 말았어야지. 이제 내 차례야." }],
+          "dethus": [{ "speaker": "player", "text": "끝없이 전진해도 쓰러진 자리에는 공백만 남는다. 그 공백은 다시 흐름으로 돌아간다." }],
+          "zeroven": [{ "speaker": "player", "text": "전공을 찾았나? 네가 지나온 자리의 원혼들은 다른 기록을 들려주는데." }],
+          "neroko": [{ "speaker": "player", "text": "승급하기도 전에 쓰러졌네. 목숨도 한 개뿐이었고." }],
+          "happyrin": [{ "speaker": "player", "text": "승진 압박과 패배가 만났을 때의 반응이라… 아주 좋은 관찰 기록이야!" }],
+          "librang": [{ "speaker": "player", "text": "선봉의 책무와 명령은 감형 사유가 아니다. 판결을 집행했다." }],
+          "dracle": [{ "speaker": "player", "text": "강해지는 건 함께 지킬 게 있을 때 의미가 있어. 넌 주인만 봤잖아." }],
+          "saqua": [{ "speaker": "player", "text": "앞으로만 향하던 흐름이 여기서 막혔다. 그것도 네가 고른 운명이다." }],
+          "queenas": [{ "speaker": "player", "text": "지위는 상관이 내려 주는 이름이 아니다. 군세를 굴복시켜 증명하는 것이다." }],
+          "jitrom": [{ "speaker": "player", "text": "계급이 바뀌면 답을 찾을 줄 알았어? 난 지금 모습으로 계속 갈 거야." }],
+          "fimit": [{ "speaker": "player", "text": "유능한 선봉을 연기했네. 하지만 패배한 장면에서 막을 내릴 시간이야." }],
+          "emento": [{ "speaker": "player", "text": "승급하겠다는 꿈도 결국 마왕의 꿈을 떠받치는 장면이었을 뿐이야." }],
+          "necoulomb": [{ "speaker": "player", "text": "승급도 못 받고 목숨부터 선불로 냈냐? 장사 진짜 못하네." }],
+          "xerox": [{ "speaker": "player", "text": "정면의 목표만 바라보다 여기서 궤도가 끊겼네. 가능성은 하나가 아니었어." }]
+        }
+      }
+    },
+    "demon_rook_chatrang": {
+      "pre_battle": [
+        {
+          "speaker": "monster",
+          "text": "좋아, 어디까지 버티나 한 번 부숴 보자!"
+        }
+      ],
+      "post_battle": {
+        "common": [
+          {
+            "speaker": "monster",
+            "text": "아직 멀쩡한 게 남았는데… 벌써 끝이라고?"
+          }
+        ],
+        "characters": {
+          "toxiche": [{ "speaker": "player", "text": "그저 부수고 싶다는 욕망도 네 선택이야. 남이 시켰다는 말로 숨기진 마." }],
+          "cryne": [{ "speaker": "player", "text": "파괴가 즐거웠다면 그 뒤에 남은 희생까지 네 죄로 짊어져라." }],
+          "plote": [{ "speaker": "player", "text": "네가 재미로 부순 자리에서는 꽃이 다시 피지 못해. 여기서 멈춰." }],
+          "ashend": [{ "speaker": "player", "text": "그 힘을 휘두르는 즐거움에 취하면 누구를 위해 싸웠는지도 잊게 된다." }],
+          "karossy": [{ "speaker": "player", "text": "부수는 게 그렇게 좋으면 번개에 맞는 것도 재미있겠네!" }],
+          "nihfle": [{ "speaker": "player", "text": "강한 주먹은 길을 짓밟으라고 있는 게 아니다. 지킬 곳이 없다면 그 힘은 흉기일 뿐이다." }],
+          "serpen": [{ "speaker": "player", "text": "부서진 것은 언젠가 돌아오지만, 네 파괴는 순환조차 남기지 않는구나." }],
+          "melague": [{ "speaker": "player", "text": "세상을 부수는 게 즐겁다고? 난 그 망가진 세상에서도 살려고 여기까지 왔어." }],
+          "balef": [{ "speaker": "player", "text": "이유도 없이 휘두른 주먹이 얼마나 많은 것을 앗아가는지, 마지막까지 모르겠군." }],
+          "revesha": [{ "speaker": "player", "text": "파괴 뒤에 구원도 종말도 없었어. 네게 남은 건 텅 빈 충동뿐이야." }],
+          "gandrick": [{ "speaker": "player", "text": "내 총 속 악마가 널 꽤 마음에 들어 하네. 그래서 더 빨리 쓰러뜨려야겠어." }],
+          "charinel": [{ "speaker": "player", "text": "그 건틀릿도 힘도 아깝네. 제대로 쓸 줄 아는 내가 가져야겠어." }],
+          "dethus": [{ "speaker": "player", "text": "다시 채워질 틈도 남기지 않는 파괴는 고갈이 아니라 단절이다." }],
+          "zeroven": [{ "speaker": "player", "text": "네가 부술 때마다 늘어난 목소리들이 이제 네 패배가 즐겁다는군." }],
+          "neroko": [{ "speaker": "player", "text": "망가뜨리는 것밖에 못 하면 금방 질리지 않아? 난 목숨 아홉 개로도 더 재미있게 노는데." }],
+          "happyrin": [{ "speaker": "player", "text": "순수한 파괴 충동이 패배 직전까지 유지된다… 뇌를 열어 보면 원인이 나오려나?" }],
+          "librang": [{ "speaker": "player", "text": "쾌락을 위해 저지른 파괴에는 참작할 사유가 없다. 판결을 집행했다." }],
+          "dracle": [{ "speaker": "player", "text": "힘은 함께할 누군가를 지킬 때 더 강해져. 넌 부술 것만 찾았잖아." }],
+          "saqua": [{ "speaker": "player", "text": "부수기만 하던 흐름은 결국 자신이 무너질 자리로 닿았다." }],
+          "queenas": [{ "speaker": "player", "text": "통제되지 않는 파괴는 군세가 아니라 재해다. 재해는 정복자가 잠재우는 법이지." }],
+          "jitrom": [{ "speaker": "player", "text": "그 큰 주먹으로 전부 부순다고 네가 왜 태어났는지 알 수 있는 건 아니야." }],
+          "fimit": [{ "speaker": "player", "text": "파괴만을 즐기는 역할은 단순해서 좋았겠네. 결말도 단순하게 끝내 줄게." }],
+          "emento": [{ "speaker": "player", "text": "모든 것을 부수겠다는 욕망도 끝에 가면 부술 것조차 잃고 무너져." }],
+          "necoulomb": [{ "speaker": "player", "text": "부순 값은 하나도 안 내고 쓰러지겠다고? 수리비라도 두고 가." }],
+          "xerox": [{ "speaker": "player", "text": "부수는 방향만 고르다 보니 피할 궤도는 읽지 못했네." }]
+        }
+      }
+    },
+    "demon_knight_kaighton": {
+      "pre_battle": [
+        {
+          "speaker": "monster",
+          "text": "주군의 뜻을 위해 그대를 막되, 그 용기만은 존중하겠다."
+        }
+      ],
+      "post_battle": {
+        "common": [
+          {
+            "speaker": "monster",
+            "text": "훌륭한 승부였다… 그대의 승리를 인정하지."
+          }
+        ],
+        "characters": {
+          "toxiche": [{ "speaker": "player", "text": "적을 존중할 줄 아는 네가 왜 타인의 선택을 빼앗는 주군을 따르는지는 이해할 수 없군." }],
+          "cryne": [{ "speaker": "player", "text": "명예롭게 싸웠다고 해서 모노크렘을 위해 저지른 죄까지 명예로워지는 건 아니다." }],
+          "plote": [{ "speaker": "player", "text": "꽃을 짓밟지 않는 기사라면, 먼저 꽃을 없애려는 주군에게 검을 돌렸어야 해." }],
+          "ashend": [{ "speaker": "player", "text": "충성은 스스로 고른 길이지. 나 역시 주군을 버리는 쪽을 골랐다." }],
+          "karossy": [{ "speaker": "player", "text": "예의 바르게 싸워 줘서 고마워! 그래도 잘못된 편이면 번개는 맞아야지!" }],
+          "nihfle": [{ "speaker": "player", "text": "그대의 예는 진실했지만, 지킬 이를 잘못 골랐다. 창을 든 자라면 그 책임도 져야 한다." }],
+          "serpen": [{ "speaker": "player", "text": "고결한 뜻도 거대한 그릇된 흐름을 따르면 함께 가라앉는다." }],
+          "melague": [{ "speaker": "player", "text": "날 존중한다면 내가 살고 싶은 세상까지 존중해. 네 주군은 그걸 빼앗았어." }],
+          "balef": [{ "speaker": "player", "text": "기사도를 입에 올릴 자격은 있다. 하지만 세 문파를 무너뜨린 자의 길을 지킨 죄는 남는다." }],
+          "revesha": [{ "speaker": "player", "text": "적을 존중하는 마음이 계시라면, 그 마음이 섬기는 이를 의심하라고 말했을 텐데." }],
+          "gandrick": [{ "speaker": "player", "text": "명예로운 결투라… 내 총 속 악마는 그런 걸 비웃지만, 난 네 태도만큼은 기억하지." }],
+          "charinel": [{ "speaker": "player", "text": "예의 바른 패배네. 네 갑옷과 흑마도 승자의 전리품으로 넘겨." }],
+          "dethus": [{ "speaker": "player", "text": "존중은 상대의 존재를 채우지만, 네 주군의 뜻은 모든 차이를 비운다. 함께 설 수 없는 흐름이다." }],
+          "zeroven": [{ "speaker": "player", "text": "원혼들이 네 예법은 인정해도 네 주군까지 용서하진 않겠대." }],
+          "neroko": [{ "speaker": "player", "text": "멋있는 기사였어! 다음 목숨에서도 만나면 이번엔 우리 편 해." }],
+          "happyrin": [{ "speaker": "player", "text": "충성과 기사도가 충돌해도 자세가 흐트러지지 않는다… 해부하면 신념의 위치가 보일까?" }],
+          "librang": [{ "speaker": "player", "text": "예우는 참작하겠다. 그러나 그릇된 대의를 지킨 죄에 대한 판결은 바뀌지 않는다." }],
+          "dracle": [{ "speaker": "player", "text": "상대를 존중할 줄 안다면 함께 달린 네 말의 뜻도 들어 봐. 정말 그 주군을 따르고 싶대?" }],
+          "saqua": [{ "speaker": "player", "text": "예를 다한 검도 선택한 흐름의 끝에서는 패배를 받아들여야 한다." }],
+          "queenas": [{ "speaker": "player", "text": "훌륭한 기사다. 그렇기에 더욱 아깝군. 섬길 왕을 잘못 골랐다." }],
+          "jitrom": [{ "speaker": "player", "text": "네가 기사인 건 알겠어. 하지만 주군의 명령이 없으면 네가 누군지도 말할 수 있어?" }],
+          "fimit": [{ "speaker": "player", "text": "완벽한 기사를 연기한 게 아니라 정말 그렇게 믿었네. 그래서 더 안타까워." }],
+          "emento": [{ "speaker": "player", "text": "고결한 기사가 잘못된 왕을 따른다는 이야기도 수없이 끝났어. 결말은 늘 쓰라렸지." }],
+          "necoulomb": [{ "speaker": "player", "text": "예의는 마음에 드는데, 패배했으면 말 먹이값이랑 갑옷 수리비는 누가 내냐?" }],
+          "xerox": [{ "speaker": "player", "text": "정정당당한 궤도였어. 하지만 주군을 향한 충성이 마지막 가능성을 막았네." }]
+        }
+      }
+    },
+    "demon_bishop_eveque": {
+      "pre_battle": [
+        {
+          "speaker": "monster",
+          "text": "길을 잃으셨군요. 더 멀어지기 전에 제가 바로잡아 드리겠습니다."
+        }
+      ],
+      "post_battle": {
+        "common": [
+          {
+            "speaker": "monster",
+            "text": "제가 잘못 읽은 길이라니… 이 판결은 받아들이겠습니다."
+          }
+        ],
+        "characters": {
+          "toxiche": [{ "speaker": "player", "text": "정답을 정해 두고 타인의 선택을 틀렸다고 부르는 건 네 판단이지 진리가 아니야." }],
+          "cryne": [{ "speaker": "player", "text": "교정이라는 이름으로 강요한 명령도 죄다. 나는 그 책임에서 도망치지 않겠다." }],
+          "plote": [{ "speaker": "player", "text": "꽃은 네가 정한 모양대로만 피지 않아. 제멋대로 피어나도 살아 있는 꽃이야." }],
+          "ashend": [{ "speaker": "player", "text": "주군이 가리킨 길만 옳다고 믿는 순간 그 길은 사슬이 된다. 나는 이미 끊어 냈다." }],
+          "karossy": [{ "speaker": "player", "text": "길이 비뚤었다고? 번개도 원래 지그재그로 가는걸! 그래도 잘만 도착했지!" }],
+          "nihfle": [{ "speaker": "player", "text": "지킬 이들의 선택을 짓밟는 교리는 올바른 길이 아니다. 그 길은 내 창이 막겠다." }],
+          "serpen": [{ "speaker": "player", "text": "달도 흐름도 하나의 선에 갇히지 않는다. 네가 세운 길은 스스로 끊어졌구나." }],
+          "melague": [{ "speaker": "player", "text": "남들이 정한 올바른 삶 때문에 평생 갇혀 있었어. 네 교정까지 받아 줄 생각은 없어." }],
+          "balef": [{ "speaker": "player", "text": "정도를 말하면서 세 문파를 무너뜨린 자를 섬기다니, 네 판결부터 바로잡아야겠군." }],
+          "revesha": [{ "speaker": "player", "text": "구원으로 향하는 길이 하나뿐이라 단정한 순간, 그 믿음은 계시가 아니라 독선이 된다." }],
+          "gandrick": [{ "speaker": "player", "text": "내 총 속 악마도 늘 자기 길이 옳다고 속삭이지. 그래서 네 말도 곧이듣지 않아." }],
+          "charinel": [{ "speaker": "player", "text": "패배한 쪽이 정답을 가르치려 들다니 우습네. 네 성역도 이제 내 전리품이야." }],
+          "dethus": [{ "speaker": "player", "text": "모든 흐름을 하나로 교정하면 끝에 남는 것은 질서가 아니라 텅 빈 단절뿐이다." }],
+          "zeroven": [{ "speaker": "player", "text": "네가 틀렸다고 잘라 낸 이들의 목소리가 들린다. 이번 판결은 그들이 내렸어." }],
+          "neroko": [{ "speaker": "player", "text": "고양이는 정해진 길로만 안 다녀. 네가 못 찾는 길로 가도 결국 먼저 도착하거든!" }],
+          "happyrin": [{ "speaker": "player", "text": "타인의 선택을 전부 교정하려는 강박이라… 뇌의 어느 부위가 그렇게 굳었는지 궁금해!" }],
+          "librang": [{ "speaker": "player", "text": "판결은 대의와 사실 위에 세우는 것이다. 주군의 뜻을 근거로 삼은 네 교정은 기각한다." }],
+          "dracle": [{ "speaker": "player", "text": "이 녀석이 갈 길까지 네가 정할 셈이었어? 우리는 우리가 고른 하늘로 갈 거야." }],
+          "saqua": [{ "speaker": "player", "text": "정해진 흐름은 네가 억지로 교정해 만드는 것이 아니다. 네 패배도 이미 그 길에 있었다." }],
+          "queenas": [{ "speaker": "player", "text": "타인의 길을 정할 권리는 승자가 증명하는 것이다. 패배한 네 판결은 효력이 없군." }],
+          "jitrom": [{ "speaker": "player", "text": "나는 아직 내가 무엇인지 찾는 중이야. 네가 정한 답 속에 들어갈 생각은 없어." }],
+          "fimit": [{ "speaker": "player", "text": "완벽한 정답을 연기했지만 결국 대본이 틀렸네. 이제 네 배역은 여기서 끝이야." }],
+          "emento": [{ "speaker": "player", "text": "모두를 하나의 정답으로 이끌겠다는 꿈도 수없이 봤어. 늘 꿈꾼 자부터 길을 잃었지." }],
+          "necoulomb": [{ "speaker": "player", "text": "돈도 안 내고 남의 인생을 멋대로 재단해? 그런 상담은 사양할게." }],
+          "xerox": [{ "speaker": "player", "text": "가능성은 하나의 선으로 수렴하지 않아. 네가 지운 갈림길이 네 패배를 만들었네." }]
+        }
+      }
+    }
+  },
+  "mirror_battle": {
+    "pre_battle": {
+      "common": [{ "speaker": "monster", "text": "......" }],
+      "characters": {
+        "toxiche": [{ "speaker": "player", "text": "내가 누구인지는 남이 비춘 모습으로 정하지 않아." }],
+        "cryne": [{ "speaker": "player", "text": "모습은 베껴도 내가 짊어진 죄와 선택까지 대신할 수는 없다." }],
+        "plote": [{ "speaker": "player", "text": "나랑 똑같이 생겼어도 네 불꽃에는 피우고 싶은 꽃이 없잖아." }],
+        "ashend": [{ "speaker": "player", "text": "내 모습을 빌려도 어느 쪽으로 검을 돌릴지는 네가 정하지 못한다." }],
+        "karossy": [{ "speaker": "player", "text": "우와, 똑같이 생겼네! 그럼 어느 쪽 번개가 더 센지 보면 되겠다!" }],
+        "nihfle": [{ "speaker": "player", "text": "내 창과 모습을 훔친 것뿐이다. 지켜야 할 것까지 같지는 않다." }],
+        "serpen": [{ "speaker": "player", "text": "거울에 비친 달은 닮았어도 스스로 차오르지는 못한다." }],
+        "melague": [{ "speaker": "player", "text": "내 얼굴로 서 있지 마. 네 안에는 내가 견딘 저주도 희망도 없으니까." }],
+        "balef": [{ "speaker": "player", "text": "세 문파의 원한은 모양만 따라 한다고 네 것이 되지 않는다." }],
+        "revesha": [{ "speaker": "player", "text": "이 모습이 계시인지 기만인지, 쓰러뜨린 뒤 직접 판단하겠다." }],
+        "gandrick": [{ "speaker": "player", "text": "내 총까지 베꼈나. 안에 든 녀석이 어느 쪽 방아쇠를 고를지는 두고 보자고." }],
+        "charinel": [{ "speaker": "player", "text": "감히 내 마법까지 훔쳐? 모조리 되찾고 네 술식까지 가져가 주겠어." }],
+        "dethus": [{ "speaker": "player", "text": "나를 베껴 채운 자리는 결국 비게 된다. 그 흐름을 지금 증명하지." }],
+        "zeroven": [{ "speaker": "player", "text": "겉모습은 같아도 네 뒤에서는 아무 목소리도 들리지 않아. 빈 포탄이군." }],
+        "neroko": [{ "speaker": "player", "text": "얼굴은 똑같아도 목숨이 아홉 개일까? 하나씩 세어 보면 알겠네!" }],
+        "happyrin": [{ "speaker": "player", "text": "완벽한 복제 표본이라니! 어느 쪽을 열어 봐야 차이가 나올까?" }],
+        "librang": [{ "speaker": "player", "text": "같은 형상을 취해도 죄와 대의는 복제되지 않는다. 집행하겠다." }],
+        "dracle": [{ "speaker": "player", "text": "내 모습은 따라 해도 이 녀석과 함께한 시간까지 흉내 낼 수는 없어." }],
+        "saqua": [{ "speaker": "player", "text": "같은 모습의 두 길이 만났군. 어느 흐름이 이어질지는 화살이 정할 것이다." }],
+        "queenas": [{ "speaker": "player", "text": "내 모습을 한 가짜 왕이라. 왕좌 하나에 둘이 설 수 없다는 건 알겠지?" }],
+        "jitrom": [{ "speaker": "player", "text": "나와 같은 모습이라면 네가 무엇인지 답해 봐. 못 한다면 부수고 확인하겠어." }],
+        "fimit": [{ "speaker": "player", "text": "나보다 더 나 같은 모조품이라니. 어느 쪽이 진짜인지 나도 궁금해졌어." }],
+        "emento": [{ "speaker": "player", "text": "자기 자신을 이기면 완성된다는 꿈도 많이 봤어. 결말은 직접 기록하지." }],
+        "necoulomb": [{ "speaker": "player", "text": "내 얼굴로 서 있으면 빚까지 대신 갚아 줄 건가? 아니면 당장 비켜." }],
+        "xerox": [{ "speaker": "player", "text": "같은 관측값이 둘이라도 같은 미래가 되진 않아. 궤도를 갈라 보자고." }]
+      }
+    },
+    "post_battle": {
+      "common": [{ "speaker": "monster", "text": "......" }],
+      "characters": {
+        "toxiche": [{ "speaker": "player", "text": "역시 내 길은 거울이 아니라 내가 정하는 거야." }],
+        "cryne": [{ "speaker": "player", "text": "쓰러뜨린 건 그림자 하나뿐이다. 내가 갚아야 할 죄는 그대로 남아 있다." }],
+        "plote": [{ "speaker": "player", "text": "내 불은 닮았어도 네가 피운 건 아무것도 없었어." }],
+        "ashend": [{ "speaker": "player", "text": "같은 검이라도 이번에는 내가 고른 방향이 이겼다." }],
+        "karossy": [{ "speaker": "player", "text": "내가 이겼네! 역시 하늘도 사람도 거울처럼 똑같을 순 없다니까." }],
+        "nihfle": [{ "speaker": "player", "text": "기술은 같았지만 임무가 달랐다. 승패를 가른 건 그것이다." }],
+        "serpen": [{ "speaker": "player", "text": "물결이 멎으니 거짓 달도 사라지는구나. 이제 진짜 달빛으로 가자." }],
+        "melague": [{ "speaker": "player", "text": "내 모습이 사라져도 나는 남았네. 저주도 희망도 아직 내 것이야." }],
+        "balef": [{ "speaker": "player", "text": "네가 베낀 건 권법의 껍데기뿐이다. 죽은 동문들의 뜻은 내 주먹에 남는다." }],
+        "revesha": [{ "speaker": "player", "text": "가짜 나를 꺾었다고 답을 얻은 건 아니다. 그래도 의심할 이유는 하나 줄었군." }],
+        "gandrick": [{ "speaker": "player", "text": "봤지? 같은 총을 쥐어도 마지막 방아쇠는 우리가 당긴다." }],
+        "charinel": [{ "speaker": "player", "text": "내 마법을 흉내 낸 대가는 네 술식 전부로 받아 가겠어." }],
+        "dethus": [{ "speaker": "player", "text": "거짓으로 채운 형상은 고갈됐다. 이제 막혔던 흐름이 다시 이어진다." }],
+        "zeroven": [{ "speaker": "player", "text": "끝까지 아무 목소리도 없군. 빈 껍데기는 포성 한 번이면 충분해." }],
+        "neroko": [{ "speaker": "player", "text": "한 목숨도 없었네. 내 남은 목숨을 맡기기엔 너무 허술한 가짜야." }],
+        "happyrin": [{ "speaker": "player", "text": "부서져 버렸네! 그래도 복제 실패 원인은 조각에서 찾을 수 있겠지!" }],
+        "librang": [{ "speaker": "player", "text": "형상만으로 같은 존재라 주장한 기만을 파기했다. 판결은 끝났다." }],
+        "dracle": [{ "speaker": "player", "text": "우리가 이겼어. 함께한 시간은 거울로 만들 수 있는 힘이 아니니까." }],
+        "saqua": [{ "speaker": "player", "text": "닮은 두 흐름 가운데 내 길이 남았다. 다음 화살도 이 길을 따르겠지." }],
+        "queenas": [{ "speaker": "player", "text": "가짜 왕은 깨졌고 진짜만 남았다. 당연한 결말이군." }],
+        "jitrom": [{ "speaker": "player", "text": "내 모습을 하고도 답은 없었어. 그럼 다음 단서를 찾으러 간다." }],
+        "fimit": [{ "speaker": "player", "text": "이긴 쪽이 진짜라는 보장은 없지. 그래도 끝까지 남은 배역은 나야." }],
+        "emento": [{ "speaker": "player", "text": "자신의 복제에 삼켜지는 결말은 피했네. 이 꿈의 마지막 장은 그걸로 충분해." }],
+        "necoulomb": [{ "speaker": "player", "text": "내 빚은 못 가져가면서 기술만 베꼈네. 손해 보는 장사였어." }],
+        "xerox": [{ "speaker": "player", "text": "같은 출발점에서도 궤도는 갈라졌어. 미래가 하나뿐이라는 관측은 틀렸네." }]
       }
     }
   },

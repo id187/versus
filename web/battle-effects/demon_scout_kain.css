@@ -1,0 +1,37 @@
+.battle-fx-kain-shadow-ambush {
+  inset: 10%;
+  background: url("../assets/monsters/demon_scout_kain/effects/shadow-ambush.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1) drop-shadow(0 0 3px rgba(220, 220, 220, 0.42));
+  animation: kain-shadow-hit 430ms steps(6, end) forwards;
+}
+
+.battle-fx-kain-shadow-stealth {
+  inset: 20% 12% 2%;
+  background: url("../assets/monsters/demon_scout_kain/effects/shadow-stealth.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1);
+  animation: kain-shadow-stealth 520ms steps(6, end) forwards;
+}
+
+#playerAvatar .battle-fx-kain-shadow-ambush,
+#aiAvatar .battle-fx-kain-shadow-stealth {
+  scale: -1 1;
+}
+
+.avatar-stage.is-fx-kain-shadow-ambush .battle-sprite,
+.avatar-stage.is-fx-kain-shadow-ambush svg {
+  animation: combatant-hit-shake 360ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes kain-shadow-hit {
+  0% { opacity: 0; transform: scale(0.52); }
+  24%, 58% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
+@keyframes kain-shadow-stealth {
+  0% { opacity: 0; transform: translateY(5%) scale(0.78); }
+  28%, 62% { opacity: 0.88; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-4%) scale(1.02); }
+}

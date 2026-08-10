@@ -31,12 +31,12 @@
       },
       {
         "id": "ignore",
-        "symbol": "HP",
+        "symbol": "PASS",
         "title": "마석을 방치한다",
-        "description": "HP가 10 감소한다.",
+        "description": "마석에 손대지 않고 안전하게 떠난다.",
         "effect": {
           "type": "ignore",
-          "hpLoss": 10
+          "hpLoss": 0
         }
       }
     ]
@@ -59,14 +59,13 @@
       },
       {
         "id": "buy_potato",
-        "symbol": "MP",
+        "symbol": "10G",
         "title": "감자를 산다",
-        "description": "MP를 15 소모한다. 매 턴 종료 시 HP를 2 회복한다.",
+        "description": "10G를 지불한다. 매 턴 종료 시 HP를 2 회복한다.",
         "effect": {
           "type": "potato_buy",
-          "mpCost": 15,
-          "turnEndHpRecovery": 2,
-          "requiresFullMpCost": true
+          "goldCost": 10,
+          "turnEndHpRecovery": 2
         }
       },
       {
@@ -185,8 +184,8 @@
     "description": "따뜻한 불빛과 음식 냄새가 여행자를 맞이한다.",
     "bgm": "village",
     "routeManaged": true,
-    "repeatable": true,
-    "maxVisits": 2,
+    "repeatable": false,
+    "maxVisits": 1,
     "choices": [
       {
         "id": "mushroom_stew",
@@ -229,24 +228,23 @@
     "choices": [
       {
         "id": "sharpen_weapon",
-        "symbol": "PWR",
+        "symbol": "20G",
         "title": "무기를 벼린다",
-        "description": "MP를 30 소모한다. 무작위 액티브 스킬 하나의 위력이 40% 증가한다.",
+        "description": "20G를 지불한다. 무작위 액티브 스킬 하나의 위력이 40% 증가한다.",
         "effect": {
           "type": "forge_skill_power",
-          "mpCost": 30,
-          "requiresFullMpCost": true,
+          "goldCost": 20,
           "skillPowerMultiplier": 1.4
         }
       },
       {
         "id": "reinforce_armor",
-        "symbol": "DEF",
+        "symbol": "20G",
         "title": "갑옷을 보강한다",
-        "description": "최대 HP의 20%만큼 HP를 소모한다. DEF가 35% 강화된다.",
+        "description": "20G를 지불한다. DEF가 35% 강화된다.",
         "effect": {
           "type": "forge_defense",
-          "hpCostRate": 0.2,
+          "goldCost": 20,
           "statId": "def",
           "statBonus": 0.35
         }
@@ -254,7 +252,7 @@
       {
         "id": "dismantle_relic",
         "symbol": "-45%",
-        "title": "유물을 분해한다",
+        "title": "무기를 경량화한다",
         "description": "무작위 공격 액티브 스킬 하나의 MP 소모량이 45% 감소하지만 위력이 25% 감소한다.",
         "effect": {
           "type": "forge_skill_tradeoff",
@@ -310,15 +308,15 @@
   },
   {
     "id": "mirror_lake",
-    "name": "거울 호수",
-    "description": "바람 한 점 없는 수면이 현재의 모습을 그대로 비춘다.",
+    "name": "달빛 호수",
+    "description": "푸른 달빛이 내려앉은 호수에서 서늘한 마력이 피어오른다.",
     "bgm": "event",
     "implemented": true,
     "choices": [
       {
         "id": "face_reflection",
         "symbol": "LOW",
-        "title": "자신을 마주한다",
+        "title": "달빛을 따라 걷는다",
         "description": "ATK·DEF·SPD 중 현재 배율이 가장 낮은 능력치가 20% 강화된다.",
         "effect": {
           "type": "mirror_raise_lowest_stat",
@@ -328,7 +326,7 @@
       {
         "id": "break_reflection",
         "symbol": "CLR",
-        "title": "수면을 깨뜨린다",
+        "title": "호수 깊이 잠수한다",
         "description": "최대 HP의 15%만큼 HP를 소모한다. 영구적인 약화 효과 하나를 제거한다.",
         "effect": {
           "type": "mirror_remove_penalty",
@@ -339,7 +337,7 @@
       {
         "id": "leave_reflection",
         "symbol": "↓",
-        "title": "시선을 돌린다",
+        "title": "물을 마시고 떠난다",
         "description": "HP를 최대 HP의 10%만큼 회복하고 기습 확률 단계가 1 감소한다.",
         "effect": {
           "type": "mirror_retreat",
@@ -622,12 +620,12 @@
       },
       {
         "id": "follow_old_sign",
-        "symbol": "TOWN",
-        "title": "낡은 표지판을 따른다",
-        "description": "마을 방문 횟수가 남아 있다면 다음 행선지에 반드시 마을이 등장한다.",
+        "symbol": "10G",
+        "title": "표지판 뒤를 살핀다",
+        "description": "표지판 뒤에 숨겨진 10G를 챙긴다.",
         "effect": {
-          "type": "crossroads_force_town",
-          "forceTownNextRoute": true
+          "type": "crossroads_hidden_gold",
+          "goldReward": 10
         }
       },
       {
@@ -973,9 +971,10 @@
         "id": "accept_attack_contract",
         "symbol": "ATK×2",
         "title": "공격 의뢰를 맡는다",
-        "description": "다음 세 번의 전투 보상에서 ATK는 20%, DEF·SPD는 5% 강화된다.",
+        "description": "선금 10G를 받는다. 다음 세 번의 전투 보상에서 ATK는 20%, DEF·SPD는 5% 강화된다.",
         "effect": {
           "type": "reward_specialization",
+          "goldReward": 10,
           "preferredStat": "atk",
           "preferredBonus": 0.2,
           "otherBonus": 0.05,
@@ -986,9 +985,10 @@
         "id": "accept_defense_contract",
         "symbol": "DEF×2",
         "title": "방어 의뢰를 맡는다",
-        "description": "다음 세 번의 전투 보상에서 DEF는 20%, ATK·SPD는 5% 강화된다.",
+        "description": "선금 10G를 받는다. 다음 세 번의 전투 보상에서 DEF는 20%, ATK·SPD는 5% 강화된다.",
         "effect": {
           "type": "reward_specialization",
+          "goldReward": 10,
           "preferredStat": "def",
           "preferredBonus": 0.2,
           "otherBonus": 0.05,
@@ -999,9 +999,10 @@
         "id": "accept_speed_contract",
         "symbol": "SPD×2",
         "title": "신속 의뢰를 맡는다",
-        "description": "다음 세 번의 전투 보상에서 SPD는 20%, ATK·DEF는 5% 강화된다.",
+        "description": "선금 10G를 받는다. 다음 세 번의 전투 보상에서 SPD는 20%, ATK·DEF는 5% 강화된다.",
         "effect": {
           "type": "reward_specialization",
+          "goldReward": 10,
           "preferredStat": "spd",
           "preferredBonus": 0.2,
           "otherBonus": 0.05,
@@ -1011,50 +1012,509 @@
     ]
   },
   {
-    "id": "cracked_reliquary",
-    "name": "금이 간 유물함",
-    "description": "금이 간 세 유물이 주인의 위기에 단 한 번씩 반응한다.",
+    "id": "relic_shop",
+    "name": "유물 상점",
+    "description": "낡은 천막 안에 기묘한 유물들이 진열되어 있다.",
+    "symbol": "SHOP",
+    "bgm": "event",
+    "implemented": true,
+    "repeatable": true,
+    "relicShop": true,
+    "choices": []
+  },
+  {
+    "id": "backward_clock",
+    "name": "거꾸로 가는 시계",
+    "description": "폐허의 시계가 심장 박동과 반대 방향으로 움직인다.",
+    "symbol": "CLOCK",
     "bgm": "event",
     "implemented": true,
     "choices": [
-      {
-        "id": "take_red_amber",
-        "symbol": "30%",
-        "title": "붉은 호박을 집는다",
-        "description": "다음 세 번의 전투에서 처음 HP가 30% 이하가 되면 최대 HP의 15%를 회복한다.",
-        "effect": {
-          "type": "sealed_relic",
-          "relic": "red_amber",
-          "battleCount": 3,
-          "hpThresholdRate": 0.3,
-          "restoreHpRate": 0.15
-        }
-      },
-      {
-        "id": "take_blue_amber",
-        "symbol": "20MP",
-        "title": "푸른 호박을 집는다",
-        "description": "다음 세 번의 전투에서 액티브 스킬 사용 후 처음 MP가 20 이하가 되면 MP를 15 회복한다.",
-        "effect": {
-          "type": "sealed_relic",
-          "relic": "blue_amber",
-          "battleCount": 3,
-          "mpThreshold": 20,
-          "restoreMp": 15
-        }
-      },
-      {
-        "id": "take_glass_eye",
-        "symbol": "RETRY",
-        "title": "유리 눈을 집는다",
-        "description": "다음 세 번의 전투에서 자신의 공격이 처음 빗나가거나 회피되면 판정을 한 번 다시 한다.",
-        "effect": {
-          "type": "sealed_relic",
-          "relic": "glass_eye",
-          "battleCount": 3,
-          "rerollMissCount": 1
-        }
-      }
+      { "id": "take_reversal_gear", "symbol": "REVIVE", "title": "톱니를 떼어낸다", "description": "최대 HP의 30%만큼 HP를 소모하고 역행의 톱니를 얻는다.", "effect": { "type": "grant_relic", "relicId": "reversal_gear", "hpCostRate": 0.3, "requiresFullHpCost": true } },
+      { "id": "loot_clock_coins", "symbol": "15G", "title": "시계 밑의 동전을 챙긴다", "description": "15G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 15 } },
+      { "id": "rest_to_ticks", "symbol": "MP+30", "title": "초침 소리를 들으며 쉰다", "description": "MP를 30 회복한다.", "effect": { "type": "event_restore", "restoreMp": 30 } }
+    ]
+  },
+  {
+    "id": "sealed_treasury",
+    "name": "봉인된 금고",
+    "description": "열린 금고 안에서 금화와 검은 열쇠가 서로를 밀어내고 있다.",
+    "symbol": "VAULT",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_greed_key", "symbol": "KEY", "title": "열쇠만 챙긴다", "description": "금화를 포기하고 탐욕의 열쇠를 얻는다.", "effect": { "type": "grant_relic", "relicId": "greed_key" } },
+      { "id": "empty_treasury", "symbol": "40G", "title": "금화를 쓸어 담는다", "description": "40G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 40 } },
+      { "id": "break_inner_safe", "symbol": "70G", "title": "안쪽 금고를 부순다", "description": "최대 HP의 20%만큼 HP를 소모하고 70G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.2, "requiresFullHpCost": true, "goldReward": 70 } }
+    ]
+  },
+  {
+    "id": "attacked_relic_merchant",
+    "name": "습격당한 유물상",
+    "description": "유물 상인이 도적들에게 습격당하고 있다.",
+    "symbol": "HELP",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "save_relic_merchant", "symbol": "VIP", "title": "상인을 구한다", "description": "최대 HP의 25%만큼 HP를 소모하고 유물상의 VIP 증표를 얻는다.", "effect": { "type": "grant_relic", "relicId": "relic_merchant_vip_pass", "hpCostRate": 0.25, "requiresFullHpCost": true } },
+      { "id": "abandon_relic_merchant", "symbol": "20G", "title": "상인을 내버려둔다", "description": "도적들이 떠난 뒤 바닥에 떨어진 20G를 챙긴다.", "effect": { "type": "event_gold", "goldReward": 20 } },
+      { "id": "take_merchant_ledger", "symbol": "REROLL", "title": "흩어진 장부를 챙긴다", "description": "다음 유물 상점에서 상품을 한 번 무료로 다시 뽑을 수 있다.", "effect": { "type": "grant_relic_ledger" } }
+    ]
+  },
+  {
+    "id": "cursed_gaming_table",
+    "name": "저주받은 도박판",
+    "description": "주인 없는 도박판 위에서 뼈로 만든 주사위가 홀로 구른다.",
+    "symbol": "DICE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_cursed_die", "symbol": "10%", "title": "주사위를 쥔다", "description": "최대 HP의 20%만큼 HP를 소모하고 저주받은 주사위를 얻는다.", "effect": { "type": "grant_relic", "relicId": "cursed_die", "hpCostRate": 0.2, "requiresFullHpCost": true } },
+      { "id": "sweep_gambling_table", "symbol": "20G", "title": "판돈을 챙긴다", "description": "최대 HP의 10%만큼 HP를 소모하고 20G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.1, "requiresFullHpCost": true, "goldReward": 20 } },
+      { "id": "leave_cursed_table", "symbol": "LEAVE", "title": "손대지 않고 떠난다", "description": "아무 일도 일어나지 않는다.", "effect": { "type": "leave" } }
+    ]
+  },
+  {
+    "id": "blood_chalice_altar",
+    "name": "피로 찬 성배",
+    "description": "검은 제단 위의 성배가 아직 따뜻한 피로 가득하다.",
+    "symbol": "CHALICE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "drink_blood_chalice", "symbol": "DRAIN", "title": "성배를 마신다", "description": "최대 HP의 35%만큼 HP를 소모하고 피에 젖은 성배를 얻는다.", "effect": { "type": "grant_relic", "relicId": "bloodstained_chalice", "hpCostRate": 0.35, "requiresFullHpCost": true } },
+      { "id": "wash_with_chalice", "symbol": "FULL", "title": "피를 씻어낸다", "description": "HP를 전부 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 1 } },
+      { "id": "offer_gold_to_chalice", "symbol": "15G", "title": "제단의 금화를 챙긴다", "description": "15G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 15 } }
+    ]
+  },
+  {
+    "id": "knight_memorial",
+    "name": "이름 없는 기사비",
+    "description": "부러진 박차 하나가 이름 없는 기사비 앞에 놓여 있다.",
+    "symbol": "SPUR",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_knight_spur", "symbol": "COUNTER", "title": "기사의 맹세를 잇는다", "description": "부러진 기사의 박차를 얻는다.", "effect": { "type": "grant_relic", "relicId": "broken_knight_spur" } },
+      { "id": "loot_knight_memorial", "symbol": "20G", "title": "공물을 챙긴다", "description": "20G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 20 } },
+      { "id": "train_at_memorial", "symbol": "DEF+15%", "title": "기사비 앞에서 자세를 가다듬는다", "description": "DEF가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "def", "statBonus": 0.15 } }
+    ]
+  },
+  {
+    "id": "beast_heart_shrine",
+    "name": "고동치는 마수 사당",
+    "description": "제단 위의 마수 심장이 주인 없이도 마력을 순환시킨다.",
+    "symbol": "HEART",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_beast_heart", "symbol": "30MP", "title": "심장을 적출한다", "description": "최대 HP의 20%만큼 HP를 소모하고 마수의 심장을 얻는다.", "effect": { "type": "grant_relic", "relicId": "beast_heart", "hpCostRate": 0.2, "requiresFullHpCost": true } },
+      { "id": "absorb_beast_mana", "symbol": "MP+40", "title": "흘러나온 마력을 흡수한다", "description": "MP를 40 회복한다.", "effect": { "type": "event_restore", "restoreMp": 40 } },
+      { "id": "sell_beast_tissue", "symbol": "20G", "title": "마수의 조직을 챙긴다", "description": "20G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 20 } }
+    ]
+  },
+  {
+    "id": "forbidden_archive",
+    "name": "금서 보관실",
+    "description": "찢어진 금서 사이로 유독 온전한 책갈피가 보인다.",
+    "symbol": "BOOKMARK",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_forbidden_bookmark", "symbol": "MEDITATE", "title": "책갈피를 뽑는다", "description": "금서의 책갈피를 얻는다.", "effect": { "type": "grant_relic", "relicId": "forbidden_bookmark" } },
+      { "id": "sell_forbidden_pages", "symbol": "20G", "title": "금서의 낱장을 챙긴다", "description": "20G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 20 } },
+      { "id": "read_archive_notes", "symbol": "MP+30", "title": "남겨진 주석을 읽는다", "description": "MP를 30 회복한다.", "effect": { "type": "event_restore", "restoreMp": 30 } }
+    ]
+  },
+  {
+    "id": "watching_statue",
+    "name": "주시하는 석상",
+    "description": "유리로 된 한쪽 눈이 움직임을 끈질기게 따라온다.",
+    "symbol": "EYE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_glass_eye", "symbol": "RETRY", "title": "유리 눈을 뽑는다", "description": "유리 눈을 얻는다.", "effect": { "type": "grant_relic", "relicId": "glass_eye" } },
+      { "id": "search_statue_base", "symbol": "15G", "title": "석상 받침을 뒤진다", "description": "15G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 15 } },
+      { "id": "avoid_statue_gaze", "symbol": "SPD+15%", "title": "시선을 피해 움직인다", "description": "SPD가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "spd", "statBonus": 0.15 } }
+    ]
+  },
+  {
+    "id": "shattered_mirror",
+    "name": "마경의 잔해",
+    "description": "부서진 마경의 조각 하나가 아직 상대의 움직임을 비춘다.",
+    "symbol": "MIRROR",
+    "bgm": "deep",
+    "implemented": true,
+    "minStage": 13,
+    "choices": [
+      { "id": "take_demonic_mirror_shard", "symbol": "SAME", "title": "가장 선명한 파편을 집는다", "description": "최대 HP의 20%만큼 HP를 소모하고 마경의 파편을 얻는다.", "effect": { "type": "grant_relic", "relicId": "demonic_mirror_shard", "hpCostRate": 0.2, "requiresFullHpCost": true } },
+      { "id": "sell_mirror_fragments", "symbol": "25G", "title": "파편을 모아 챙긴다", "description": "25G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 25 } },
+      { "id": "rest_beside_mirror", "symbol": "HP+30%", "title": "잔해 곁에서 숨을 고른다", "description": "최대 HP의 30%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.3 } }
+    ]
+  },
+  {
+    "id": "toll_bridge",
+    "name": "통행세 다리",
+    "description": "무너질 듯한 다리를 용병들이 점거하고 통행세를 요구한다.",
+    "symbol": "TOLL",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "pay_bridge_toll", "symbol": "10G", "title": "통행세를 낸다", "description": "10G를 지불하고 HP와 MP를 10 회복한다.", "effect": { "type": "event_restore", "goldCost": 10, "restoreHp": 10, "restoreMp": 10 } },
+      { "id": "collect_bridge_debt", "symbol": "15G", "title": "밀린 품삯을 대신 받아낸다", "description": "최대 HP의 15%만큼 HP를 소모하고 15G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.15, "requiresFullHpCost": true, "goldReward": 15 } },
+      { "id": "leave_toll_bridge", "symbol": "LEAVE", "title": "다른 길로 돌아간다", "description": "아무 일도 일어나지 않는다.", "effect": { "type": "leave" } }
+    ]
+  },
+  {
+    "id": "buried_purse",
+    "name": "묻힌 돈주머니",
+    "description": "길 가장자리의 흙더미에서 금화가 반짝인다.",
+    "symbol": "PURSE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_visible_coins", "symbol": "10G", "title": "보이는 금화만 챙긴다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } },
+      { "id": "dig_whole_purse", "symbol": "30G", "title": "돈주머니를 파낸다", "description": "최대 HP의 20%만큼 HP를 소모하고 30G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.2, "requiresFullHpCost": true, "goldReward": 30 } },
+      { "id": "mark_buried_purse", "symbol": "SPD+10%", "title": "위치만 표시하고 떠난다", "description": "SPD가 10% 강화된다.", "effect": { "type": "event_stat", "statId": "spd", "statBonus": 0.1 } }
+    ]
+  },
+  {
+    "id": "traveling_auction",
+    "name": "떠돌이 경매",
+    "description": "얼굴을 가린 경매인이 출처 불명의 물건을 팔고 있다.",
+    "symbol": "BID",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "bid_for_blade", "symbol": "20G", "title": "검은 칼날에 입찰한다", "description": "20G를 지불하고 ATK가 20% 강화된다.", "effect": { "type": "event_stat", "goldCost": 20, "statId": "atk", "statBonus": 0.2 } },
+      { "id": "bid_for_armor", "symbol": "20G", "title": "낡은 갑주에 입찰한다", "description": "20G를 지불하고 DEF가 20% 강화된다.", "effect": { "type": "event_stat", "goldCost": 20, "statId": "def", "statBonus": 0.2 } },
+      { "id": "work_for_auction", "symbol": "10G", "title": "짐을 옮겨준다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "broken_caravan",
+    "name": "부서진 대상단 마차",
+    "description": "습격당한 마차에 물자와 금화가 조금 남아 있다.",
+    "symbol": "CART",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_caravan_gold", "symbol": "20G", "title": "금고를 연다", "description": "20G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 20 } },
+      { "id": "use_caravan_medicine", "symbol": "HP+30%", "title": "남은 약품을 사용한다", "description": "최대 HP의 30%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.3 } },
+      { "id": "drink_caravan_tonic", "symbol": "MP+30", "title": "마력 강장제를 마신다", "description": "MP를 30 회복한다.", "effect": { "type": "event_restore", "restoreMp": 30 } }
+    ]
+  },
+  {
+    "id": "golden_fountain",
+    "name": "황금빛 분수",
+    "description": "금화를 던질 때마다 물빛이 다른 색으로 변한다.",
+    "symbol": "FOUNTAIN",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "offer_gold_for_attack", "symbol": "15G", "title": "붉은 물빛을 고른다", "description": "15G를 지불하고 ATK가 15% 강화된다.", "effect": { "type": "event_stat", "goldCost": 15, "statId": "atk", "statBonus": 0.15 } },
+      { "id": "offer_gold_for_defense", "symbol": "15G", "title": "푸른 물빛을 고른다", "description": "15G를 지불하고 DEF가 15% 강화된다.", "effect": { "type": "event_stat", "goldCost": 15, "statId": "def", "statBonus": 0.15 } },
+      { "id": "scoop_fountain_coins", "symbol": "10G", "title": "바닥의 금화를 건진다", "description": "최대 HP의 10%만큼 HP를 소모하고 10G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.1, "requiresFullHpCost": true, "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "mercenary_wager",
+    "name": "용병의 내기",
+    "description": "지나가던 용병이 다음 싸움의 생존 여부에 금화를 건다.",
+    "symbol": "WAGER",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_small_wager", "symbol": "10G", "title": "작은 판돈을 받는다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } },
+      { "id": "trade_blood_for_wager", "symbol": "40G", "title": "피로 신뢰를 증명한다", "description": "최대 HP의 25%만큼 HP를 소모하고 40G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.25, "requiresFullHpCost": true, "goldReward": 40 } },
+      { "id": "train_with_mercenary", "symbol": "ATK+10%", "title": "돈 대신 대련한다", "description": "ATK가 10% 강화된다.", "effect": { "type": "event_stat", "statId": "atk", "statBonus": 0.1 } }
+    ]
+  },
+  {
+    "id": "tax_collector_camp",
+    "name": "버려진 징세소",
+    "description": "주인 없는 장부와 압수품 상자가 그대로 남아 있다.",
+    "symbol": "TAX",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_tax_coins", "symbol": "20G", "title": "세금을 회수한다", "description": "20G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 20 } },
+      { "id": "wear_confiscated_armor", "symbol": "DEF+15%", "title": "압수된 갑옷을 입는다", "description": "DEF가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "def", "statBonus": 0.15 } },
+      { "id": "burn_tax_records", "symbol": "HP+20%", "title": "장부를 태워 몸을 녹인다", "description": "최대 HP의 20%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.2 } }
+    ]
+  },
+  {
+    "id": "roadside_alchemist",
+    "name": "노변의 연금술사",
+    "description": "연금술사가 금화와 체력을 서로 바꿀 수 있다고 장담한다.",
+    "symbol": "ALCHEMY",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "buy_alchemist_heal", "symbol": "10G", "title": "회복액을 산다", "description": "10G를 지불하고 최대 HP의 40%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "goldCost": 10, "restoreHpRate": 0.4 } },
+      { "id": "buy_alchemist_mana", "symbol": "10G", "title": "마력액을 산다", "description": "10G를 지불하고 MP를 40 회복한다.", "effect": { "type": "event_restore", "goldCost": 10, "restoreMp": 40 } },
+      { "id": "sell_blood_to_alchemist", "symbol": "15G", "title": "피를 판다", "description": "최대 HP의 20%만큼 HP를 소모하고 15G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.2, "requiresFullHpCost": true, "goldReward": 15 } }
+    ]
+  },
+  {
+    "id": "roadside_shrine",
+    "name": "길가의 작은 사당",
+    "description": "누군가 놓고 간 향과 물이 아직 남아 있다.",
+    "symbol": "SHRINE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "pray_for_health", "symbol": "HP+25%", "title": "건강을 빈다", "description": "최대 HP의 25%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.25 } },
+      { "id": "pray_for_mana", "symbol": "MP+25", "title": "마력을 빈다", "description": "MP를 25 회복한다.", "effect": { "type": "event_restore", "restoreMp": 25 } },
+      { "id": "take_shrine_offering", "symbol": "10G", "title": "공물을 가져간다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "frozen_spring",
+    "name": "얼어붙은 샘",
+    "description": "얇은 얼음 아래에서 푸른 마력이 흐른다.",
+    "symbol": "ICE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "break_frozen_spring", "symbol": "MP+40", "title": "얼음을 깨고 마신다", "description": "최대 HP의 10%만큼 HP를 소모하고 MP를 40 회복한다.", "effect": { "type": "event_restore", "hpCostRate": 0.1, "requiresFullHpCost": true, "restoreMp": 40 } },
+      { "id": "wash_in_frozen_spring", "symbol": "DEF+10%", "title": "찬물로 몸을 씻는다", "description": "DEF가 10% 강화된다.", "effect": { "type": "event_stat", "statId": "def", "statBonus": 0.1 } },
+      { "id": "sell_spring_ice", "symbol": "10G", "title": "마력 얼음을 떼어낸다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "warm_bathhouse",
+    "name": "폐허의 온천",
+    "description": "무너진 건물 안에서 온천수만은 계속 솟아난다.",
+    "symbol": "BATH",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "rest_in_bathhouse", "symbol": "HP+50%", "title": "푹 몸을 담근다", "description": "최대 HP의 50%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.5 } },
+      { "id": "meditate_in_bathhouse", "symbol": "MP+30", "title": "증기 속에서 명상한다", "description": "MP를 30 회복한다.", "effect": { "type": "event_restore", "restoreMp": 30 } },
+      { "id": "search_bathhouse", "symbol": "10G", "title": "탈의실을 뒤진다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "mana_well",
+    "name": "메마른 마력 우물",
+    "description": "바닥 깊은 곳에 마지막 마력 웅덩이가 남아 있다.",
+    "symbol": "WELL",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "drink_mana_well", "symbol": "MP+50", "title": "마력을 마신다", "description": "MP를 50 회복한다.", "effect": { "type": "event_restore", "restoreMp": 50 } },
+      { "id": "climb_into_mana_well", "symbol": "ATK+15%", "title": "우물 안으로 내려간다", "description": "최대 HP의 15%만큼 HP를 소모하고 ATK가 15% 강화된다.", "effect": { "type": "event_stat", "hpCostRate": 0.15, "requiresFullHpCost": true, "statId": "atk", "statBonus": 0.15 } },
+      { "id": "take_well_coins", "symbol": "10G", "title": "바닥의 동전을 건진다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "moon_herb_patch",
+    "name": "달빛 약초밭",
+    "description": "밤에만 잎을 펼치는 약초들이 길을 뒤덮고 있다.",
+    "symbol": "HERB",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "eat_moon_herb", "symbol": "HP+20%", "title": "약초를 씹는다", "description": "최대 HP의 20%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.2 } },
+      { "id": "brew_moon_herb", "symbol": "MP+20", "title": "약초를 달인다", "description": "HP와 MP를 20 회복한다.", "effect": { "type": "event_restore", "restoreHp": 20, "restoreMp": 20 } },
+      { "id": "sell_moon_herb", "symbol": "15G", "title": "약초를 묶어 챙긴다", "description": "15G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 15 } }
+    ]
+  },
+  {
+    "id": "training_effigy",
+    "name": "움직이는 훈련 인형",
+    "description": "낡은 인형이 아직도 공격 자세를 흉내 낸다.",
+    "symbol": "DUMMY",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "strike_training_effigy", "symbol": "ATK+15%", "title": "정면으로 부순다", "description": "ATK가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "atk", "statBonus": 0.15 } },
+      { "id": "guard_training_effigy", "symbol": "DEF+15%", "title": "공격을 받아낸다", "description": "DEF가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "def", "statBonus": 0.15 } },
+      { "id": "dodge_training_effigy", "symbol": "SPD+15%", "title": "연속 공격을 피한다", "description": "SPD가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "spd", "statBonus": 0.15 } }
+    ]
+  },
+  {
+    "id": "howling_wind_tunnel",
+    "name": "울부짖는 바람굴",
+    "description": "좁은 굴 안에서 방향을 예측할 수 없는 바람이 몰아친다.",
+    "symbol": "WIND",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "run_through_wind", "symbol": "SPD+20%", "title": "바람을 뚫고 달린다", "description": "최대 HP의 15%만큼 HP를 소모하고 SPD가 20% 강화된다.", "effect": { "type": "event_stat", "hpCostRate": 0.15, "requiresFullHpCost": true, "statId": "spd", "statBonus": 0.2 } },
+      { "id": "brace_in_wind", "symbol": "DEF+10%", "title": "바람을 버틴다", "description": "DEF가 10% 강화된다.", "effect": { "type": "event_stat", "statId": "def", "statBonus": 0.1 } },
+      { "id": "collect_wind_crystal", "symbol": "10G", "title": "바람 결정을 챙긴다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "weight_gate",
+    "name": "무게를 재는 석문",
+    "description": "석문이 지나가는 자의 힘과 버팀과 속도를 재려 한다.",
+    "symbol": "GATE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "push_weight_gate", "symbol": "ATK+20%", "title": "문을 밀어낸다", "description": "최대 HP의 20%만큼 HP를 소모하고 ATK가 20% 강화된다.", "effect": { "type": "event_stat", "hpCostRate": 0.2, "requiresFullHpCost": true, "statId": "atk", "statBonus": 0.2 } },
+      { "id": "hold_weight_gate", "symbol": "DEF+20%", "title": "문을 떠받친다", "description": "최대 HP의 20%만큼 HP를 소모하고 DEF가 20% 강화된다.", "effect": { "type": "event_stat", "hpCostRate": 0.2, "requiresFullHpCost": true, "statId": "def", "statBonus": 0.2 } },
+      { "id": "slip_weight_gate", "symbol": "SPD+20%", "title": "틈 사이로 빠져나간다", "description": "최대 HP의 20%만큼 HP를 소모하고 SPD가 20% 강화된다.", "effect": { "type": "event_stat", "hpCostRate": 0.2, "requiresFullHpCost": true, "statId": "spd", "statBonus": 0.2 } }
+    ]
+  },
+  {
+    "id": "dueling_circle",
+    "name": "결투의 원",
+    "description": "바닥의 원 안에 서자 보이지 않는 상대의 압력이 느껴진다.",
+    "symbol": "DUEL",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "duel_with_strength", "symbol": "ATK+15%", "title": "힘으로 맞선다", "description": "ATK가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "atk", "statBonus": 0.15 } },
+      { "id": "duel_with_patience", "symbol": "DEF+15%", "title": "끝까지 버틴다", "description": "DEF가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "def", "statBonus": 0.15 } },
+      { "id": "bet_on_duel", "symbol": "15G", "title": "관중의 판돈을 챙긴다", "description": "15G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 15 } }
+    ]
+  },
+  {
+    "id": "broken_spell_circle",
+    "name": "망가진 마법진",
+    "description": "불완전한 마법진이 힘을 한 방향으로만 밀어낸다.",
+    "symbol": "RUNE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "stand_attack_rune", "symbol": "ATK+20%", "title": "공격 술식 위에 선다", "description": "MP를 20 소모하고 ATK가 20% 강화된다.", "effect": { "type": "event_stat", "mpCost": 20, "requiresFullMpCost": true, "statId": "atk", "statBonus": 0.2 } },
+      { "id": "stand_defense_rune", "symbol": "DEF+20%", "title": "방어 술식 위에 선다", "description": "MP를 20 소모하고 DEF가 20% 강화된다.", "effect": { "type": "event_stat", "mpCost": 20, "requiresFullMpCost": true, "statId": "def", "statBonus": 0.2 } },
+      { "id": "scrape_spell_gold", "symbol": "10G", "title": "금박 룬을 긁어낸다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "lonely_watchtower",
+    "name": "외딴 망루",
+    "description": "높은 망루에서 주변 행선지와 마왕군의 움직임이 한눈에 보인다.",
+    "symbol": "TOWER",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "map_from_watchtower", "symbol": "REROLL", "title": "주변 지형을 기록한다", "description": "행선지를 다시 뽑을 기회 1회를 얻는다.", "effect": { "type": "event_route", "routeRerollCount": 1 } },
+      { "id": "rest_in_watchtower", "symbol": "HP+20%", "title": "망루 안에서 쉰다", "description": "최대 HP의 20%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.2 } },
+      { "id": "loot_watchtower", "symbol": "10G", "title": "남은 보급품을 판다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "smuggler_tunnel",
+    "name": "밀수꾼의 지하도",
+    "description": "좁은 지하도가 다음 지역까지 이어지는 듯하다.",
+    "symbol": "TUNNEL",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "use_smuggler_shortcut", "symbol": "+1", "title": "지하도를 끝까지 탄다", "description": "최대 HP의 20%만큼 HP를 소모하고 스테이지를 하나 건너뛴다.", "effect": { "type": "event_route", "hpCostRate": 0.2, "requiresFullHpCost": true, "advanceStage": 1 } },
+      { "id": "search_smuggler_cache", "symbol": "20G", "title": "밀수품 보관함을 찾는다", "description": "20G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 20 } },
+      { "id": "rest_in_smuggler_tunnel", "symbol": "MP+20", "title": "입구에서 숨을 고른다", "description": "MP를 20 회복한다.", "effect": { "type": "event_restore", "restoreMp": 20 } }
+    ]
+  },
+  {
+    "id": "demon_tracks",
+    "name": "마왕군의 발자국",
+    "description": "진흙 위의 발자국이 여러 방향으로 갈라진다.",
+    "symbol": "TRACK",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "avoid_demon_tracks", "symbol": "0%", "title": "흔적을 피해 이동한다", "description": "다음 행선지의 기습 확률이 0%가 된다.", "effect": { "type": "event_route", "nextAmbushChance": 0 } },
+      { "id": "follow_demon_tracks", "symbol": "ATK+15%", "title": "흔적을 따라 훈련한다", "description": "ATK가 15% 강화된다.", "effect": { "type": "event_stat", "statId": "atk", "statBonus": 0.15 } },
+      { "id": "search_demon_tracks", "symbol": "10G", "title": "떨어진 군자금을 찾는다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "forked_milestone",
+    "name": "두 갈래 이정표",
+    "description": "서로 반대 방향을 가리키는 이정표 두 개가 겹쳐 서 있다.",
+    "symbol": "SIGN",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "redraw_at_milestone", "symbol": "REROLL", "title": "지도를 다시 펼친다", "description": "행선지를 다시 뽑을 기회 1회를 얻는다.", "effect": { "type": "event_route", "routeRerollCount": 1 } },
+      { "id": "train_at_milestone", "symbol": "SPD+10%", "title": "두 길을 오가며 정찰한다", "description": "SPD가 10% 강화된다.", "effect": { "type": "event_stat", "statId": "spd", "statBonus": 0.1 } },
+      { "id": "take_milestone_coins", "symbol": "10G", "title": "이정표 밑을 파본다", "description": "10G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 10 } }
+    ]
+  },
+  {
+    "id": "scout_camp",
+    "name": "정찰대의 빈 야영지",
+    "description": "급히 떠난 정찰대가 지도와 식량을 남겨두었다.",
+    "symbol": "SCOUT",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "take_scout_map", "symbol": "0%", "title": "정찰 지도를 챙긴다", "description": "다음 행선지의 기습 확률이 0%가 된다.", "effect": { "type": "event_route", "nextAmbushChance": 0 } },
+      { "id": "eat_scout_rations", "symbol": "HP+25%", "title": "식량을 먹는다", "description": "최대 HP의 25%만큼 HP를 회복한다.", "effect": { "type": "event_restore", "restoreHpRate": 0.25 } },
+      { "id": "sell_scout_tools", "symbol": "15G", "title": "정찰 도구를 챙긴다", "description": "15G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 15 } }
+    ]
+  },
+  {
+    "id": "executioners_block",
+    "name": "피 묻은 처형대",
+    "description": "처형대의 칼날이 힘을 바치면 더 큰 힘을 돌려주겠다고 속삭인다.",
+    "symbol": "AXE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "offer_blood_to_block", "symbol": "ATK+35%", "title": "피를 바친다", "description": "최대 HP의 40%만큼 HP를 소모하고 ATK가 35% 강화된다.", "effect": { "type": "event_stat", "hpCostRate": 0.4, "requiresFullHpCost": true, "statId": "atk", "statBonus": 0.35 } },
+      { "id": "break_executioners_axe", "symbol": "25G", "title": "칼날을 부순다", "description": "최대 HP의 20%만큼 HP를 소모하고 25G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.2, "requiresFullHpCost": true, "goldReward": 25 } },
+      { "id": "leave_executioners_block", "symbol": "LEAVE", "title": "속삭임을 무시한다", "description": "아무 일도 일어나지 않는다.", "effect": { "type": "leave" } }
+    ]
+  },
+  {
+    "id": "black_contract",
+    "name": "검은 계약서",
+    "description": "서명란만 비어 있는 계약서가 허공에 떠 있다.",
+    "symbol": "CONTRACT",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "sign_power_contract", "symbol": "ATK+30%", "title": "힘의 조항에 서명한다", "description": "MP를 40 소모하고 ATK가 30% 강화된다.", "effect": { "type": "event_stat", "mpCost": 40, "requiresFullMpCost": true, "statId": "atk", "statBonus": 0.3 } },
+      { "id": "sign_wealth_contract", "symbol": "40G", "title": "부의 조항에 서명한다", "description": "최대 HP의 35%만큼 HP를 소모하고 40G를 얻는다.", "effect": { "type": "event_gold", "hpCostRate": 0.35, "requiresFullHpCost": true, "goldReward": 40 } },
+      { "id": "burn_black_contract", "symbol": "MP+30", "title": "계약서를 태운다", "description": "MP를 30 회복한다.", "effect": { "type": "event_restore", "restoreMp": 30 } }
+    ]
+  },
+  {
+    "id": "unstable_portal",
+    "name": "불안정한 전이문",
+    "description": "전이문 너머로 먼 길과 보물과 상처가 동시에 비친다.",
+    "symbol": "PORTAL",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "jump_unstable_portal", "symbol": "+1", "title": "전이문에 뛰어든다", "description": "최대 HP의 30%만큼 HP를 소모하고 스테이지를 하나 건너뛴다.", "effect": { "type": "event_route", "hpCostRate": 0.3, "requiresFullHpCost": true, "advanceStage": 1 } },
+      { "id": "drain_unstable_portal", "symbol": "MP+50", "title": "전이문의 마력을 뽑는다", "description": "MP를 50 회복한다.", "effect": { "type": "event_restore", "restoreMp": 50 } },
+      { "id": "strip_unstable_portal", "symbol": "25G", "title": "테두리의 보석을 떼어낸다", "description": "25G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 25 } }
+    ]
+  },
+  {
+    "id": "gray_comet_crater",
+    "name": "잿빛 혜성 구덩이",
+    "description": "막 떨어진 혜성 조각이 주변의 색과 체온을 빨아들인다.",
+    "symbol": "COMET",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "touch_gray_comet", "symbol": "ALL+15%", "title": "혜성핵을 붙잡는다", "description": "최대 HP의 40%만큼 HP를 소모하고 ATK·DEF·SPD가 모두 15% 강화된다.", "effect": { "type": "event_all_stats", "hpCostRate": 0.4, "requiresFullHpCost": true, "statBonus": 0.15 } },
+      { "id": "sell_gray_comet", "symbol": "30G", "title": "혜성 조각을 챙긴다", "description": "30G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 30 } },
+      { "id": "rest_in_gray_crater", "symbol": "HP+MP", "title": "식은 구덩이에서 쉰다", "description": "HP와 MP를 25 회복한다.", "effect": { "type": "event_restore", "restoreHp": 25, "restoreMp": 25 } }
+    ]
+  },
+  {
+    "id": "colorless_scale",
+    "name": "무채색의 저울",
+    "description": "한쪽 접시에 힘을 올리면 다른 쪽 접시에서 대가를 요구한다.",
+    "symbol": "SCALE",
+    "bgm": "event",
+    "implemented": true,
+    "choices": [
+      { "id": "weigh_attack_scale", "symbol": "ATK+25%", "title": "공격을 저울에 올린다", "description": "MP를 30 소모하고 ATK가 25% 강화된다.", "effect": { "type": "event_stat", "mpCost": 30, "requiresFullMpCost": true, "statId": "atk", "statBonus": 0.25 } },
+      { "id": "weigh_defense_scale", "symbol": "DEF+25%", "title": "방어를 저울에 올린다", "description": "MP를 30 소모하고 DEF가 25% 강화된다.", "effect": { "type": "event_stat", "mpCost": 30, "requiresFullMpCost": true, "statId": "def", "statBonus": 0.25 } },
+      { "id": "sell_colorless_scale", "symbol": "20G", "title": "저울추를 떼어낸다", "description": "20G를 얻는다.", "effect": { "type": "event_gold", "goldReward": 20 } }
     ]
   }
 ]

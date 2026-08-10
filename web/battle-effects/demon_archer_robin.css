@@ -1,0 +1,57 @@
+.battle-fx-robin-silver-piercing-arrow-projectile {
+  position: absolute;
+  left: var(--robin-start-x);
+  top: var(--robin-start-y);
+  z-index: 7;
+  width: clamp(70px, 9vw, 106px);
+  aspect-ratio: 2 / 1;
+  pointer-events: none;
+  background: url("../assets/monsters/demon_archer_robin/effects/silver-piercing-arrow.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1) drop-shadow(0 0 2px rgba(235, 235, 235, 0.52));
+  animation: robin-arrow-flight 280ms steps(9, end) forwards;
+}
+
+.battle-fx-robin-silver-piercing-impact {
+  inset: 29%;
+  background: url("../assets/monsters/demon_archer_robin/effects/silver-piercing-arrow.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1);
+  animation: robin-arrow-impact 300ms steps(4, end) forwards;
+}
+
+.battle-fx-robin-gray-shadow-cover {
+  inset: 22% 16% 7%;
+  background: url("../assets/monsters/demon_archer_robin/effects/gray-shadow-cover.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1);
+  animation: robin-cover 520ms steps(6, end) forwards;
+}
+
+#playerAvatar .battle-fx-robin-silver-piercing-impact,
+#aiAvatar .battle-fx-robin-gray-shadow-cover {
+  scale: -1 1;
+}
+
+.avatar-stage.is-fx-robin-silver-piercing-impact .battle-sprite,
+.avatar-stage.is-fx-robin-silver-piercing-impact svg {
+  animation: combatant-hit-shake 340ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes robin-arrow-flight {
+  0% { left: var(--robin-start-x); top: var(--robin-start-y); opacity: 0; transform: translate(-50%, -50%) rotate(var(--robin-angle)) scaleX(var(--robin-direction)) scale(0.8); }
+  10%, 88% { opacity: 1; }
+  100% { left: var(--robin-end-x); top: var(--robin-end-y); opacity: 0; transform: translate(-50%, -50%) rotate(var(--robin-angle)) scaleX(var(--robin-direction)) scale(1); }
+}
+
+@keyframes robin-arrow-impact {
+  0% { opacity: 0; transform: scale(0.72); }
+  24%, 55% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+@keyframes robin-cover {
+  0% { opacity: 0; transform: translateY(5%) scale(0.82); }
+  28%, 64% { opacity: 0.8; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-3%) scale(1.02); }
+}

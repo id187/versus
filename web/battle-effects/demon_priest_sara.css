@@ -1,0 +1,37 @@
+.battle-fx-sara-black-blood-sacrament {
+  inset: 17%;
+  background: url("../assets/monsters/demon_priest_sara/effects/black-blood-sacrament.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1) drop-shadow(0 0 2px rgba(210, 210, 210, 0.35));
+  animation: sara-black-blood-hit 430ms steps(6, end) forwards;
+}
+
+.battle-fx-sara-faded-curse {
+  inset: 16% 24%;
+  background: url("../assets/monsters/demon_priest_sara/effects/faded-curse.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1);
+  animation: sara-faded-curse 540ms steps(6, end) forwards;
+}
+
+#playerAvatar .battle-fx-sara-black-blood-sacrament,
+#playerAvatar .battle-fx-sara-faded-curse {
+  scale: -1 1;
+}
+
+.avatar-stage.is-fx-sara-black-blood-sacrament .battle-sprite,
+.avatar-stage.is-fx-sara-black-blood-sacrament svg {
+  animation: combatant-hit-shake 350ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes sara-black-blood-hit {
+  0% { opacity: 0; transform: scale(0.55); }
+  24%, 58% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+
+@keyframes sara-faded-curse {
+  0% { opacity: 0; transform: translateY(-4%) scale(0.78); }
+  28%, 62% { opacity: 0.84; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(4%) scale(1.02); }
+}

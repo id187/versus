@@ -14,6 +14,13 @@ const {
   redPowerBonus,
 } = require("./inscriptions");
 const { Mulberry32 } = require("./rng");
+const {
+  adventureRelicEffectProduct,
+  adventureRelicEffectSum,
+  adventureRelicEffects,
+  destroyAdventureRelic,
+  hasAdventureRelic,
+} = require("./adventure-relics");
 
 const MAX_MP = 100;
 const START_MP = 30;
@@ -22,11 +29,6 @@ const ADVENTURE_RHYTHM_LABELS = Object.freeze({
   rush: "속공",
   wall: "철벽",
   late: "후반",
-});
-const ADVENTURE_RELIC_LABELS = Object.freeze({
-  red_amber: "붉은 호박석",
-  blue_amber: "푸른 호박석",
-  glass_eye: "유리 눈",
 });
 const AI_PERSONALITY_TUNING = {
   R: { temperature: 35, topGap: 120, exploration: 0.02, repeatPenalty: 45 },
@@ -137,22 +139,6 @@ function adventureRhythmAttackMultiplier(fighter, turn, direction) {
     if (Number.isFinite(multiplier) && multiplier >= 0) return multiplier;
   }
   return 1;
-}
-
-function canUseAdventureRelic(fighter, kind) {
-  const relic = fighter?.adventureRelic;
-  return Boolean(
-    relic
-    && relic.kind === kind
-    && Number(relic.battlesRemaining || 0) > 0
-    && !relic.used
-  );
-}
-
-function consumeAdventureRelic(fighter, kind) {
-  if (!canUseAdventureRelic(fighter, kind)) return false;
-  fighter.adventureRelic.used = true;
-  return true;
 }
 
 class Action {
@@ -283,7 +269,7 @@ class Fighter {
     this.adventureCommonDefenseReductionBonus = 0;
     this.adventureMeditationRecoveryBonus = 0;
     this.adventureBattleRhythm = null;
-    this.adventureRelic = null;
+    this.adventureRelics = [];
     this.adventureTurnEndFixedDamage = 0;
     this.adventureSurviveDefeatCount = 0;
     this.adventureSkipNextAction = false;
@@ -479,7 +465,7 @@ class Battle {
     const selectedAction = choice.action || action;
     if (selectedAction.isCommonAction("defense")) {
       choice.defenseBonusReduction = Number(choice.defenseBonusReduction || 0)
-        + Number(fighter.adventureCommonDefenseReductionBonus || 0);
+        + adventureCommonDefenseBonus(this, fighter);
     }
     this.record.selected[fighter.side] = selectedAction.name;
     this.record.selectedKey[fighter.side] = selectedAction.key;
@@ -510,6 +496,13 @@ class Battle {
       }
       for (const effect of fighter.costEffects) cost = floorInt(cost * effect.multiplier);
       if (hasInscription(fighter, "red") && action.isAttack) cost += 3;
+      cost = floorInt(cost * adventureRelicEffectProduct(fighter, "active_cost_multiplier"));
+      for (const effect of adventureRelicEffects(fighter, "low_cost_flat_reduction")) {
+        if (Number(action.mp || 0) <= Number(effect.threshold || 0)) cost -= Number(effect.amount || 0);
+      }
+      if (fighter.adventureMeditationRelicReady) {
+        cost -= adventureRelicEffectSum(fighter, "after_meditation_cost_reduction");
+      }
     }
     let history = fighter.selectedHistory;
     if (Object.hasOwn(this.record.selected, fighter.side)) history = history.slice(0, -1);
@@ -525,6 +518,7 @@ class Battle {
     if (action.isActive) {
       const adventureModifier = Number(fighter.adventureSkillPriorityModifiers?.[action.key] ?? 0);
       if (Number.isFinite(adventureModifier)) priority += adventureModifier;
+      priority += adventureRelicEffectSum(fighter, "active_priority_bonus");
     }
     return priority;
   }
@@ -573,7 +567,7 @@ class Battle {
       const mult = defenseMultiplierForStreak(
         actor.defenseStreak + 1,
         characterLogic.defenseScoreBonusReduction(this, actor, action)
-          + (action.isCommonAction("defense") ? Number(actor.adventureCommonDefenseReductionBonus || 0) : 0),
+          + (action.isCommonAction("defense") ? adventureCommonDefenseBonus(this, actor) : 0),
       );
       const prevented = incoming * (1 - mult);
       score += prevented * 1.8;
@@ -920,11 +914,17 @@ class Battle {
       if ((actor.data.unique_statuses || []).some((status) => status.name === "잔류")) {
         actor.counters["잔류"] = Math.min(4, Number(actor.counters["잔류"] || 0) + 1);
       }
-      const blueAmberThreshold = Number(actor.adventureRelic?.mpThreshold ?? 20);
-      const blueAmberRecovery = Number(actor.adventureRelic?.restoreMp ?? 15);
-      if (actor.mp <= blueAmberThreshold && consumeAdventureRelic(actor, "blue_amber")) {
-        this.logs.push(fighterLogLine(actor, `${actor.name}의 푸른 호박석이 발동했다.`));
-        this.restoreMp(actor, blueAmberRecovery, "푸른 호박석");
+    }
+    if (resolvedAction.isActive) {
+      if (actor.adventureMeditationRelicReady) actor.adventureMeditationRelicReady = false;
+      for (const effect of adventureRelicEffects(actor, "high_cost_mp_recovery")) {
+        if (choice.totalCost >= Number(effect.threshold || 0)) {
+          this.restoreMp(actor, Number(effect.amount || 0), effect.relicName);
+        }
+      }
+      if (actor.mp === 0) {
+        const zeroRecovery = adventureRelicEffectSum(actor, "zero_mp_recovery");
+        if (zeroRecovery > 0) this.restoreMp(actor, zeroRecovery, "빈 약병");
       }
     }
     if (characterLogic.consumeForcedConditionFailure(this, choice)) {
@@ -989,7 +989,7 @@ class Battle {
       this.logs.push(`명중률 ${pct(accuracy)} / 판정값 ${roll.toFixed(2)}`);
       if (roll >= accuracy) {
         this.logs.push("명중 판정 실패. 공격이 빗나갔다.");
-        if (allowAdventureRelic && consumeAdventureRelic(choice.actor, "glass_eye")) {
+        if (allowAdventureRelic && hasAdventureRelic(choice.actor, "glass_eye")) {
           this.logs.push(fighterLogLine(choice.actor, `${choice.actor.name}의 유리 눈이 발동해 명중과 회피를 다시 판정한다.`));
           return this.accuracyCheck(choice, false);
         }
@@ -1004,7 +1004,7 @@ class Battle {
     const evasion = this.targetEvasion(target, choice);
     if (target.guaranteedEvasion && choice.action.isAttack) {
       this.logs.push("공격을 회피했다.");
-      if (allowAdventureRelic && consumeAdventureRelic(choice.actor, "glass_eye")) {
+      if (allowAdventureRelic && hasAdventureRelic(choice.actor, "glass_eye")) {
         this.logs.push(fighterLogLine(choice.actor, `${choice.actor.name}의 유리 눈이 발동해 명중과 회피를 다시 판정한다.`));
         return this.accuracyCheck(choice, false);
       }
@@ -1015,7 +1015,7 @@ class Battle {
       this.logs.push(`${target.name} 회피 확률 ${pct(evasion)} / 판정값 ${roll.toFixed(2)}`);
       if (roll < evasion) {
         this.logs.push("공격을 회피했다.");
-        if (allowAdventureRelic && consumeAdventureRelic(choice.actor, "glass_eye")) {
+        if (allowAdventureRelic && hasAdventureRelic(choice.actor, "glass_eye")) {
           this.logs.push(fighterLogLine(choice.actor, `${choice.actor.name}의 유리 눈이 발동해 명중과 회피를 다시 판정한다.`));
           return this.accuracyCheck(choice, false);
         }
@@ -1033,6 +1033,7 @@ class Battle {
     if (choice.action.isActive) {
       const adventureModifier = Number(choice.actor.adventureSkillAccuracyModifiers?.[choice.action.key] ?? 0);
       if (Number.isFinite(adventureModifier)) accuracy += adventureModifier;
+      if (choice.action.isAttack) accuracy += adventureRelicEffectSum(choice.actor, "active_accuracy_bonus");
     }
     if (hasInscription(choice.actor, "orange")) accuracy += 10;
     if (hasInscription(choice.actor, "violet")) accuracy -= 5;
@@ -1048,7 +1049,9 @@ class Battle {
 
   applyConditionEffects(choice) {
     choice.power = choice.action.power;
-    return characterLogic.applyConditionEffects(this, choice);
+    const success = characterLogic.applyConditionEffects(this, choice);
+    if (success && choice.action.isAttack) applyAdventureRelicAttackPower(this, choice);
+    return success;
   }
 
   applyAttackDamage(choice) {
@@ -1059,14 +1062,22 @@ class Battle {
     for (let index = 1; index <= hits; index += 1) {
       const damage = this.calculateAttackDamage(choice);
       const before = target.hp;
+      const canReorderLogs = typeof this.logs.splice === "function";
+      const nestedLogStart = canReorderLogs ? this.logs.length : 0;
       const result = this.damage(target, damage, `${choice.action.name} 공격 피해`, true, actor);
+      const nestedLogs = canReorderLogs ? this.logs.splice(nestedLogStart) : [];
       const applied = result.amount;
       total += applied;
       this.logs.push(fighterLogLine(target, `${target.name}에게 ${applied}의 피해. HP ${before} -> ${target.hp}`));
+      if (nestedLogs.length) this.logs.push(...nestedLogs);
       if (result.revived) characterLogic.printDefeatEscape(this, target, result.revived);
       if (this.gameOver) break;
     }
     this.record.attackHit[actor.side] = true;
+    const lifestealRate = adventureRelicEffectSum(actor, "attack_lifesteal", "rate");
+    if (total > 0 && lifestealRate > 0 && actor.hp > 0) {
+      this.heal(actor, Math.max(1, Math.trunc(total * lifestealRate)), "피에 젖은 성배");
+    }
     return total;
   }
 
@@ -1124,6 +1135,11 @@ class Battle {
         ? this.meditationRecovery(actor)
         : Number(choice.meditationRecoveryOverride) + adventureBonus;
       this.restoreMp(actor, recovery, "명상");
+      const meditationHeal = adventureRelicEffectSum(actor, "meditation_hp_recovery");
+      if (meditationHeal > 0) this.heal(actor, meditationHeal, "기도 구슬");
+      if (adventureRelicEffects(actor, "after_meditation_cost_reduction").length > 0) {
+        actor.adventureMeditationRelicReady = true;
+      }
       characterLogic.onMeditationEffect(this, choice);
       return;
     }
@@ -1135,7 +1151,8 @@ class Battle {
   meditationRecovery(fighter) {
     return 15
       + (hasInscription(fighter, "white") ? 1 : 0)
-      + Number(fighter.adventureMeditationRecoveryBonus || 0);
+      + Number(fighter.adventureMeditationRecoveryBonus || 0)
+      + adventureRelicEffectSum(fighter, "meditation_bonus");
   }
 
   finishAction(choice, success, hit, missNotFailure = false) {
@@ -1172,7 +1189,8 @@ class Battle {
     }
     for (const fighter of [this.player, this.ai]) {
       if (this.gameOver) return;
-      const adventureRecovery = Number(fighter.adventureTurnEndHpRecovery || 0);
+      const adventureRecovery = Number(fighter.adventureTurnEndHpRecovery || 0)
+        + adventureRelicEffectSum(fighter, "turn_end_hp_recovery");
       if (adventureRecovery > 0 && fighter.hp < fighter.maxHp) {
         this.heal(fighter, adventureRecovery, "Adventure 지속 회복");
       }
@@ -1185,11 +1203,15 @@ class Battle {
       const fixedDamage = Math.max(0, Math.trunc(Number(fighter.adventureTurnEndFixedDamage || 0)));
       if (fixedDamage <= 0) continue;
       const before = fighter.hp;
+      const canReorderLogs = typeof this.logs.splice === "function";
+      const nestedLogStart = canReorderLogs ? this.logs.length : 0;
       const result = this.damage(fighter, fixedDamage, "Adventure 턴 종료 효과", false, this.opponent(fighter));
+      const nestedLogs = canReorderLogs ? this.logs.splice(nestedLogStart) : [];
       this.logs.push(fighterLogLine(
         fighter,
         `${withParticle(fighter.name, "은", "는")} Adventure 턴 종료 효과로 ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${fighter.hp}`,
       ));
+      if (nestedLogs.length) this.logs.push(...nestedLogs);
     }
     if (!this.gameOver) {
       for (const fighter of [this.player, this.ai]) this.decrementDurations(fighter);
@@ -1275,10 +1297,26 @@ class Battle {
         value -= extraReduced;
         this.record.defenseReduced[target.side] += extraReduced;
       }
+      if (reduced > 0 && target.defenseName === "일반 방어" && !this.record.adventureDefenseRelicTriggered?.[target.side]) {
+        this.record.adventureDefenseRelicTriggered = this.record.adventureDefenseRelicTriggered || {};
+        this.record.adventureDefenseRelicTriggered[target.side] = true;
+        if (adventureRelicEffects(target, "defense_counter_attack_multiplier").length > 0) {
+          target.adventureCounterRelicReady = true;
+          this.logs.push(fighterLogLine(target, `${target.name}의 부러진 기사의 박차가 다음 공격을 벼린다.`));
+        }
+        const mpRecovery = adventureRelicEffectSum(target, "defense_mp_restore");
+        if (mpRecovery > 0) this.restoreMp(target, mpRecovery, "수호자의 방울");
+      }
     }
     if (attack) {
       value = characterLogic.absorbAttackDamage(this, target, value, source, reason);
       if (value <= 0) return { amount: 0, afterHp: target.hp, revived: null };
+      value = Math.max(1, floorInt(value * adventureRelicEffectProduct(target, "incoming_attack_multiplier")));
+      for (const effect of adventureRelicEffects(target, "low_hp_incoming_multiplier")) {
+        if (target.hp <= target.maxHp * Number(effect.threshold || 0)) {
+          value = Math.max(1, floorInt(value * Number(effect.multiplier || 1)));
+        }
+      }
     }
     const before = target.hp;
     target.hp = Math.max(0, target.hp - value);
@@ -1287,17 +1325,6 @@ class Battle {
     if (actual > 0) {
       characterLogic.onDamageTaken(this, target, actual, attack, source);
       if (attack && source) characterLogic.onAttackDamageDealt(this, source, target, actual);
-    }
-    const redAmberThresholdRate = Number(target.adventureRelic?.hpThresholdRate ?? 0.3);
-    const redAmberRecoveryRate = Number(target.adventureRelic?.restoreHpRate ?? 0.15);
-    if (
-      actual > 0
-      && !this.gameOver
-      && target.hp <= target.maxHp * redAmberThresholdRate
-      && consumeAdventureRelic(target, "red_amber")
-    ) {
-      this.logs.push(fighterLogLine(target, `${target.name}의 붉은 호박석이 발동했다.`));
-      this.heal(target, Math.max(1, Math.trunc(target.maxHp * redAmberRecoveryRate)), "붉은 호박석");
     }
     let afterHp = target.hp;
     let revived = null;
@@ -1311,7 +1338,16 @@ class Battle {
         adventureSurvived = true;
         this.logs.push(fighterLogLine(target, `${target.name}의 수호 부적이 발동했다. HP 1로 살아남았다.`));
       } else if (revived == null) {
-        this.endBattle(source || this.opponent(target), target);
+        const gearEffect = adventureRelicEffects(target, "revive_once")[0];
+        const gear = gearEffect ? destroyAdventureRelic(target, gearEffect.relicId) : null;
+        if (gear) {
+          target.hp = Math.max(1, Math.trunc(target.maxHp * Number(gearEffect.hpRate || 0.3)));
+          afterHp = target.hp;
+          adventureSurvived = true;
+          this.logs.push(fighterLogLine(target, `${target.name}의 역행의 톱니가 부서지며 HP ${target.hp}로 부활했다.`));
+        } else {
+          this.endBattle(source || this.opponent(target), target);
+        }
       } else {
         afterHp = target.hp;
       }
@@ -1320,7 +1356,8 @@ class Battle {
   }
 
   heal(fighter, amount, reason) {
-    const value = Math.max(0, Math.trunc(amount));
+    const multiplier = adventureRelicEffectProduct(fighter, "healing_multiplier");
+    const value = Math.max(0, Math.trunc(Number(amount || 0) * multiplier));
     if (value <= 0) return;
     const before = fighter.hp;
     fighter.hp = Math.min(fighter.maxHp, fighter.hp + value);
@@ -1333,11 +1370,15 @@ class Battle {
     if (opponent !== target) value = characterLogic.modifyFixedDamageToOpponent(this, opponent, target, value);
     if (value <= 0) return;
     const before = target.hp;
+    const canReorderLogs = typeof this.logs.splice === "function";
+    const nestedLogStart = canReorderLogs ? this.logs.length : 0;
     const result = this.damage(target, value, reason, false, opponent);
+    const nestedLogs = canReorderLogs ? this.logs.splice(nestedLogStart) : [];
     this.logs.push(fighterLogLine(
       target,
       `${withParticle(target.name, "은", "는")} ${withParticle(reason, "으로", "로")} ${result.amount}의 고정 피해를 입었다. HP ${before} -> ${result.afterHp}`,
     ));
+    if (nestedLogs.length) this.logs.push(...nestedLogs);
     if (result.revived) characterLogic.printDefeatEscape(this, target, result.revived);
     if (!this.gameOver && opponent !== target) characterLogic.onFixedDamageToOpponent(this, opponent, target, value);
     return result.amount;
@@ -1516,6 +1557,74 @@ class Battle {
   }
 }
 
+function adventurePreviousActionKey(battle, fighter) {
+  let history = fighter.selectedHistory || [];
+  if (Object.hasOwn(battle.record.selected, fighter.side)) history = history.slice(0, -1);
+  return String(history.at(-1) || "");
+}
+
+function adventureCommonDefenseBonus(battle, fighter) {
+  let bonus = Number(fighter.adventureCommonDefenseReductionBonus || 0)
+    + adventureRelicEffectSum(fighter, "common_defense_bonus");
+  const previousKey = adventurePreviousActionKey(battle, fighter);
+  if (previousKey && battle.actionKeyIsAttack(fighter, previousKey)) {
+    bonus += adventureRelicEffectSum(fighter, "after_attack_defense_bonus");
+  }
+  return bonus;
+}
+
+function applyAdventureRelicAttackPower(battle, choice) {
+  const actor = choice.actor;
+  let multiplier = adventureRelicEffectProduct(actor, "attack_power_multiplier");
+  if (choice.action.isActive) multiplier *= adventureRelicEffectProduct(actor, "active_attack_power_multiplier");
+  for (const effect of adventureRelicEffects(actor, "low_hp_attack_multiplier")) {
+    if (actor.hp <= actor.maxHp * Number(effect.threshold || 0)) multiplier *= Number(effect.multiplier || 1);
+  }
+  for (const effect of adventureRelicEffects(actor, "low_mp_attack_multiplier")) {
+    if (actor.mp <= Number(effect.threshold || 0)) multiplier *= Number(effect.multiplier || 1);
+  }
+  if (actor.hp >= actor.maxHp) multiplier *= adventureRelicEffectProduct(actor, "full_hp_attack_multiplier");
+
+  const previousKey = adventurePreviousActionKey(battle, actor);
+  if (previousKey) {
+    if (battle.actionKeyIsDefense(actor, previousKey)) {
+      multiplier *= adventureRelicEffectProduct(actor, "after_defense_attack_multiplier");
+    }
+    if (previousKey === choice.action.key) {
+      multiplier *= adventureRelicEffectProduct(actor, "repeat_attack_multiplier");
+    } else {
+      multiplier *= adventureRelicEffectProduct(actor, "changed_action_attack_multiplier");
+    }
+  }
+
+  for (const effect of adventureRelicEffects(actor, "gold_attack_multiplier")) {
+    const gold = Math.max(0, Number(battle.adventureState?.gold || 0));
+    const steps = Math.floor(gold / Math.max(1, Number(effect.goldStep || 10)));
+    const bonus = Math.min(Number(effect.maxBonus || 0), steps * Number(effect.bonusPerStep || 0));
+    multiplier *= 1 + bonus;
+  }
+
+  const opponentKey = String(battle.record.selectedKey[battle.opponent(actor).side] || "");
+  const opponentAction = battle.actionFromKey(opponentKey);
+  if (opponentAction && Number(opponentAction.number) === Number(choice.action.number)) {
+    multiplier *= adventureRelicEffectProduct(actor, "matching_action_attack_multiplier");
+  }
+
+  if (actor.adventureCounterRelicReady) {
+    multiplier *= adventureRelicEffectProduct(actor, "defense_counter_attack_multiplier");
+    actor.adventureCounterRelicReady = false;
+  }
+
+  for (const effect of adventureRelicEffects(actor, "attack_proc_multiplier")) {
+    const roll = battle.roll(effect.relicName);
+    if (roll < Number(effect.chance || 0) * 100) {
+      multiplier *= Number(effect.multiplier || 1);
+      battle.logs.push(fighterLogLine(actor, `${effect.relicName} 발동. 공격 위력 ×${effect.multiplier}`));
+    }
+  }
+  choice.power = roundStat(Number(choice.power || 0) * multiplier);
+}
+
 function clearFighterCombatState(fighter) {
   fighter.statuses = {};
   fighter.statEffects = [];
@@ -1535,6 +1644,8 @@ function clearFighterCombatState(fighter) {
   fighter.forbiddenActionKeys = {};
   fighter.attackSelectionCount1To5 = 0;
   fighter.lastMeditationSuccessTurn = null;
+  fighter.adventureMeditationRelicReady = false;
+  fighter.adventureCounterRelicReady = false;
 }
 
 function initializeFighterUniqueState(fighter) {
@@ -1687,7 +1798,6 @@ function fighterState(battle, fighter, sideOverride = null) {
     activeCharacterId: activeId,
     activeCharacterName: activeData?.name || fighter.name,
     transformed,
-    portraitVariant: characterLogic.portraitVariant(battle, fighter),
     label: fighter.label,
     hp: fighter.hp,
     max_hp: fighter.maxHp,
@@ -1707,7 +1817,7 @@ function fighterState(battle, fighter, sideOverride = null) {
     stateText,
     defenseText: `${defenseReductionPercentForStreak(
       fighter.defenseStreak + 1,
-      Number(fighter.adventureCommonDefenseReductionBonus || 0),
+      adventureCommonDefenseBonus(battle, fighter),
     )}%`,
     battleLog,
     passive: activeData?.passive || fighter.data.passive,
@@ -1726,7 +1836,7 @@ function fighterState(battle, fighter, sideOverride = null) {
     adventureCommonDefenseReductionBonus: Number(fighter.adventureCommonDefenseReductionBonus || 0),
     adventureMeditationRecoveryBonus: Number(fighter.adventureMeditationRecoveryBonus || 0),
     adventureBattleRhythm: fighter.adventureBattleRhythm ? structuredCloneCompat(fighter.adventureBattleRhythm) : null,
-    adventureRelic: fighter.adventureRelic ? structuredCloneCompat(fighter.adventureRelic) : null,
+    adventureRelics: structuredCloneCompat(fighter.adventureRelics || []),
     adventureTurnEndFixedDamage: Number(fighter.adventureTurnEndFixedDamage || 0),
     adventureSurviveDefeatCount: Number(fighter.adventureSurviveDefeatCount || 0),
     adventureSkipNextAction: Boolean(fighter.adventureSkipNextAction),
@@ -1754,14 +1864,20 @@ function actionStatesForFighter(battle, fighter, forceDisabled = false) {
       : 0;
     const displayedAccuracy = action.accuracy == null
       ? null
-      : roundStat(clamp(Number(action.accuracy) + (Number.isFinite(adventureAccuracyModifier) ? adventureAccuracyModifier : 0), 0, 100));
+      : roundStat(clamp(
+        Number(action.accuracy)
+        + (Number.isFinite(adventureAccuracyModifier) ? adventureAccuracyModifier : 0)
+        + (action.isActive && action.isAttack ? adventureRelicEffectSum(fighter, "active_accuracy_bonus") : 0),
+        0,
+        100,
+      ));
     const power = displayedPower == null ? "-" : String(displayedPower);
     const accuracy = displayedAccuracy == null ? "-" : String(displayedAccuracy);
     let effectDescription = action.description;
     if (action.isCommonAction("defense")) {
       const reduction = defenseReductionPercentForStreak(
         fighter.defenseStreak + 1,
-        Number(fighter.adventureCommonDefenseReductionBonus || 0),
+        adventureCommonDefenseBonus(battle, fighter),
       );
       effectDescription = `[방어] 자신이 이 턴에 입는 공격 피해를 ${reduction}% 경감한다.`;
     } else if (action.isCommonAction("meditation")) {
@@ -1872,11 +1988,12 @@ function currentStateText(battle, fighter) {
   if (Number.isFinite(damageMultiplier) && damageMultiplier !== 1) {
     parts.push(`공격 피해 ×${roundStat(damageMultiplier)}`);
   }
-  const defenseBonus = Number(fighter.adventureCommonDefenseReductionBonus || 0);
+  const defenseBonus = adventureCommonDefenseBonus(battle, fighter);
   const commonAttackBonus = Number(fighter.adventureCommonAttackPowerBonus || 0);
   if (commonAttackBonus) parts.push(`일반 공격 위력 +${roundStat(commonAttackBonus)}`);
   if (defenseBonus) parts.push(`일반 방어 경감 +${Math.round(defenseBonus * 100)}%p`);
-  const meditationBonus = Number(fighter.adventureMeditationRecoveryBonus || 0);
+  const meditationBonus = Number(fighter.adventureMeditationRecoveryBonus || 0)
+    + adventureRelicEffectSum(fighter, "meditation_bonus");
   if (meditationBonus) parts.push(`명상 회복 +${roundStat(meditationBonus)}`);
   const sealedActions = Object.entries(fighter.forbiddenActionKeys || {})
     .filter(([, remaining]) => Number(remaining) > 0)
@@ -1888,16 +2005,8 @@ function currentStateText(battle, fighter) {
     const multiplier = adventureRhythmAttackMultiplier(fighter, battle.turn, direction);
     parts.push(`전투 리듬: ${ADVENTURE_RHYTHM_LABELS[rhythmKind]}(현재 x${multiplier})`);
   }
-  const relicKind = String(fighter.adventureRelic?.kind || "");
-  if (ADVENTURE_RELIC_LABELS[relicKind] && Number(fighter.adventureRelic?.battlesRemaining || 0) > 0) {
-    const relic = fighter.adventureRelic;
-    const detail = relicKind === "red_amber"
-      ? `HP ${Math.round(Number(relic.hpThresholdRate || 0) * 100)}% 이하 시 ${Math.round(Number(relic.restoreHpRate || 0) * 100)}% 회복`
-      : relicKind === "blue_amber"
-        ? `MP ${Number(relic.mpThreshold || 0)} 이하 시 ${Number(relic.restoreMp || 0)} 회복`
-        : `첫 빗나감 재판정 ${Number(relic.rerollMissCount || 0)}회`;
-    parts.push(`${ADVENTURE_RELIC_LABELS[relicKind]} ${relic.battlesRemaining}전(${relic.used ? "사용 완료" : "사용 가능"}·${detail})`);
-  }
+  const relicNames = (fighter.adventureRelics || []).filter((relic) => !relic?.destroyed).map((relic) => relic.name);
+  if (relicNames.length) parts.push(`유물: ${relicNames.join("·")}`);
   const fixedDamage = Number(fighter.adventureTurnEndFixedDamage || 0);
   if (fixedDamage > 0) parts.push(`턴 종료 고정 피해 ${roundStat(fixedDamage)}`);
   const surviveCount = Number(fighter.adventureSurviveDefeatCount || 0);
@@ -1932,8 +2041,8 @@ function adventureRouteStateParts(adventure) {
   }
   const rerolls = Number(adventure.routeRerollCount || 0);
   if (rerolls > 0) parts.push(`행선지 재추첨 ${rerolls}회`);
+  if (adventure.hasRelicLedger) parts.push("유물상의 장부 1개");
   if (adventure.nextAmbushChanceOverride != null) parts.push(`다음 기습 확률 ${Number(adventure.nextAmbushChanceOverride)}%`);
-  if (adventure.forceTownNextRoute) parts.push("다음 행선지에 마을");
   for (const effect of adventure.nextBattleEffects || []) {
     const battles = Math.max(0, Math.trunc(Number(effect.battlesRemaining || 0)));
     if (!battles) continue;
@@ -2009,7 +2118,9 @@ function cloneFighter(source) {
   fighter.adventureBattleRhythm = source.adventureBattleRhythm
     ? { ...source.adventureBattleRhythm }
     : null;
-  fighter.adventureRelic = source.adventureRelic ? { ...source.adventureRelic } : null;
+  fighter.adventureRelics = structuredCloneCompat(source.adventureRelics || []);
+  fighter.adventureMeditationRelicReady = Boolean(source.adventureMeditationRelicReady);
+  fighter.adventureCounterRelicReady = Boolean(source.adventureCounterRelicReady);
   fighter.adventureTurnEndFixedDamage = source.adventureTurnEndFixedDamage;
   fighter.adventureSurviveDefeatCount = source.adventureSurviveDefeatCount;
   fighter.adventureSkipNextAction = source.adventureSkipNextAction;

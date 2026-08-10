@@ -15,6 +15,9 @@ const {
   stateForBattle,
 } = require("./engine");
 const {
+  ADVENTURE_MIRROR_LEGACY_CHOICE_ID,
+  ADVENTURE_MIRROR_STAGE,
+  adventureMirrorVariant,
   adventureRewardChoices,
   applyAdventureEventChoice,
   applyAdventurePreemptiveStrike,
@@ -23,9 +26,12 @@ const {
   completeAdventureRun,
   createAdventureBattle,
   createFinalAdventureBattle,
+  createMirrorAdventureBattle,
   createNextAdventureBattle,
+  createOfficerAdventureBattle,
   enterAdventureEvent,
   enterAdventureTown,
+  isAdventureMirrorChoice,
   rerollAdventureRouteChoices,
   rollAdventureAmbush,
   settleAdventureVictory,
@@ -71,10 +77,11 @@ class FirebaseClient {
 }
 
 class MobileGameStore {
-  constructor({ characters, adventureMonsters, adventureEvents = [], adventureDialogue = {}, inscriptions, firebaseConfig = null }) {
+  constructor({ characters, adventureMonsters, adventureEvents = [], adventureRelics = [], adventureDialogue = {}, inscriptions, firebaseConfig = null }) {
     this.characters = characters;
     this.adventureMonsters = adventureMonsters;
     this.adventureEvents = adventureEvents;
+    this.adventureRelics = adventureRelics;
     this.adventureDialogue = adventureDialogue;
     this.inscriptions = normalizeInscriptions(inscriptions);
     this.aiData = { personalities: AI_PERSONALITIES };
@@ -136,6 +143,7 @@ class MobileGameStore {
       characters: this.characters,
       monsters: this.adventureMonsters,
       events: this.adventureEvents,
+      relics: this.adventureRelics,
       inscriptions: this.inscriptions,
       payload,
       stage: 1,
@@ -201,7 +209,12 @@ class MobileGameStore {
       if (this.adventureState) {
         const playerWon = battle.winner?.side === battle.player.side;
         if (playerWon) {
-          if (!this.adventureState.isFinalBattle) {
+          if (this.adventureState.isMirrorBattle) {
+            battle.logs.push(
+              ...adventureMirrorBattleLines(this.adventureDialogue, battle, "post_battle"),
+              "마왕의 마경이 산산이 부서졌다.",
+            );
+          } else if (!this.adventureState.isFinalBattle) {
             battle.logs.push(...adventurePostBattleLines(this.adventureDialogue, battle, this.adventureState));
           }
           settleAdventureVictory(battle, this.adventureState);
@@ -245,8 +258,11 @@ class MobileGameStore {
     const isRouteReroll = this.adventureState.phase === "route"
       && choiceId === "route_reroll"
       && Number(this.adventureState.routeRerollCount || 0) > 0;
+    const isLegacyMirrorChoice = this.adventureState.phase === "route"
+      && Number(this.adventureState.stage || 0) === ADVENTURE_MIRROR_STAGE
+      && choiceId === ADVENTURE_MIRROR_LEGACY_CHOICE_ID;
     const requestedChoice = this.adventureState.choices?.find((choice) => choice.id === choiceId);
-    if (!requestedChoice && !isRouteReroll && !completesFinalBattleDialogue && !completesFinalBattleEnding) {
+    if (!requestedChoice && !isRouteReroll && !isLegacyMirrorChoice && !completesFinalBattleDialogue && !completesFinalBattleEnding) {
       throw new Error("현재 표시된 Adventure 선택지가 아닙니다.");
     }
     if (requestedChoice?.disabled) throw new Error(requestedChoice.disabledReason || "현재 선택할 수 없는 선택지입니다.");
@@ -294,11 +310,33 @@ class MobileGameStore {
       const destinationId = choiceId;
       const event = this.adventureEvents.find((item) => item.id === destinationId);
       const isCombatEvent = Boolean(event?.combat);
-      const isNonCombatDestination = destinationId === "town" || Boolean(event && !isCombatEvent);
+      const isNonCombatDestination = Boolean(event && !isCombatEvent);
       const ambush = isNonCombatDestination
         ? rollAdventureAmbush(battle, this.adventureState, destinationId)
         : { chance: 0, roll: null, triggered: false };
-      if (destinationId === "final_battle") {
+      if (isAdventureMirrorChoice(destinationId)) {
+        const mirrorVariant = adventureMirrorVariant(destinationId);
+        const encounter = createMirrorAdventureBattle({
+          characters: this.characters,
+          inscriptions: this.inscriptions,
+          previousBattle: battle,
+          adventure: this.adventureState,
+          variantId: destinationId,
+        });
+        battle = encounter.battle;
+        this.battle = battle;
+        battle.startTurn();
+        this.lockAiAction();
+        log = [
+          mirrorVariant.selectionLog,
+          `STAGE ${this.adventureState.stage} 중간 결전: ${battle.player.name} vs ${battle.ai.label}`,
+          ...adventureMirrorBattleLines(this.adventureDialogue, battle, "pre_battle"),
+          mirrorVariant.id === "mirror_face"
+            ? `마왕의 마경이 ${battle.player.name}의 모습과 영구 강화를 그대로 비춘다.`
+            : mirrorVariant.battleLog,
+          ...adventureBattleStartEffectLines(this.adventureState),
+        ];
+      } else if (destinationId === "final_battle") {
         const encounter = createFinalAdventureBattle({
           characters: this.characters,
           monsters: this.adventureMonsters,
@@ -348,7 +386,8 @@ class MobileGameStore {
         ];
       } else if (ambush.triggered) {
         const destinationName = requestedChoice.title || event?.name || "행선지";
-        const encounter = createNextAdventureBattle({
+        const officerAmbush = Number(this.adventureState.stage || 0) >= 14;
+        const encounter = (officerAmbush ? createOfficerAdventureBattle : createNextAdventureBattle)({
           characters: this.characters,
           monsters: this.adventureMonsters,
           inscriptions: this.inscriptions,
@@ -365,7 +404,7 @@ class MobileGameStore {
           `기습 확률 ${ambush.chance}% / 판정값 ${ambush.roll}`,
           `STAGE ${this.adventureState.stage} 전투 시작: ${battle.player.name} vs ${battle.ai.label}`,
           ...adventureEncounterLines(this.adventureDialogue, battle, this.adventureState),
-          `${battle.ai.name}에게 마왕의 가호(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
+          `${battle.ai.name}에게 ${officerAmbush ? "마왕의 영광" : "마왕의 가호"}(${this.adventureState.blessingMultiplier}배)가 적용됐다.`,
           ...adventureBattleStartEffectLines(this.adventureState),
         ];
       } else if (destinationId === "town") {
@@ -425,6 +464,7 @@ class MobileGameStore {
       if (!["magic_stone_mine", "potato_farm", "spring_of_life", "blood_altar"].includes(result.eventId)) {
         log.push(...adventureEffectResultLines(battle.player, result));
       }
+      log.push(...adventureGoldResultLines(result));
       if (result.startsBattle) {
         const encounter = createNextAdventureBattle({
           characters: this.characters,
@@ -445,6 +485,8 @@ class MobileGameStore {
       } else if (this.adventureState.phase === "defeat") {
         log.push(`[@PLAYER]${battle.player.name}의 HP가 0이 되었다.`);
         log.push("여정이 끝났다.");
+      } else if (result.stayInEvent) {
+        log.push("장부가 사라지고 새로운 유물 두 개가 진열됐다.");
       } else {
         log.push("다음 행선지가 나타났다.");
       }
@@ -856,6 +898,21 @@ function adventurePostBattleLines(dialogueData, battle, adventure) {
   return entries.map((line) => formatAdventureDialogueLine(line, { monster: monsterName, player: playerName })).filter(Boolean);
 }
 
+function adventureMirrorBattleLines(dialogueData, battle, section) {
+  const playerId = String(battle?.player?.characterId || "");
+  const mirrorBattle = dialogueData?.mirror_battle?.[section];
+  const entries = [
+    ...(Array.isArray(mirrorBattle?.common) ? mirrorBattle.common : []),
+    ...(Array.isArray(mirrorBattle?.characters?.[playerId]) ? mirrorBattle.characters[playerId] : []),
+  ];
+  if (entries.length === 0) return [];
+  const playerName = String(battle?.player?.name || "플레이어");
+  return entries.map((line) => formatAdventureDialogueLine(line, {
+    monster: `마왕의 마경 ${playerName}`,
+    player: playerName,
+  })).filter(Boolean);
+}
+
 function adventureFinalBattleDialogue(dialogueData, battle, section) {
   const playerId = String(battle?.player?.characterId || "");
   const finalBattle = dialogueData?.final_battle;
@@ -918,7 +975,7 @@ function appendCoreAdventureEventResultLines(log, fighter, result) {
       log.push(`흡수 판정 ${Math.round(result.successRate * 100)}% / 판정값 ${result.roll} - ${result.success ? "성공" : "실패"}`);
       log.push(`[@PLAYER]${fighter.name}의 ${result.skillName} MP 소모량이 ${Math.round(Math.abs(1 - result.appliedMultiplier) * 100)}% ${direction}했다. (현재 ${result.afterMultiplier}배)`);
     } else if (result.type === "ignore") {
-      log.push(`[@PLAYER]${fighter.name}에게 ${result.hpLoss}의 피해. HP ${result.hpBefore} -> ${result.hpAfter} (폭주한 마석)`);
+      log.push("폭주하는 마석에 손대지 않고 물러났다.");
     }
     log.push("마석 광산을 벗어났다.");
   } else if (result.eventId === "potato_farm") {
@@ -951,6 +1008,11 @@ function adventureEffectResultLines(fighter, result) {
   for (const stat of result.stats || []) {
     lines.push(`[@PLAYER]${fighter.name}의 ${stat.label} ${signedPercent(Math.round(Number(stat.delta || 0) * 100))} (현재 ${stat.afterMultiplier}배)`);
   }
+  if (result.stat) {
+    const stat = result.stat;
+    const percent = Math.round(Math.abs(Number(stat.afterMultiplier || 0) - Number(stat.beforeMultiplier || 0)) * 100);
+    lines.push(`[@PLAYER]${fighter.name}의 ${stat.label} +${percent}% (현재 ${stat.afterMultiplier}배)`);
+  }
   for (const skill of [result.skill, result.costSkill, result.powerSkill, result.accuracySkill, result.prioritySkill].filter(Boolean)) {
     const labels = { cost: "MP 소모량 배율", power: "위력 배율", accuracy: "명중률 보정", priority: "우선도 보정" };
     lines.push(`[@PLAYER]${skill.skillName}의 ${labels[skill.kind] || "효과"} ${skill.before} -> ${skill.after}`);
@@ -974,11 +1036,13 @@ function adventureEffectResultLines(fighter, result) {
   }
   if (result.relic) {
     const relic = result.relic;
-    const names = { red_amber: "붉은 호박", blue_amber: "푸른 호박", glass_eye: "유리 눈" };
-    const detail = relic.kind === "red_amber" ? `HP가 ${Math.round(relic.hpThresholdRate * 100)}% 이하가 되면 최대 HP의 ${Math.round(relic.restoreHpRate * 100)}% 회복`
-      : relic.kind === "blue_amber" ? `액티브 사용 후 MP가 ${relic.mpThreshold} 이하가 되면 MP ${relic.restoreMp} 회복`
-        : `첫 빗나감 또는 회피 판정 ${relic.rerollMissCount}회 재판정`;
-    lines.push(`[@PLAYER]${fighter.name}이 ${names[relic.kind] || "유물"}을 얻었다. 다음 ${relic.battlesRemaining}번의 전투에서 ${detail}`);
+    lines.push(`[@PLAYER]${fighter.name}이 ${relic.name || "유물"}을 얻었다. ${relic.description || ""}`.trim());
+  }
+  if (result.relicLedger) lines.push("유물상의 장부를 얻었다. 다음 유물 상점에서 상품을 한 번 다시 뽑을 수 있다.");
+  if (result.restore) {
+    const restore = result.restore;
+    if (restore.hpAfter !== restore.hpBefore) lines.push(`[@PLAYER]${fighter.name}의 HP ${restore.hpBefore} -> ${restore.hpAfter}`);
+    if (restore.mpAfter !== restore.mpBefore) lines.push(`[@PLAYER]${fighter.name} MP ${restore.mpBefore} -> ${restore.mpAfter}`);
   }
   if (result.maxHp) lines.push(`[@PLAYER]${fighter.name}의 최대 HP ${result.maxHp.before} -> ${result.maxHp.after}`);
   if (result.maxMp) lines.push(`[@PLAYER]${fighter.name}의 최대 MP ${result.maxMp.before} -> ${result.maxMp.after}`);
@@ -988,8 +1052,6 @@ function adventureEffectResultLines(fighter, result) {
   if (result.ambush) lines.push(`기습 확률 단계 ${result.ambush.before} -> ${result.ambush.after} (현재 ${result.ambush.chance}%)`);
   if (result.nextAmbushChance != null) lines.push(`다음 행선지의 기습 확률이 ${result.nextAmbushChance}%가 됐다.`);
   if (result.routeRerollCount != null) lines.push(`행선지를 다시 뽑을 기회 ${result.routeRerollCount}회를 얻었다.`);
-  if (result.forceTownNextRoute) lines.push("다음 행선지에 마을이 나타난다.");
-  if (result.forceTownUnavailable) lines.push("남은 마을 방문 횟수가 없어 표지판의 안내를 따를 수 없었다.");
   if (result.advanceStage) lines.push(`스테이지를 ${result.advanceStage}개 건너뛴다.`);
   if (result.surviveDefeatCount) lines.push(`수호 부적 ${result.surviveDefeatCount}회를 보유한다.`);
   if (result.futureEnemyMaxHpMultiplier) lines.push(`이후 마왕군 최대 HP 배율이 ${result.futureEnemyMaxHpMultiplier}배가 됐다.`);
@@ -1005,6 +1067,16 @@ function adventureEffectResultLines(fighter, result) {
   if (result.battleConfig?.enemyAllStatMultiplier != null) lines.push(`마왕군의 모든 능력치가 ${result.battleConfig.enemyAllStatMultiplier}배가 된다.`);
   if (result.battleConfig?.victoryMaxHpMultiplier != null) lines.push(`승리하면 최대 HP가 ${Math.round((result.battleConfig.victoryMaxHpMultiplier - 1) * 100)}% 증가한다.`);
   return lines;
+}
+
+function adventureGoldResultLines(result) {
+  if (Number(result.goldSpent || 0) > 0) {
+    return [`G ${result.goldBefore} -> ${result.goldAfter} (-${result.goldSpent})`];
+  }
+  if (Number(result.goldGained || 0) > 0) {
+    return [`G ${result.goldBefore} -> ${result.goldAfter} (+${result.goldGained})`];
+  }
+  return [];
 }
 
 function adventureQueuedEffectLines(fighter, effect) {

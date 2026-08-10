@@ -1,0 +1,263 @@
+.battle-fx-precise-shot-reticle {
+  inset: 9%;
+  background: url("../assets/characters/gandrick/effects/precise-shot-reticle.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    drop-shadow(0 0 4px rgba(235, 241, 255, 0.9))
+    drop-shadow(0 0 8px rgba(246, 184, 45, 0.78));
+  transform-origin: 50% 50%;
+  animation: gandrick-precise-shot-lock 480ms steps(8, end) forwards;
+}
+
+.battle-fx-precise-shot-burst {
+  inset: 13%;
+  background: url("../assets/characters/gandrick/effects/precise-shot-burst.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 5px rgba(245, 250, 255, 0.98))
+    drop-shadow(0 0 11px rgba(255, 201, 75, 0.82));
+  transform-origin: 50% 50%;
+  animation: gandrick-precise-shot-burst 560ms steps(7, end) forwards;
+}
+
+#playerAvatar .battle-fx-precise-shot-reticle,
+#playerAvatar .battle-fx-precise-shot-burst {
+  scale: -1 1;
+}
+
+.battle-fx-value-precise-shot-burst {
+  top: 45%;
+  color: #fff3c5;
+  text-shadow:
+    0 2px 0 rgba(20, 13, 2, 0.98),
+    0 0 8px rgba(255, 238, 190, 0.98),
+    0 0 13px rgba(224, 161, 28, 0.9);
+}
+
+.avatar-stage.is-fx-precise-shot-burst .battle-sprite,
+.avatar-stage.is-fx-precise-shot-burst svg {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+.battle-fx-reload-cylinder {
+  inset: 8%;
+  background: url("../assets/characters/gandrick/effects/reload-cylinder.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 241, 157, 0.96))
+    drop-shadow(0 0 10px rgba(235, 169, 32, 0.88));
+  transform-origin: 50% 50%;
+  animation: gandrick-reload-cylinder 760ms steps(10, end) forwards;
+}
+
+#aiAvatar .battle-fx-reload-cylinder {
+  scale: -1 1;
+}
+
+.battle-fx-value-reload-cylinder {
+  color: #ffe881;
+  text-shadow: 0 2px 0 rgba(31, 19, 1, 0.98), 0 0 8px rgba(238, 176, 35, 0.94);
+}
+
+.battle-fx-magic-marksman-tracer {
+  position: absolute;
+  left: var(--magic-marksman-center-x);
+  top: var(--magic-marksman-center-y);
+  z-index: 8;
+  width: var(--magic-marksman-path-length);
+  aspect-ratio: 2 / 1;
+  pointer-events: none;
+  background: url("../assets/characters/gandrick/effects/magic-marksman-tracer.png") center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 250, 199, 0.98))
+    drop-shadow(0 0 8px rgba(255, 191, 31, 0.9));
+  transform: translate(-50%, -50%) rotate(var(--magic-marksman-angle)) scaleX(var(--magic-marksman-flip, 1));
+  animation: gandrick-magic-marksman-flight 160ms steps(8, end) forwards;
+}
+
+.battle-fx-magic-marksman-impact {
+  inset: 0;
+  opacity: 0;
+  animation: gandrick-magic-marksman-impact 360ms steps(5, end) forwards;
+}
+
+.battle-fx-value-magic-marksman-impact {
+  top: 45%;
+  color: #fff2a6;
+  text-shadow:
+    0 2px 0 rgba(24, 14, 0, 0.98),
+    0 0 7px rgba(255, 247, 188, 0.98),
+    0 0 12px rgba(238, 170, 23, 0.92);
+}
+
+.avatar-stage.is-fx-magic-marksman-impact .battle-sprite,
+.avatar-stage.is-fx-magic-marksman-impact svg {
+  animation: combatant-hit-shake 360ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+.battle-fx-grand-finale-burst {
+  --grand-finale-flip: 1;
+  position: absolute;
+  left: var(--grand-finale-x);
+  top: var(--grand-finale-y);
+  z-index: 9;
+  width: clamp(96px, var(--grand-finale-size), 170px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: url("../assets/characters/gandrick/effects/grand-finale-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 252, 222, 0.98))
+    drop-shadow(0 0 10px rgba(243, 185, 43, 0.9));
+  transform-origin: 50% 50%;
+  animation: gandrick-grand-finale-burst 560ms steps(8, end) forwards;
+}
+
+.battle-fx-grand-finale-impact {
+  inset: 0;
+  opacity: 0;
+}
+
+.battle-fx-value-grand-finale-impact {
+  top: 45%;
+  color: #fff5b4;
+  text-shadow:
+    0 2px 0 rgba(26, 16, 2, 0.98),
+    0 0 7px rgba(250, 253, 255, 0.98),
+    0 0 13px rgba(235, 170, 25, 0.94);
+  animation: fx-damage-drop 760ms ease-in forwards;
+}
+
+.avatar-stage.is-fx-grand-finale-impact .battle-sprite,
+.avatar-stage.is-fx-grand-finale-impact svg {
+  animation: combatant-hit-shake 300ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes gandrick-precise-shot-lock {
+  0% {
+    opacity: 0;
+    transform: translateY(12%) scale(1.28) rotate(-4deg);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  44% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04) rotate(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(0.94);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(0.86);
+  }
+}
+
+@keyframes gandrick-precise-shot-burst {
+  0% {
+    opacity: 0;
+    transform: scale(0.34);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(0.98);
+  }
+  58% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes gandrick-reload-cylinder {
+  0% {
+    opacity: 0;
+    transform: scale(0.54) rotate(-72deg);
+  }
+  18% {
+    opacity: 0.88;
+    transform: scale(0.92) rotate(18deg);
+  }
+  48% {
+    opacity: 1;
+    transform: scale(1.04) rotate(198deg);
+  }
+  76% {
+    opacity: 1;
+    transform: scale(0.96) rotate(378deg);
+  }
+  88% {
+    opacity: 0.96;
+    filter: brightness(1.8) drop-shadow(0 0 8px rgba(255, 240, 152, 0.98));
+    transform: scale(0.9) rotate(450deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.34) rotate(468deg);
+  }
+}
+
+
+@keyframes gandrick-magic-marksman-flight {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  10% {
+    opacity: 1;
+    clip-path: inset(0 88% 0 0);
+  }
+  68% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  84% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes gandrick-magic-marksman-impact {
+  0%, 100% { opacity: 0; }
+}
+
+@keyframes gandrick-grand-finale-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--grand-finale-rotation)) scaleX(var(--grand-finale-flip)) scale(0.28);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--grand-finale-rotation)) scaleX(var(--grand-finale-flip)) scale(1.14);
+  }
+  34% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--grand-finale-rotation)) scaleX(var(--grand-finale-flip)) scale(0.94);
+  }
+  68% {
+    opacity: 0.92;
+    transform: translate(-50%, -50%) rotate(var(--grand-finale-rotation)) scaleX(var(--grand-finale-flip)) scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--grand-finale-rotation)) scaleX(var(--grand-finale-flip)) scale(1.18);
+  }
+}

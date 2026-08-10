@@ -1,8 +1,9 @@
 "use strict";
 
 (function installAdventureSave(root) {
-  const STORAGE_KEY = "versus.adventure.save.v1";
-  const SAVE_VERSION = 1;
+  const STORAGE_KEY = "versus.adventure.save.v4";
+  const LEGACY_STORAGE_KEYS = Object.freeze(["versus.adventure.save.v1", "versus.adventure.save.v2", "versus.adventure.save.v3"]);
+  const SAVE_VERSION = 4;
   const MAX_COMMANDS = 5000;
 
   function normalizeAdventureSave(value) {
@@ -39,6 +40,7 @@
   function loadAdventureSave(storage) {
     if (!storage) return null;
     try {
+      for (const key of LEGACY_STORAGE_KEYS) storage.removeItem(key);
       const raw = storage.getItem(STORAGE_KEY);
       if (!raw) return null;
       return normalizeAdventureSave(JSON.parse(raw));
@@ -55,6 +57,7 @@
   function storeAdventureSave(storage, save) {
     if (!storage) return false;
     try {
+      for (const key of LEGACY_STORAGE_KEYS) storage.removeItem(key);
       storage.setItem(STORAGE_KEY, JSON.stringify(normalizeAdventureSave(save)));
       return true;
     } catch {
@@ -66,6 +69,7 @@
     if (!storage) return false;
     try {
       storage.removeItem(STORAGE_KEY);
+      for (const key of LEGACY_STORAGE_KEYS) storage.removeItem(key);
       return true;
     } catch {
       return false;

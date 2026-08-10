@@ -1,0 +1,229 @@
+.battle-fx-thunder-crash-cast,
+.battle-fx-thunder-crash-impact,
+.battle-fx-weather-bomb-cast {
+  inset: 0;
+  opacity: 0;
+}
+
+.battle-fx-thunder-crash-beam {
+  position: absolute;
+  left: var(--karossy-thunder-x);
+  top: var(--karossy-thunder-y);
+  z-index: 9;
+  width: var(--karossy-thunder-width);
+  aspect-ratio: 2;
+  pointer-events: none;
+  background: url("../assets/characters/karossy/effects/thunder-burst.png") center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 3px rgba(205, 249, 255, 0.98))
+    drop-shadow(0 0 10px rgba(22, 136, 255, 0.95));
+  transform-origin: 0 50%;
+  animation: karossy-thunder-crash 460ms steps(8, end) forwards;
+}
+
+.battle-fx-cloudy-fog {
+  --karossy-fog-flip: 1;
+  inset: 10% -4% 8%;
+  background: url("../assets/characters/karossy/effects/cloudy-fog.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter: drop-shadow(0 0 5px rgba(214, 239, 255, 0.62));
+  transform-origin: 50% 62%;
+  animation: karossy-cloudy-fog 760ms steps(10, end) forwards;
+}
+
+#aiAvatar .battle-fx-cloudy-fog {
+  --karossy-fog-flip: -1;
+}
+
+.battle-fx-sunshine {
+  --karossy-sunshine-flip: 1;
+  inset: -34% -14% -12%;
+  background: url("../assets/characters/karossy/effects/sunshine.png") center top / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 250, 190, 0.98))
+    drop-shadow(0 0 12px rgba(255, 184, 24, 0.92));
+  transform-origin: 50% 8%;
+  animation: karossy-sunshine 720ms steps(9, end) forwards;
+}
+
+#aiAvatar .battle-fx-sunshine {
+  --karossy-sunshine-flip: -1;
+}
+
+.battle-fx-weather-bomb-projectile {
+  position: absolute;
+  left: var(--karossy-bomb-start-x);
+  top: var(--karossy-bomb-start-y);
+  z-index: 10;
+  width: clamp(102px, 12vw, 148px);
+  aspect-ratio: 2;
+  pointer-events: none;
+  background: url("../assets/characters/karossy/effects/weather-bomb.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 3px rgba(211, 246, 255, 0.96))
+    drop-shadow(0 0 9px rgba(34, 143, 255, 0.9));
+  animation: karossy-weather-bomb-flight 520ms steps(12, end) forwards;
+}
+
+.battle-fx-weather-bomb-thunder-impact,
+.battle-fx-weather-bomb-cloudy-impact,
+.battle-fx-weather-bomb-sunny-impact {
+  --karossy-impact-flip: 1;
+  inset: -8%;
+  image-rendering: pixelated;
+  transform-origin: 50% 50%;
+  animation: karossy-weather-bomb-impact 700ms steps(10, end) forwards;
+}
+
+.battle-fx-weather-bomb-thunder-impact {
+  background: url("../assets/characters/karossy/effects/weather-bomb-thunder-impact.png") center / contain no-repeat;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(202, 249, 255, 0.98))
+    drop-shadow(0 0 13px rgba(25, 104, 255, 0.96));
+}
+
+.battle-fx-weather-bomb-cloudy-impact {
+  background: url("../assets/characters/karossy/effects/weather-bomb-cloudy-impact.png") center / contain no-repeat;
+  mix-blend-mode: normal;
+  filter: drop-shadow(0 0 10px rgba(181, 222, 255, 0.74));
+}
+
+.battle-fx-weather-bomb-sunny-impact {
+  background: url("../assets/characters/karossy/effects/weather-bomb-sunny-impact.png") center / contain no-repeat;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 250, 184, 0.98))
+    drop-shadow(0 0 14px rgba(255, 156, 20, 0.94));
+}
+
+#playerAvatar .battle-fx-weather-bomb-thunder-impact,
+#playerAvatar .battle-fx-weather-bomb-cloudy-impact,
+#playerAvatar .battle-fx-weather-bomb-sunny-impact {
+  --karossy-impact-flip: -1;
+}
+
+.avatar-stage.is-fx-thunder-crash-impact .battle-sprite,
+.avatar-stage.is-fx-thunder-crash-impact svg,
+.avatar-stage.is-fx-weather-bomb-thunder-impact .battle-sprite,
+.avatar-stage.is-fx-weather-bomb-thunder-impact svg,
+.avatar-stage.is-fx-weather-bomb-cloudy-impact .battle-sprite,
+.avatar-stage.is-fx-weather-bomb-cloudy-impact svg,
+.avatar-stage.is-fx-weather-bomb-sunny-impact .battle-sprite,
+.avatar-stage.is-fx-weather-bomb-sunny-impact svg {
+  animation: combatant-hit-shake 460ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes karossy-thunder-crash {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) rotate(var(--karossy-thunder-angle)) scaleX(var(--karossy-thunder-flip)) scale(0.72, 0.58);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(-50%) rotate(var(--karossy-thunder-angle)) scaleX(var(--karossy-thunder-flip)) scale(1.02, 1.06);
+  }
+  28% {
+    opacity: 0.45;
+    transform: translateY(-50%) rotate(var(--karossy-thunder-angle)) scaleX(var(--karossy-thunder-flip)) scale(0.98, 0.92);
+  }
+  44%, 68% {
+    opacity: 1;
+    transform: translateY(-50%) rotate(var(--karossy-thunder-angle)) scaleX(var(--karossy-thunder-flip)) scale(1, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) rotate(var(--karossy-thunder-angle)) scaleX(var(--karossy-thunder-flip)) scale(1.04, 0.9);
+  }
+}
+
+@keyframes karossy-cloudy-fog {
+  0% {
+    opacity: 0;
+    transform: scaleX(var(--karossy-fog-flip)) translateX(-6%) scale(0.9, 0.84);
+  }
+  18% {
+    opacity: 0.96;
+    transform: scaleX(var(--karossy-fog-flip)) translateX(2%) scale(0.98, 0.94);
+  }
+  58% {
+    opacity: 0.92;
+    transform: scaleX(var(--karossy-fog-flip)) translateX(8%) scale(0.96, 0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(var(--karossy-fog-flip)) translateX(18%) scale(1.02, 0.9);
+  }
+}
+
+@keyframes karossy-sunshine {
+  0% {
+    opacity: 0;
+    transform: scaleX(var(--karossy-sunshine-flip)) translateY(-10%) scale(0.78, 0.5);
+  }
+  18% {
+    opacity: 1;
+    transform: scaleX(var(--karossy-sunshine-flip)) translateY(0) scale(1.02, 1.04);
+  }
+  62% {
+    opacity: 0.96;
+    transform: scaleX(var(--karossy-sunshine-flip)) translateY(2%) scale(1, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(var(--karossy-sunshine-flip)) translateY(8%) scale(0.96, 1.08);
+  }
+}
+
+@keyframes karossy-weather-bomb-flight {
+  0% {
+    left: var(--karossy-bomb-start-x);
+    top: var(--karossy-bomb-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--karossy-bomb-flip)) rotate(var(--karossy-bomb-rotation-start)) scale(0.56);
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    left: var(--karossy-bomb-mid-x);
+    top: var(--karossy-bomb-mid-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(var(--karossy-bomb-flip)) rotate(var(--karossy-bomb-rotation-mid)) scale(1.04);
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    left: var(--karossy-bomb-end-x);
+    top: var(--karossy-bomb-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--karossy-bomb-flip)) rotate(var(--karossy-bomb-rotation-end)) scale(0.72);
+  }
+}
+
+@keyframes karossy-weather-bomb-impact {
+  0% {
+    opacity: 0;
+    transform: scaleX(var(--karossy-impact-flip)) scale(0.22) rotate(-8deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scaleX(var(--karossy-impact-flip)) scale(0.82) rotate(0deg);
+  }
+  46% {
+    opacity: 1;
+    transform: scaleX(var(--karossy-impact-flip)) scale(0.96) rotate(5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(var(--karossy-impact-flip)) scale(1.08) rotate(12deg);
+  }
+}

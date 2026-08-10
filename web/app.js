@@ -1,7 +1,13 @@
 const LOG_DELAY_MS = 280;
+const LOG_EFFECT_TAIL_HOLD_MS = 280;
+const LOG_EFFECT_IMPACT_LEAD_MS = 60;
 const DIALOGUE_LOG_DELAY_MS = 1200;
 const FINAL_BATTLE_DIALOGUE_HOLD_MS = 3000;
 const EFFECT_SETTLE_MS = 620;
+const BATTLE_SPRITE_ACTION_HOLD_MS = 1280;
+const BATTLE_SPRITE_HIT_HOLD_MS = 560;
+// Battle characters currently render a single canonical idle sprite for every action.
+const BATTLE_SPRITE_RENDER_STATE = "idle";
 const SFX_POOL_SIZE = 3;
 const BGM_FADE_MS = 900;
 const AUDIO_SETTINGS_KEY = "versus.audio-settings.v1";
@@ -134,7 +140,7 @@ const CHARACTER_COLORS = {
   dracle: "#e60012",
   saqua: "#55dce8",
   queenas: "#b1185a",
-  jitrom: "#66ff33",
+  jitrom: "#92ff33",
   fimit: "#7894a8",
   emento: "#a686d4",
   necoulomb: "#e0b51b",
@@ -208,12 +214,45 @@ const DEFAULT_INSCRIPTION_OPTIONS = [
 ];
 
 const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb", "xerox"]);
-const CHARACTER_PORTRAIT_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb", "xerox"]);
-const CHARACTER_PORTRAIT_VARIANTS = Object.freeze({
-  gandrick: new Set(["demonic-bullet", "iron-bullet"]),
+const SPRITE_ASSETS = Object.freeze({
+  toxiche: "characters",
+  cryne: "characters",
+  plote: "characters",
+  ashend: "characters",
+  karossy: "characters",
+  nihfle: "characters",
+  serpen: "characters",
+  melague: "characters",
+  balef: "characters",
+  revesha: "characters",
+  gandrick: "characters",
+  charinel: "characters",
+  dethus: "characters",
+  zeroven: "characters",
+  neroko: "characters",
+  happyrin: "characters",
+  librang: "characters",
+  dracle: "characters",
+  saqua: "characters",
+  queenas: "characters",
+  jitrom: "characters",
+  fimit: "characters",
+  emento: "characters",
+  necoulomb: "characters",
+  xerox: "characters",
+  demon_scout_kain: "monsters",
+  demon_warrior_luke: "monsters",
+  demon_mage_zero: "monsters",
+  demon_archer_robin: "monsters",
+  demon_priest_sara: "monsters",
+  demon_fighter_gran: "monsters",
+  demon_pawn_opawn: "monsters",
+  demon_rook_chatrang: "monsters",
+  demon_knight_kaighton: "monsters",
+  demon_bishop_eveque: "monsters",
+  demon_king_monochrem: "monsters",
 });
-const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
-const MONSTER_PORTRAIT_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_king_monochrem"]);
+const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_pawn_opawn", "demon_rook_chatrang", "demon_knight_kaighton", "demon_bishop_eveque", "demon_king_monochrem"]);
 const ADVENTURE_DESTINATION_ICONS = Object.freeze({
   start_adventure: `
     <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
@@ -225,6 +264,23 @@ const ADVENTURE_DESTINATION_ICONS = Object.freeze({
       <path d="m6 11 5 5 5-10 5 10 5-5-2 14H8L6 11Z" />
       <path d="M9 25h14v3H9z" />
       <path d="M7 8 4 4M25 8l3-4" />
+    </svg>`,
+  mirror_break: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M16 3C9 5 6 10 7 17c1 6 4 10 9 12 5-2 8-6 9-12 1-7-2-12-9-14Z" />
+      <path d="m16 4-3 8 5 3-6 6 4 7M8 19l-5 4 5 2M24 19l5 4-5 2" />
+    </svg>`,
+  mirror_face: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="14" rx="9" ry="11" />
+      <path d="M16 25v3M11 29h10M11 14c3-4 7-4 10 0-3 4-7 4-10 0Z" />
+      <circle cx="16" cy="14" r="1.5" />
+    </svg>`,
+  mirror_accept: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
+      <ellipse cx="16" cy="13" rx="8" ry="10" />
+      <path d="M16 23v5M12 29h8M8 13c-4 1-5 5-3 9l5 5M24 13c4 1 5 5 3 9l-5 5" />
+      <path d="m5 19 5 3M27 19l-5 3" />
     </svg>`,
   magic_stone_mine: `
     <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
@@ -275,8 +331,9 @@ const ADVENTURE_DESTINATION_ICONS = Object.freeze({
     </svg>`,
   mirror_lake: `
     <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
-      <ellipse cx="16" cy="13" rx="8" ry="9" />
-      <path d="M16 22v4M11 27h10M5 25c3-2 6-2 9 0s6 2 9 0 4-2 6-1" />
+      <path d="M22 4a7 7 0 1 0 5 11 8 8 0 0 1-5-11Z" />
+      <path d="M4 20c3-2 6-2 9 0s6 2 9 0 5-2 7 0M4 25c3-2 6-2 9 0s6 2 9 0 5-2 7 0" />
+      <path d="m8 8 1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2Z" />
     </svg>`,
   sealed_library: `
     <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
@@ -373,23 +430,124 @@ const ADVENTURE_DESTINATION_ICONS = Object.freeze({
       <circle cx="16" cy="10" r="1" />
       <path d="M12 14h8M12 17h6" />
     </svg>`,
-  cracked_reliquary: `
+  backward_clock: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="17" cy="17" r="10"/><path d="M17 10v7l-5 3M8 7v6h6M8 13c2-6 9-10 15-6"/></svg>`,
+  sealed_treasury: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h22v15H5ZM7 12l3-6h12l3 6M5 18h22"/><rect x="13" y="15" width="6" height="7" rx="1"/><path d="M16 17v3"/></svg>`,
+  attacked_relic_merchant: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="12" cy="9" r="4"/><path d="M5 27c0-8 3-13 7-13s7 5 7 13M20 12h7v12h-9M22 12V9h3v3M23 17l-3 3 3 3"/></svg>`,
+  cursed_gaming_table: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 8h20v17H6Z"/><circle cx="11" cy="13" r="1"/><circle cx="21" cy="20" r="1"/><circle cx="16" cy="16" r="1"/><path d="m8 5 3 3M24 5l-3 3M10 25l-2 4M22 25l2 4"/></svg>`,
+  blood_chalice_altar: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 6h16c0 8-3 12-8 12S8 14 8 6ZM16 18v7M11 27h10"/><path d="M16 8c-2 3-3 4-3 6a3 3 0 0 0 6 0c0-2-1-3-3-6Z"/></svg>`,
+  knight_memorial: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 15c1-7 4-11 8-11s7 4 8 11H8ZM10 15v5c2 4 10 4 12 0v-5M16 4v11"/><path d="M6 28 22 12M8 20l4 4"/></svg>`,
+  beast_heart_shrine: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 27 6 17C1 10 9 4 16 11c7-7 15-1 10 6L16 27Z"/><path d="m10 5 3 5M22 5l-3 5M12 16l3-3 2 6 3-3"/></svg>`,
+  forbidden_archive: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 6h9c3 0 4 2 4 4v17c0-2-2-3-4-3H5ZM27 6h-9v21c0-2 2-3 4-3h5Z"/><path d="m8 10 16 10M24 10 8 20"/></svg>`,
+  watching_statue: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 14c5-7 15-7 20 0-5 7-15 7-20 0Z"/><circle cx="16" cy="14" r="4"/><path d="M10 22h12l3 6H7l3-6Z"/></svg>`,
+  shattered_mirror: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C9 5 6 10 7 17c1 6 4 10 9 12 5-2 8-6 9-12 1-7-2-12-9-14Z"/><path d="m16 4-3 8 5 3-6 6 4 7M18 15l6 6M8 18l5 1"/></svg>`,
+  toll_bridge: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 23h26M6 23c2-8 6-12 10-12s8 4 10 12M8 23V12M24 23V12"/><circle cx="16" cy="7" r="4"/><path d="M16 5v4"/></svg>`,
+  buried_purse: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 15h14l3 5c0 5-4 8-10 8S6 25 6 20l3-5ZM11 15l2-5h6l2 5"/><path d="M5 5l9 9M3 8l5-5"/></svg>`,
+  traveling_auction: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="m7 8 7 7M12 3l7 7-5 5-7-7 5-5ZM15 14l11 11M20 25h8v3h-8Z"/></svg>`,
+  broken_caravan: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 9h18l5 8v7H8L4 19V9ZM22 10v8h5"/><circle cx="10" cy="25" r="3"/><path d="M20 22l6 6M26 22l-6 6"/></svg>`,
+  golden_fountain: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 25h20l-2 4H8l-2-4ZM9 21h14v4M16 5v16M10 10c0 4 2 6 6 6M22 10c0 4-2 6-6 6"/><circle cx="16" cy="5" r="2"/></svg>`,
+  mercenary_wager: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 6l21 21M27 6 6 27M8 5l-3 3M24 5l3 3"/><circle cx="16" cy="17" r="5"/><path d="M16 14v6"/></svg>`,
+  tax_collector_camp: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 5h15v22H7Z"/><path d="M11 10h7M11 14h7M11 18h5"/><circle cx="24" cy="22" r="5"/><path d="M24 19v6"/></svg>`,
+  roadside_alchemist: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M12 4h8M14 4v8L7 25c-1 2 1 3 3 3h12c2 0 4-1 3-3l-7-13V4"/><path d="M10 22h12M13 18c2 2 4 2 6 0"/></svg>`,
+  roadside_shrine: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 8h22M8 4h16M9 8v20M23 8v20M9 13h14"/><path d="M13 28v-9h6v9M16 15v3"/></svg>`,
+  frozen_spring: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c-4 6-7 9-7 14a7 7 0 0 0 14 0c0-5-3-8-7-14Z"/><path d="M16 10v14M10 14l12 8M22 14l-12 8"/></svg>`,
+  warm_bathhouse: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 18h22v5c0 3-3 5-6 5H11c-3 0-6-2-6-5v-5Z"/><path d="M10 15c-3-3 3-4 0-8M16 15c-3-3 3-4 0-8M22 15c-3-3 3-4 0-8"/></svg>`,
+  mana_well: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="10" rx="10" ry="5"/><path d="M6 10v14c0 3 20 3 20 0V10M10 27h12"/><path d="m16 10-2 5h4l-3 6"/></svg>`,
+  moon_herb_patch: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M22 4a8 8 0 1 0 5 13 9 9 0 0 1-5-13Z"/><path d="M8 28c1-9 4-13 9-15M10 22c-4 0-6-2-6-5 4 0 7 1 8 4M13 18c0-4 2-7 6-8 0 4-2 7-6 8Z"/></svg>`,
+  training_effigy: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="7" r="4"/><path d="M16 11v17M7 14h18M10 28h12"/><path d="m8 11-3 3 3 3M24 11l3 3-3 3"/></svg>`,
+  howling_wind_tunnel: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 9h15c5 0 5-6 1-6-3 0-4 2-4 4M4 15h22c5 0 5 7 0 7-3 0-4-2-4-4M4 21h11c5 0 5 7 1 7-3 0-4-2-4-4"/></svg>`,
+  weight_gate: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 28V5h22v23M9 28V10h14v18"/><path d="M16 9v12M10 14h12M10 14l-3 7h6l-3-7ZM22 14l-3 7h6l-3-7Z"/></svg>`,
+  dueling_circle: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13"/><path d="M8 7l17 18M24 7 7 24M10 6 6 10M22 6l4 4"/></svg>`,
+  broken_spell_circle: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M12 4A12 12 0 0 0 5 22M20 28a12 12 0 0 0 7-18"/><path d="m16 6 3 7 7 1-5 5 1 7-6-4-6 4 1-7-5-5 7-1 3-7Z"/><path d="M9 5l14 22"/></svg>`,
+  lonely_watchtower: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 9h14l-2 19H11L9 9ZM7 4h18v5H7Z"/><path d="M12 16c2-3 6-3 8 0-2 3-6 3-8 0Z"/></svg>`,
+  smuggler_tunnel: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 28V17C4 9 9 4 16 4s12 5 12 13v11M9 28V18c0-5 3-8 7-8s7 3 7 8v10"/><path d="M12 21h8v7h-8Z"/></svg>`,
+  demon_tracks: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="21" rx="7" ry="6"/><circle cx="8" cy="12" r="3"/><circle cx="14" cy="8" r="3"/><circle cx="21" cy="9" r="3"/><circle cx="25" cy="15" r="3"/></svg>`,
+  forked_milestone: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6v22M6 8h16l4 4-4 4H6l-3-4 3-4ZM10 18h16l3 4-3 4H10l-4-4 4-4Z"/></svg>`,
+  scout_camp: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="m5 26 10-19 10 19H5ZM15 7v19"/><path d="M18 13c4-3 8-2 10 1-2 4-6 5-10 2M23 13v4"/></svg>`,
+  executioners_block: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 22h15l3 7H5l2-7ZM10 14h9v8h-9Z"/><path d="m11 4 16 8-3 6-16-8 3-6ZM18 12l-5 7"/></svg>`,
+  black_contract: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 4h18v24H7Z"/><path d="M11 9h10M11 13h10M11 17h6"/><path d="m13 25 3-5 3 5M16 20v8"/></svg>`,
+  unstable_portal: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M25 8c-5-6-15-4-18 3-3 8 4 16 12 15 7-1 10-9 6-14-3-4-10-4-12 1-2 4 2 8 6 7 3-1 4-5 1-7"/><path d="m7 5 3 2M25 24l3 3"/></svg>`,
+  gray_comet_crater: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 25c5-5 17-5 22 0-5 5-17 5-22 0Z"/><circle cx="18" cy="15" r="5"/><path d="M3 5l11 7M8 3l8 7M3 11l10 3"/></svg>`,
+  colorless_scale: `
+    <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4v23M9 8h14M9 8 4 20h10L9 8ZM23 8l-5 12h10L23 8ZM10 28h12"/><circle cx="16" cy="6" r="2"/></svg>`,
+  relic_shop: `
     <svg class="adventure-destination-icon" viewBox="0 0 32 32" aria-hidden="true">
       <path d="M7 13h18v14H7Z" />
       <path d="M9 13c0-6 3-9 7-9s7 3 7 9" />
       <path d="m16 9-4 7 4 6 4-6-4-7Z" />
-      <path d="m16 9-1 5 2 2-2 3 1 3" />
+      <path d="M11 18h10M16 13v10" />
     </svg>`,
 });
 
-const EFFECT_CLASSES = ["hit", "shadow-hit", "miss", "defense", "heal", "buff", "debuff", "stack-gain", "stack-spend"];
-const PORTRAIT_TRANSFORM_DURATION_MS = 820;
-const PORTRAIT_TRANSFORM_CLASSES = [
-  "is-portrait-transforming",
-  "is-portrait-transforming-demonic-bullet",
-  "is-portrait-transforming-iron-bullet",
+const CHARACTER_BATTLE_EFFECTS = window.VersusCharacterBattleEffects;
+const EFFECT_CLASSES = [
+  "normal-attack",
+  "common-defense",
+  "meditation",
+  "hit",
+  "shadow-hit",
+  "miss",
+  "defense",
+  "heal",
+  "resource-change",
+  "buff",
+  "debuff",
+  "stack-gain",
+  "stack-spend",
+  ...(CHARACTER_BATTLE_EFFECTS?.effectTypes?.() || []),
 ];
+const MOTION_ONLY_EFFECT_TYPES = new Set([
+  "hit",
+  "shadow-hit",
+  "miss",
+  "defense",
+  "heal",
+  "resource-change",
+  "buff",
+  "debuff",
+  "stack-gain",
+  "stack-spend",
+]);
 const EFFECT_SFX = {
+  "normal-attack": localAssetUrl("/assets/sfx/hit.wav"),
+  "common-defense": localAssetUrl("/assets/sfx/defense.wav"),
+  meditation: localAssetUrl("/assets/sfx/buff.wav"),
   hit: localAssetUrl("/assets/sfx/hit.wav"),
   "shadow-hit": localAssetUrl("/assets/sfx/hit.wav"),
   miss: localAssetUrl("/assets/sfx/miss.wav"),
@@ -399,9 +557,14 @@ const EFFECT_SFX = {
   debuff: localAssetUrl("/assets/sfx/debuff.wav"),
   "stack-gain": localAssetUrl("/assets/sfx/stack-gain.wav"),
   "stack-spend": localAssetUrl("/assets/sfx/stack-spend.wav"),
+  ...Object.fromEntries(
+    Object.entries(CHARACTER_BATTLE_EFFECTS?.sfxEntries?.() || {})
+      .map(([type, path]) => [type, localAssetUrl(path)]),
+  ),
 };
 const BGM_TRACKS = {
   fight: { src: localAssetUrl("/assets/bgm/fight.mp3"), loop: true, gain: 1 },
+  deep: { src: localAssetUrl("/assets/bgm/deep.mp3"), loop: true, gain: 1 },
   boss: { src: localAssetUrl("/assets/bgm/boss.mp3"), loop: true, gain: 1 },
   village: { src: localAssetUrl("/assets/bgm/village.mp3"), loop: true, gain: 1 },
   event: { src: localAssetUrl("/assets/bgm/event.mp3"), loop: true, gain: 1, preload: false },
@@ -432,8 +595,9 @@ const state = {
   characterPickers: [],
   activeCharacterPicker: null,
   selectedInscriptionId: DEFAULT_INSCRIPTION_OPTIONS[0].id,
-  portraitKeys: { player: null, ai: null },
   effectTimers: [],
+  spriteStateTokens: { player: 0, ai: 0 },
+  preloadedSpriteUrls: new Set(),
   sfx: new Map(),
   bgm: new Map(),
   audioPrimed: false,
@@ -451,7 +615,6 @@ async function init() {
   }
   state.audioSettings = loadAudioSettings();
   syncAudioSettingsControls();
-  preloadPortraitVariants();
   bindEvents();
   syncInscriptionPicker();
   setBattleMode("pve");
@@ -459,15 +622,6 @@ async function init() {
   renderEmptyActions();
   renderLog();
   await loadOptions();
-}
-
-function preloadPortraitVariants() {
-  for (const [id, variants] of Object.entries(CHARACTER_PORTRAIT_VARIANTS)) {
-    for (const variant of variants) {
-      const image = new Image();
-      image.src = portraitSrcForId(id, variant);
-    }
-  }
 }
 
 function bindEvents() {
@@ -580,8 +734,9 @@ function prepareAdventureSetup() {
   state.battle = null;
   state.adventure = {
     stage: 1,
-    totalStages: 10,
+    totalStages: 20,
     phase: "setup",
+    gold: 20,
   };
   previewSelectedMatch();
   els.turnChip.textContent = "PROLOGUE";
@@ -627,7 +782,7 @@ function playRestoredAdventureBgm(data) {
   const phase = data.adventure?.phase;
   if (phase === "prologue") return playBgm("prologue", 300);
   if (phase === "battle" || phase === "final_battle_dialogue") {
-    return playBgm(data.adventure?.isFinalBattle ? "boss" : "fight", 300);
+    return playBgm(adventureBattleBgm(data.adventure), 300);
   }
   if (phase === "final_battle_ending" || phase === "complete") return playBgm("clear", 300);
   if (phase === "defeat") return playBgm("defeat", 300);
@@ -635,6 +790,12 @@ function playRestoredAdventureBgm(data) {
     return playBgm(data.adventure?.currentEvent?.bgm === "village" ? "village" : "event", 300);
   }
   return playBgm("village", 300);
+}
+
+function adventureBattleBgm(adventure) {
+  if (adventure?.isFinalBattle) return "boss";
+  if (adventure?.isMirrorBattle || adventure?.isOfficerBattle || adventure?.monster?.officer) return "deep";
+  return "fight";
 }
 
 function restoredAdventureLogTitle(data) {
@@ -652,7 +813,6 @@ function resetBattleScreen() {
   state.pvp = null;
   state.busy = false;
   state.adventureRestartRequested = false;
-  state.portraitKeys = { player: null, ai: null };
   document.body.classList.remove("is-waiting");
   closeCustomSelects();
   closeInscriptionPopover();
@@ -1146,7 +1306,7 @@ function renderCharacterPickerGrid(api) {
       button.setAttribute("aria-current", "true");
     }
     button.innerHTML = `
-      <span class="character-picker-tile-portrait">
+      <span class="character-picker-tile-visual">
         ${characterPickerThumbHtml(item.character, api.side, item.value === "random")}
       </span>
       <strong>${escapeHtml(item.name)}</strong>
@@ -1269,7 +1429,7 @@ function previewSelectedMatch() {
   const player = selectedText(els.playerSelect);
   if (state.battleMode === "adventure") {
     const stage = state.adventure?.stage || 1;
-    const totalStages = state.adventure?.totalStages || 10;
+    const totalStages = state.adventure?.totalStages || 20;
     els.matchLabel.textContent = `${player} · STAGE ${stage} / ${totalStages}`;
     els.aiModeText.textContent = "ADVENTURE";
     return;
@@ -1448,9 +1608,6 @@ async function chooseAction(actionNumber) {
       && Array.isArray(data.adventure?.dialogue?.lines)
       && data.adventure.dialogue.lines.length > 0;
     if (hasFinalBattleEnding) syncSetupLock();
-    if (isGameOver) {
-      renderEmptyActions(hasFinalBattleEnding ? "전투 종료 처리 중" : "전투 결과 처리 중");
-    }
     await pushTurnLog(`TURN ${previousTurn}`, data.log, true, {
       settleEffects: isGameOver,
       syncState: true,
@@ -1536,7 +1693,7 @@ async function chooseAdventureChoice(choiceId) {
       playBgm("boss", 300);
       renderBattle(data);
     } else if (data.adventure?.phase === "battle") {
-      playBgm(data.adventure.isFinalBattle ? "boss" : "fight", 300);
+      playBgm(adventureBattleBgm(data.adventure), 300);
     }
     if (data.adventure?.phase === "defeat") playBgm("defeat", 300);
     await pushTurnLog(logTitle, data.log, true);
@@ -1747,6 +1904,7 @@ async function pollPvpState() {
 function renderEmptyBattle() {
   els.battleScreen.classList.remove("is-adventure-prologue");
   els.battleScreen.classList.remove("is-adventure-choice-phase");
+  els.battleScreen.classList.remove("has-sprite-battle");
   const empty = {
     name: "-",
     title: "대기 중",
@@ -1776,7 +1934,12 @@ function renderBattle(data, options = {}) {
   const isFinalBattleDialogue = adventure?.phase === "final_battle_dialogue";
   const isFinalBattleEnding = adventure?.phase === "final_battle_ending";
   els.battleScreen.classList.toggle("is-adventure-prologue", isPrologue);
-  renderFighter("player", data.player);
+  els.battleScreen.classList.toggle("has-sprite-battle", Boolean(
+    !isPrologue
+    && battleSpriteSrcForSubject(data.player, "player")
+    && battleSpriteSrcForSubject(data.ai, "ai")
+  ));
+  renderFighter("player", data.player, adventure);
   if (isPrologue) {
     renderFighter("ai", {
       name: "팔레티아",
@@ -1792,7 +1955,7 @@ function renderBattle(data, options = {}) {
     });
     renderAdventureScene(adventure.scene);
   } else {
-    renderFighter("ai", data.ai);
+    renderFighter("ai", data.ai, adventure);
   }
   renderPassive(data.player);
   const adventureChoices = (data.is_over || isPrologue) && Array.isArray(adventure?.choices) ? adventure.choices : [];
@@ -1867,7 +2030,7 @@ function renderBattle(data, options = {}) {
   els.playerInfoButton.disabled = false;
   renderPvpStatus(data);
   syncSetupLock();
-  syncDefeatPortraits(data, options.animateDefeat);
+  syncDefeatVisuals(data, options.animateDefeat);
 }
 
 function renderPvpStatus(data) {
@@ -1885,7 +2048,7 @@ function renderPvpStatus(data) {
   }
 }
 
-function renderFighter(side, fighter) {
+function renderFighter(side, fighter, adventure = null) {
   const ids = fighterIds[side];
   const maxHp = fighter.max_hp ?? fighter.maxHp ?? 0;
   const maxMp = fighter.max_mp ?? fighter.maxMp ?? 0;
@@ -1893,42 +2056,36 @@ function renderFighter(side, fighter) {
   const stateText = fighter.status_text || fighter.stateText || "없음";
   const avatar = document.querySelector(ids.avatar);
   avatar.classList.remove("is-adventure-scene");
+  avatar.classList.toggle("is-adventure-monochrome", side === "ai" && Boolean(adventure));
+  avatar.classList.toggle("is-adventure-mirror", side === "ai" && Boolean(adventure?.isMirrorBattle));
   document.querySelector(ids.sideName).textContent = fighter.name;
   document.querySelector(ids.sideTitle).textContent = fighter.title || "";
   avatar.style.setProperty("--character-color", characterColor(fighter.id));
-  const variant = portraitVariantForSubject(fighter, fighter.id);
-  const nextPortraitKey = fighter.id ? `${fighter.id}:${variant || "base"}` : null;
-  const previousPortraitKey = state.portraitKeys[side];
-  const shouldAnimatePortraitTransform = Boolean(
-    variant
-    && previousPortraitKey
-    && previousPortraitKey.startsWith(`${fighter.id}:`)
-    && previousPortraitKey !== nextPortraitKey
-  );
-  state.portraitKeys[side] = nextPortraitKey;
-  const portrait = portraitHtml(fighter, side);
-  avatar.classList.toggle("is-empty", !portrait);
-  avatar.innerHTML = portrait;
-  if (shouldAnimatePortraitTransform) {
-    playPortraitTransform(avatar, variant);
-  }
+  const battleSpriteSrc = battleSpriteSrcForSubject(fighter, side);
+  const fighterVisual = battleSpriteSrc
+    ? battleSpriteHtml(fighter, side, battleSpriteSrc)
+    : avatarSvg(fighter.name || fighter.id || "?", side, {
+      monochrome: side === "ai" && Boolean(adventure),
+    });
+  avatar.classList.toggle("has-battle-sprite", Boolean(battleSpriteSrc));
+  avatar.classList.toggle("is-empty", !fighterVisual);
+  avatar.innerHTML = fighterVisual;
+  preloadBattleSpriteStates(fighter);
   setBar(ids.hpBar, fighter.hp, maxHp);
   setBar(ids.mpBar, fighter.mp, maxMp);
   document.querySelector(ids.hpText).textContent = `${formatStat(fighter.hp)}/${formatStat(maxHp)}`;
   document.querySelector(ids.mpText).textContent = `${formatStat(fighter.mp)}/${formatStat(maxMp)}`;
-  document.querySelector(ids.stats).textContent =
-    `ATK ${formatStat(fighter.atk)} / DEF ${formatStat(defense)} / SPD ${formatStat(fighter.spd)}`;
+  const statsElement = document.querySelector(ids.stats);
+  statsElement.textContent = `ATK ${formatStat(fighter.atk)} / DEF ${formatStat(defense)} / SPD ${formatStat(fighter.spd)}`;
+  if (side === "player" && Number.isFinite(Number(adventure?.gold))) {
+    statsElement.append(" / ");
+    const gold = document.createElement("span");
+    gold.className = "adventure-gold";
+    gold.textContent = `G ${formatStat(adventure.gold)}`;
+    statsElement.append(gold);
+  }
   document.querySelector(ids.state).textContent = stateText;
   hideInlineBattleRecord(ids.record);
-}
-
-function playPortraitTransform(avatar, variant) {
-  for (const className of PORTRAIT_TRANSFORM_CLASSES) avatar.classList.remove(className);
-  void avatar.offsetWidth;
-  avatar.classList.add("is-portrait-transforming", `is-portrait-transforming-${variant}`);
-  registerEffectTimeout(window.setTimeout(() => {
-    for (const className of PORTRAIT_TRANSFORM_CLASSES) avatar.classList.remove(className);
-  }, PORTRAIT_TRANSFORM_DURATION_MS));
 }
 
 function renderAdventureScene(scene) {
@@ -1949,8 +2106,11 @@ function hideInlineBattleRecord(selector) {
 
 function renderBattleRecordButton(data = state.battle) {
   const hasRecords = Boolean(data?.player?.battleLog?.length || data?.ai?.battleLog?.length);
-  els.battleRecordButton.hidden = !hasRecords;
-  els.battleRecordButton.disabled = !hasRecords;
+  const adventure = data?.adventure || state.adventure;
+  const isAdventure = state.battleMode === "adventure" && Boolean(adventure);
+  const shouldShow = hasRecords || isAdventure;
+  els.battleRecordButton.hidden = !shouldShow;
+  els.battleRecordButton.disabled = !shouldShow;
 }
 
 function renderPassive(fighter) {
@@ -1975,7 +2135,7 @@ function renderFighterVitals(side) {
   document.querySelector(ids.mpText).textContent = `${formatStat(fighter.mp)}/${formatStat(maxMp)}`;
 }
 
-function syncDefeatPortraits(data = state.battle, animate = false) {
+function syncDefeatVisuals(data = state.battle, animate = false) {
   for (const side of ["player", "ai"]) {
     const stage = document.querySelector(fighterIds[side].avatar);
     if (!stage) continue;
@@ -2004,6 +2164,7 @@ function renderAdventureChoices(choices) {
   const isRewardSelection = visibleChoices.length > 0 && visibleChoices.every((choice) => choice.type === "reward");
   const isTownSelection = visibleChoices.length > 0 && visibleChoices.every((choice) => choice.type === "town_meal");
   const isEventSelection = visibleChoices.length > 0 && visibleChoices.every((choice) => choice.type === "event_choice");
+  const isMirrorSelection = visibleChoices.length > 0 && visibleChoices.every((choice) => choice.type === "mirror_choice");
   const isPrologueSelection = visibleChoices.length === 1 && visibleChoices[0].id === "start_adventure";
   els.battleScreen.classList.add("is-adventure-choice-phase");
   els.actionsGrid.innerHTML = "";
@@ -2013,6 +2174,8 @@ function renderAdventureChoices(choices) {
     ? "전투 보상"
     : isPrologueSelection
       ? "PROLOGUE"
+    : isMirrorSelection
+      ? `마왕의 마경 · ${state.adventure?.routePrompt || "불온한 기운을 내뿜는 거울이 앞에 서 있다."}`
     : isTownSelection
       ? "마을"
       : isEventSelection
@@ -2026,7 +2189,7 @@ function renderAdventureChoices(choices) {
   for (const choice of visibleChoices) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `adventure-choice-button${visibleChoices.length === 1 ? " is-single" : ""}${isEventSelection ? " is-event-choice" : ""}`;
+    button.className = `adventure-choice-button${visibleChoices.length === 1 ? " is-single" : ""}${isEventSelection || isMirrorSelection ? " is-event-choice" : ""}`;
     button.dataset.choiceId = choice.id;
     button.disabled = state.busy || Boolean(choice.disabled);
     if (choice.disabledReason) button.title = choice.disabledReason;
@@ -2041,7 +2204,7 @@ function renderAdventureChoices(choices) {
       </span>
     `;
     button.addEventListener("click", () => {
-      if (["reward", "destination", "town_meal", "event_choice"].includes(choice.type)) {
+      if (["reward", "destination", "town_meal", "event_choice", "mirror_choice"].includes(choice.type)) {
         chooseAdventureChoice(choice.id);
         return;
       }
@@ -2057,7 +2220,9 @@ function renderAdventureChoices(choices) {
 
 function renderAdventureRouteControls() {
   const rerollCount = Number(state.adventure?.routeRerollCount || 0);
-  const canReroll = state.adventure?.phase === "route" && rerollCount > 0;
+  const canReroll = state.adventure?.phase === "route"
+    && Number(state.adventure?.stage || 0) !== 12
+    && rerollCount > 0;
   els.adventureRouteRerollButton.hidden = !canReroll;
   els.adventureRouteRerollButton.disabled = state.busy || !canReroll;
   els.adventureRouteRerollButton.textContent = rerollCount > 1
@@ -2066,14 +2231,14 @@ function renderAdventureRouteControls() {
 }
 
 function adventureChoiceSymbolHtml(choice) {
-  if (choice?.type === "destination" && ADVENTURE_DESTINATION_ICONS[choice.id]) {
+  if (["destination", "mirror_choice"].includes(choice?.type) && ADVENTURE_DESTINATION_ICONS[choice.id]) {
     return ADVENTURE_DESTINATION_ICONS[choice.id];
   }
   return escapeHtml(choice?.symbol || "◆");
 }
 
 function adventureChoiceSymbolSizeClass(choice) {
-  if (choice?.type === "destination" && ADVENTURE_DESTINATION_ICONS[choice.id]) return "";
+  if (["destination", "mirror_choice"].includes(choice?.type) && ADVENTURE_DESTINATION_ICONS[choice.id]) return "";
   const length = [...String(choice?.symbol || "")].length;
   if (length >= 5) return " is-compact";
   if (length >= 4) return " is-wide";
@@ -2271,9 +2436,10 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
     ? Math.max(0, Number(options.delayMs))
     : LOG_DELAY_MS;
   let playedEffect = false;
+  let nextEntryDelayMs = delayMs;
   try {
     for (let index = 1; index <= packet.entries.length; index += 1) {
-      await sleep(delayMs);
+      await sleep(nextEntryDelayMs);
       if (token !== state.logToken) return;
       packet.visibleCount = index;
       renderLog({ follow: true });
@@ -2283,9 +2449,19 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
         applyLogStatePatch(entry.patch);
       }
       const effect = entry.effect;
-      if (effect) {
+      if (effect && effect.type !== "sprite-state") {
         playedEffect = true;
       }
+      const impactDelayMs = Math.max(0, Number(effect?.impactDelayMs) || 0);
+      nextEntryDelayMs = Math.max(
+        delayMs,
+        impactDelayMs > 0 ? impactDelayMs + LOG_EFFECT_IMPACT_LEAD_MS : 0,
+      );
+    }
+    const finalEffect = packet.entries.at(-1)?.effect;
+    if (finalEffect && finalEffect.type !== "sprite-state" && token === state.logToken) {
+      const impactDelayMs = Math.max(0, Number(finalEffect.impactDelayMs) || 0);
+      await sleep(impactDelayMs + LOG_EFFECT_TAIL_HOLD_MS);
     }
     if (options.settleEffects && playedEffect && token === state.logToken) {
       await sleep(EFFECT_SETTLE_MS);
@@ -2305,7 +2481,7 @@ function pushDialogueLog(title, lines = []) {
 function compactLogEntries(lines) {
   const result = [];
   let skippingInfo = false;
-  const context = { actorName: null, actorSide: null, lineSide: null };
+  const context = { actorName: null, actorSide: null, actionName: null, lineSide: null };
   for (const rawLine of lines || []) {
     let line = String(rawLine).trim();
     if (!line) continue;
@@ -2332,7 +2508,8 @@ function compactLogEntries(lines) {
     if (line.includes("회피 확률")) continue;
     if (line.includes("명중률")) {
       if (line.includes("명중 판정 성공")) {
-        result.push({ text: "→ 명중 판정 성공.", effect: null });
+        const text = "→ 명중 판정 성공.";
+        result.push({ text, effect: effectFromLogLine(text, context), patch: null });
       }
       continue;
     }
@@ -2388,11 +2565,41 @@ function applyLogStatePatch(patch) {
   renderFighterVitals(side);
 }
 
+function resolveCharacterBattleEffect(phase, context, details = {}) {
+  const actorId = context.actorSide ? state.battle?.[context.actorSide]?.id : null;
+  if (!actorId) return undefined;
+  return CHARACTER_BATTLE_EFFECTS?.resolve?.(actorId, phase, {
+    ...details,
+    actionName: context.actionName,
+    actorName: context.actorName,
+    actorSide: context.actorSide,
+    battle: state.battle,
+    logDelayMs: LOG_DELAY_MS,
+    makeLogEffect,
+    makeMissEffect,
+    oppositeSide,
+  });
+}
+
+function resolveStatusBattleEffect(statusName, phase, context, details = {}) {
+  return CHARACTER_BATTLE_EFFECTS?.resolveStatus?.(statusName, phase, {
+    ...details,
+    actionName: context.actionName,
+    actorName: context.actorName,
+    actorSide: context.actorSide,
+    battle: state.battle,
+    makeLogEffect,
+    oppositeSide,
+  });
+}
+
 function effectFromLogLine(line, context) {
   const sectionMatch = line.match(/^\[(.+?)의 행동\]$/);
   if (sectionMatch) {
     context.actorName = sectionMatch[1];
     context.actorSide = context.lineSide || sideForFighterName(sectionMatch[1], context.actorSide);
+    context.actionName = null;
+    context.actionCostPending = false;
     return null;
   }
 
@@ -2401,49 +2608,198 @@ function effectFromLogLine(line, context) {
     const [, actorName, actionName] = actionMatch;
     context.actorName = actorName;
     context.actorSide = context.lineSide || sideForFighterName(actorName, context.actorSide);
-    if (DEFENSE_ACTION_NAMES.has(actionName)) {
-      return makeLogEffect("defense", actorName, actorName, "방어", context.lineSide, context.actorSide);
+    context.actionName = actionName;
+    context.actionCostPending = true;
+    if (actionName === "일반 공격") {
+      return attachBattleSpriteActionState(null, context);
     }
-    return null;
+    if (actionName === "일반 방어") {
+      return attachBattleSpriteActionState(null, context);
+    }
+    if (actionName === "명상") {
+      return attachBattleSpriteActionState(null, context);
+    }
+    const characterEffect = resolveCharacterBattleEffect("action", context);
+    if (characterEffect !== undefined) return attachBattleSpriteActionState(characterEffect, context);
+    if (DEFENSE_ACTION_NAMES.has(actionName)) {
+      return attachBattleSpriteActionState(null, context);
+    }
+    return attachBattleSpriteActionState(null, context);
+  }
+
+  if (line === "빙결로 비공격 행동에 실패하고 빙결이 해제되었다.") {
+    const statusEffect = resolveStatusBattleEffect("빙결", "statusFailure", context, {
+      targetName: context.actorName,
+      targetSide: context.actorSide || context.lineSide,
+    });
+    return statusEffect === undefined ? null : statusEffect;
+  }
+
+  if (line === "마비로 행동에 실패했다.") {
+    const statusEffect = resolveStatusBattleEffect("마비", "statusFailure", context, {
+      targetName: context.actorName,
+      targetSide: context.actorSide || context.lineSide,
+    });
+    return statusEffect === undefined ? null : statusEffect;
   }
 
   if (line.includes("공격이 빗나갔다") || line.includes("공격이 회피되었다")) {
     return makeMissEffect(context.actorName, context.actorSide);
   }
 
-  let match = line.match(/^(.+?)의 그림자 병사 \d+이 공격 피해 (\d+)을 대신 받았다\.$/);
+  if (line.includes("명중 판정 성공")) {
+    const characterEffect = resolveCharacterBattleEffect("accuracy", context, { success: true });
+    if (characterEffect !== undefined) return characterEffect;
+    return null;
+  }
+
+  if (line.startsWith("[방어] 성공.")) {
+    const characterEffect = resolveCharacterBattleEffect("success", context);
+    if (characterEffect !== undefined) return characterEffect;
+    const effectType = context.actionName === "일반 방어" ? "common-defense" : "defense";
+    return makeLogEffect(effectType, context.actorName, context.actorName, null, context.actorSide, context.actorSide);
+  }
+
+  let match = line.match(/^(.+?)의 ATK가 잔기를 소모할 때까지 x2가 된다\.$/);
+  if (match) {
+    context.actorName = match[1];
+    context.actorSide = context.lineSide || sideForFighterName(match[1], context.actorSide);
+    context.actionName = "죽을 힘을 다해";
+    const characterEffect = resolveCharacterBattleEffect("success", context, { result: "desperate" });
+    return characterEffect === undefined ? null : characterEffect;
+  }
+
+  match = line.match(/^현재 잔기 (\d+)\/8을 길동무 기준으로 기록했다\.$/);
+  if (match) {
+    context.actionName = "길동무";
+    const characterEffect = resolveCharacterBattleEffect("success", context, {
+      result: "companion",
+      recordedLives: Number(match[1]),
+    });
+    return characterEffect === undefined ? null : characterEffect;
+  }
+
+  match = line.match(/^(.+?)의 잔기 (\d+)\/8 -> (\d+)\/8$/);
+  if (match) {
+    const targetName = match[1];
+    const targetSide = context.lineSide || sideForFighterName(targetName, context.actorSide);
+    const statusEffect = resolveStatusBattleEffect("잔기", "counterChange", context, {
+      targetName,
+      targetSide,
+      before: Number(match[2]),
+      after: Number(match[3]),
+    });
+    return statusEffect === undefined ? null : statusEffect;
+  }
+
+  match = line.match(/^(.+?)의 (ATK|DEF|SPD)(?:(?:이|가) (\d+)턴 동안 x([\d.]+)가 된다| x([\d.]+) 효과가 갱신되었다)\.$/);
+  if (match) {
+    const targetName = match[1];
+    const targetSide = context.lineSide || sideForFighterName(targetName, context.actorSide);
+    const characterEffect = resolveCharacterBattleEffect("statEffect", context, {
+      targetName,
+      targetSide,
+      stat: match[2].toLowerCase(),
+      turns: match[3] == null ? null : Number(match[3]),
+      multiplier: Number(match[4] || match[5]),
+    });
+    if (characterEffect !== undefined) return characterEffect;
+  }
+
+  match = line.match(/^(.+?)의 그림자 병사 \d+이 공격 피해 (\d+)을 대신 받았다\.$/);
   if (match) {
     return Number(match[2]) > 0 ? makeLogEffect("shadow-hit", match[1], match[1], match[2], context.lineSide, context.actorSide) : null;
   }
 
   match = line.match(/^(?:\d+타:\s*)?(.+?)에게 (\d+)의 피해\./);
   if (match) {
-    return Number(match[2]) > 0 ? makeLogEffect("hit", match[1], context.actorName, match[2], context.lineSide, context.actorSide) : null;
+    const damage = Number(match[2]);
+    const characterEffect = resolveCharacterBattleEffect("damage", context, {
+      targetName: match[1],
+      targetSide: context.lineSide,
+      damage,
+    });
+    if (characterEffect !== undefined) return characterEffect;
+    const effectType = context.actionName === "일반 공격" ? "normal-attack" : "hit";
+    return damage > 0 ? makeLogEffect(effectType, match[1], context.actorName, damage, context.lineSide, context.actorSide) : null;
   }
 
-  match = line.match(/^(.+?)(?:은|는) .+?로 (\d+)의 고정 피해를 입었다\./);
+  match = line.match(/^(.+?)(?:은|는) (.+?)(?:으)?로 (\d+)의 고정 피해를 입었다\./);
   if (match) {
-    return Number(match[2]) > 0 ? makeLogEffect("hit", match[1], context.actorName, match[2], context.lineSide, context.actorSide) : null;
+    const damage = Number(match[3]);
+    const statusName = match[2].replace(/\s+\d+중첩$/, "");
+    const statusEffect = resolveStatusBattleEffect(statusName, "statusDamage", context, {
+      targetName: match[1],
+      targetSide: context.lineSide,
+      damage,
+    });
+    if (statusEffect !== undefined) return statusEffect;
+    return damage > 0 ? makeLogEffect("hit", match[1], context.actorName, damage, context.lineSide, context.actorSide) : null;
   }
 
   match = line.match(/^(.+?) HP 회복 (\d+)\s*(?:→|->)\s*(\d+)/);
   if (match) {
     const amount = Number(match[3]) - Number(match[2]);
-    return amount > 0 ? makeLogEffect("heal", match[1], match[1], `HP +${amount}`, context.lineSide, context.lineSide) : null;
+    const targetName = match[1];
+    const targetSide = context.lineSide || sideForFighterName(targetName, context.actorSide);
+    const characterEffect = resolveCharacterBattleEffect("heal", context, {
+      targetName,
+      targetSide,
+      amount,
+    });
+    if (characterEffect !== undefined) return characterEffect;
+    const effect = amount > 0 ? makeLogEffect("heal", match[1], match[1], amount, context.lineSide, context.lineSide) : null;
+    return effect ? { ...effect, valueKind: "hp-gain" } : null;
   }
 
   match = line.match(/^(?:(.+?) )?MP (\d+)\s*(?:→|->)\s*(\d+)/);
   if (match) {
     const fighterName = match[1] || context.actorName;
-    const amount = Number(match[3]) - Number(match[2]);
-    return fighterName && amount > 0 ? makeLogEffect("heal", fighterName, fighterName, `MP +${amount}`, context.lineSide, context.lineSide || context.actorSide) : null;
+    const beforeMp = Number(match[2]);
+    const afterMp = Number(match[3]);
+    const amount = afterMp - beforeMp;
+    const isActionCost = amount < 0
+      && context.actionCostPending
+      && fighterName === context.actorName
+      && !line.includes("(");
+    context.actionCostPending = false;
+    if (isActionCost) return null;
+    if (context.actionName === "명상" && line.endsWith("(명상)")) {
+      const effect = makeLogEffect("meditation", fighterName, fighterName, amount > 0 ? amount : null, context.actorSide, context.actorSide);
+      return effect && amount > 0 ? { ...effect, valueKind: "mp-gain" } : effect;
+    }
+    const characterEffect = resolveCharacterBattleEffect("cost", context, {
+      fighterName,
+      beforeMp,
+      afterMp,
+      isActionCost: !match[1],
+    });
+    if (characterEffect !== undefined) return characterEffect;
+    if (!fighterName || amount === 0) return null;
+    const effect = makeLogEffect(
+      amount > 0 ? "heal" : "resource-change",
+      fighterName,
+      fighterName,
+      Math.abs(amount),
+      context.lineSide,
+      context.lineSide || context.actorSide,
+    );
+    return effect ? { ...effect, valueKind: amount > 0 ? "mp-gain" : "mp-loss" } : null;
   }
 
   match = line.match(/^(.+?)(?:의)? HP (\d+)\s*(?:→|->)\s*(\d+)/);
   if (match) {
     const amount = Number(match[3]) - Number(match[2]);
     if (amount === 0) return null;
-    return makeLogEffect(amount > 0 ? "heal" : "hit", match[1], match[1], `HP ${amount > 0 ? "+" : ""}${amount}`, context.lineSide, context.lineSide);
+    const effect = makeLogEffect(
+      amount > 0 ? "heal" : "hit",
+      match[1],
+      match[1],
+      Math.abs(amount),
+      context.lineSide,
+      context.lineSide,
+    );
+    return effect ? { ...effect, valueKind: amount > 0 ? "hp-gain" : "hp-loss" } : null;
   }
 
   match = line.match(/^(.+?)에게 (.+?) 상태가/);
@@ -2536,7 +2892,7 @@ function effectFromLogLine(line, context) {
     return makeLogEffect("buff", match[1], match[1], "전투 리듬", context.lineSide, context.lineSide || context.actorSide);
   }
 
-  match = line.match(/^(.+?)(?:이|가) (?:붉은 호박|푸른 호박|유리 눈)을 얻었다/);
+  match = line.match(/^(.+?)(?:이|가) (.+?)을 얻었다\./);
   if (match) {
     return makeLogEffect("buff", match[1], match[1], "유물", context.lineSide, context.lineSide || context.actorSide);
   }
@@ -2546,13 +2902,21 @@ function effectFromLogLine(line, context) {
     const [, targetName, stackName, beforeText, afterText] = match;
     const before = Number(beforeText);
     const after = Number(afterText);
+    const targetSide = context.lineSide || sideForFighterName(targetName, context.actorSide);
     context.lastStackOwner = targetName;
     context.lastStackName = stackName;
+    const statusEffect = resolveStatusBattleEffect(stackName, "counterChange", context, {
+      targetName,
+      targetSide,
+      before,
+      after,
+    });
+    if (statusEffect !== undefined) return statusEffect;
     if (after > before) {
-      return makeLogEffect("stack-gain", targetName, targetName, `${stackName}+${after - before}`, context.lineSide, context.lineSide || context.actorSide);
+      return makeLogEffect("stack-gain", targetName, targetName, `${stackName}+${after - before}`, targetSide, targetSide || context.actorSide);
     }
     if (after < before) {
-      return makeLogEffect("stack-spend", targetName, targetName, `${stackName}-${before - after}`, context.lineSide, context.lineSide || context.actorSide);
+      return makeLogEffect("stack-spend", targetName, targetName, `${stackName}-${before - after}`, targetSide, targetSide || context.actorSide);
     }
     return null;
   }
@@ -2600,6 +2964,9 @@ function effectFromLogLine(line, context) {
     }
   }
 
+  const characterEffect = resolveCharacterBattleEffect("log", context, { line });
+  if (characterEffect !== undefined) return characterEffect;
+
   return null;
 }
 
@@ -2618,6 +2985,7 @@ function makeLogEffect(type, targetName, sourceName, value, targetSide = null, s
   return {
     type,
     side,
+    sourceSide: resolvedSourceSide,
     value,
     color: characterColor(sourceId || target?.id),
   };
@@ -2636,13 +3004,142 @@ function makeMissEffect(actorName, preferredActorSide = null) {
   };
 }
 
+function battleSpriteStateForAction(context) {
+  const fighter = state.battle?.[context.actorSide];
+  const asset = spriteAssetForSubject(fighter);
+  if (!fighter || !asset) return null;
+  if (context.actionName === "일반 공격") return "attack";
+  if (context.actionName === "일반 방어" || context.actionName === "명상" || DEFENSE_ACTION_NAMES.has(context.actionName)) {
+    return "utility";
+  }
+  const character = findCharacterForFighter(fighter);
+  const skill = character?.skills?.find((candidate) => candidate.name === context.actionName);
+  return skill?.power !== null && skill?.power !== undefined && Number.isFinite(Number(skill.power))
+    ? "attack"
+    : "utility";
+}
+
+function attachBattleSpriteActionState(effect, context) {
+  const spriteState = battleSpriteStateForAction(context);
+  if (!spriteState || !context.actorSide) return effect;
+  const spriteMetadata = {
+    spriteState,
+    spriteSide: context.actorSide,
+    spriteHoldMs: BATTLE_SPRITE_ACTION_HOLD_MS,
+  };
+  return effect
+    ? { ...effect, ...spriteMetadata }
+    : { type: "sprite-state", side: context.actorSide, sourceSide: context.actorSide, ...spriteMetadata };
+}
+
+function shouldUseHitBattleSprite(effect) {
+  const isDamageEffect = ["normal-attack", "hit", "shadow-hit"].includes(effect.type)
+    || Number(effect.damageValue) > 0;
+  return Boolean(
+    isDamageEffect
+    && effect.sourceSide
+    && effect.side
+    && effect.side !== effect.sourceSide
+  );
+}
+
+function battleEffectValueKind(effect) {
+  if (effect.valueKind) return effect.valueKind;
+  if (["normal-attack", "hit", "shadow-hit"].includes(effect.type) || Number(effect.damageValue) > 0) {
+    return "hp-loss";
+  }
+  const text = String(effect.value || "");
+  if (/^HP\s*\+/.test(text)) return "hp-gain";
+  if (/^HP\s*-/.test(text)) return "hp-loss";
+  if (/^MP\s*\+/.test(text)) return "mp-gain";
+  if (/^MP\s*-/.test(text)) return "mp-loss";
+  return "";
+}
+
+function battleEffectValueText(effect, valueKind) {
+  const value = effect.value;
+  if (!valueKind || !Number.isFinite(Number(value))) return String(value);
+  const [resource, direction] = valueKind.split("-");
+  const sign = direction === "gain" ? "+" : "-";
+  return `${resource.toUpperCase()} ${sign}${Math.abs(Number(value))}`;
+}
+
+function appendBattleEffectValue(value, stage) {
+  const layer = document.querySelector(".battle-fx-value-layer");
+  const arena = document.querySelector(".arena-surface");
+  if (!layer || !arena) {
+    stage.append(value);
+    return;
+  }
+
+  stage.append(value);
+  const stageRect = stage.getBoundingClientRect();
+  const arenaRect = arena.getBoundingClientRect();
+  const computed = window.getComputedStyle(value);
+  const localLeft = Number.parseFloat(computed.left);
+  const localTop = Number.parseFloat(computed.top);
+  value.style.left = `${stageRect.left - arenaRect.left + (Number.isFinite(localLeft) ? localLeft : stageRect.width / 2)}px`;
+  value.style.top = `${stageRect.top - arenaRect.top + (Number.isFinite(localTop) ? localTop : stageRect.height / 2)}px`;
+  layer.append(value);
+}
+
+function shouldUseMonochromeBattleEffect(effect) {
+  return Boolean(
+    effect?.sourceSide === "ai"
+    && state.battle?.adventure
+  );
+}
+
+function appendBattleEffectElement(parent, element, effect) {
+  if (!parent || !element) return element;
+  if (!shouldUseMonochromeBattleEffect(effect)) {
+    parent.append(element);
+    return element;
+  }
+  const layer = document.createElement("span");
+  layer.className = "battle-fx-monochrome-layer";
+  layer.dataset.sourceSide = effect.sourceSide;
+  layer.append(element);
+  parent.append(layer);
+  return layer;
+}
+
 function playLogEffect(effect) {
-  if (!effect?.side || !EFFECT_CLASSES.includes(effect.type)) return;
+  if (!effect?.side) return;
+  if (Number(effect.delayMs) > 0) {
+    const delayedEffect = { ...effect, delayMs: 0 };
+    registerEffectTimeout(window.setTimeout(() => playLogEffect(delayedEffect), Number(effect.delayMs)));
+    return;
+  }
+  if (effect.spriteState && effect.spriteSide) {
+    setBattleSpriteState(effect.spriteSide, effect.spriteState, effect.spriteHoldMs);
+  }
+  if (shouldUseHitBattleSprite(effect)) {
+    setBattleSpriteState(effect.side, "hit", BATTLE_SPRITE_HIT_HOLD_MS);
+  }
+  if (effect.type === "sprite-state") return;
+  if (!EFFECT_CLASSES.includes(effect.type)) return;
   playEffectSound(effect.type);
+  const characterEffectPlayed = CHARACTER_BATTLE_EFFECTS?.play?.(effect, {
+    arena: document.querySelector(".arena-surface"),
+    stageForSide: (side) => side ? document.querySelector(fighterIds[side].avatar) : null,
+    appendEffectElement: (parent, element) => appendBattleEffectElement(parent, element, effect),
+    registerTimeout: registerEffectTimeout,
+    playLogEffect,
+  });
+  if (characterEffectPlayed) return;
   const stage = document.querySelector(fighterIds[effect.side].avatar);
   if (!stage) return;
 
   stage.style.setProperty("--effect-color", effect.color || characterColor());
+  const hitShakeDirection = effect.sourceSide === "ai" ? -1 : 1;
+  stage.style.setProperty("--hit-shake-x-1", `${-8 * hitShakeDirection}px`);
+  stage.style.setProperty("--hit-shake-angle-1", `${-0.8 * hitShakeDirection}deg`);
+  stage.style.setProperty("--hit-shake-x-2", `${7 * hitShakeDirection}px`);
+  stage.style.setProperty("--hit-shake-angle-2", `${0.6 * hitShakeDirection}deg`);
+  stage.style.setProperty("--hit-shake-x-3", `${-4 * hitShakeDirection}px`);
+  stage.style.setProperty("--hit-shake-angle-3", `${-0.4 * hitShakeDirection}deg`);
+  stage.style.setProperty("--hit-shake-x-4", `${3 * hitShakeDirection}px`);
   if (effect.type === "miss") {
     stage.style.setProperty("--miss-shift", effect.side === "player" ? "-18px" : "18px");
   }
@@ -2653,19 +3150,27 @@ function playLogEffect(effect) {
   void stage.offsetWidth;
   stage.classList.add(className);
 
-  const burst = document.createElement("span");
-  burst.className = `battle-fx-effect battle-fx-${effect.type}`;
-  stage.append(burst);
+  const burst = MOTION_ONLY_EFFECT_TYPES.has(effect.type) ? null : document.createElement("span");
+  if (burst) {
+    burst.className = `battle-fx-effect battle-fx-${effect.type}`;
+    appendBattleEffectElement(stage, burst, effect);
+  }
 
   if (effect.value) {
     const value = document.createElement("span");
-    value.className = `battle-fx-value battle-fx-value-${effect.type}`;
-    value.textContent = effect.type === "hit" || effect.type === "shadow-hit" ? `-${effect.value}` : String(effect.value);
-    stage.append(value);
+    const valueKind = battleEffectValueKind(effect);
+    value.className = `battle-fx-value battle-fx-value-${effect.type}${valueKind ? ` battle-fx-value-${valueKind}` : ""}`;
+    value.textContent = battleEffectValueText(effect, valueKind);
+    appendBattleEffectValue(value, stage);
     registerEffectTimeout(window.setTimeout(() => value.remove(), 850));
   }
 
-  registerEffectTimeout(window.setTimeout(() => burst.remove(), 760));
+  if (burst) {
+    const mountedBurst = burst.parentElement?.classList.contains("battle-fx-monochrome-layer")
+      ? burst.parentElement
+      : burst;
+    registerEffectTimeout(window.setTimeout(() => mountedBurst.remove(), 760));
+  }
   registerEffectTimeout(window.setTimeout(() => stage.classList.remove(className), 520));
 }
 
@@ -2800,9 +3305,12 @@ function clearBattleEffects() {
     for (const type of EFFECT_CLASSES) {
       stage.classList.remove(`is-fx-${type}`);
     }
-    for (const className of PORTRAIT_TRANSFORM_CLASSES) stage.classList.remove(className);
-    stage.querySelectorAll(".battle-fx-effect, .battle-fx-value").forEach((element) => element.remove());
+    stage.querySelectorAll(".battle-fx-monochrome-layer, .battle-fx-effect, .battle-fx-value")
+      .forEach((element) => element.remove());
   }
+  document.querySelector(".battle-fx-value-layer")?.replaceChildren();
+  document.querySelectorAll("[data-character-battle-effect]").forEach((element) => element.remove());
+  resetBattleSpriteStates();
 }
 
 function registerEffectTimeout(timer) {
@@ -2909,6 +3417,7 @@ function openFighterInfo(side) {
   els.enemyInfoKicker.hidden = false;
   els.enemyInfoKicker.textContent = side === "player" ? "내 정보" : "상대 정보";
   els.enemyInfoTitle.textContent = fighter.label || `${fighter.name} — ${fighter.title}`;
+  els.enemyInfoBody.style.setProperty("--character-color", characterColor(fighter.id));
   els.enemyInfoBody.innerHTML = fighterInfoHtml(character, fighter);
   els.enemyInfoModal.hidden = false;
 }
@@ -2919,16 +3428,57 @@ function closeInfoModal() {
 
 function openBattleRecords() {
   const sections = battleRecordSections();
-  if (!sections.length) return;
+  const adventure = state.battleMode === "adventure"
+    ? state.battle?.adventure || state.adventure
+    : null;
+  if (!sections.length && !adventure) return;
   els.enemyInfoKicker.hidden = false;
   els.enemyInfoKicker.textContent = "캐릭터 기록";
   els.enemyInfoTitle.textContent = "캐릭터 기록";
   els.enemyInfoBody.innerHTML = `
     <div class="record-modal-list">
       ${sections.map(recordSectionHtml).join("")}
+      ${!sections.length ? emptyBattleRecordHtml() : ""}
+      ${adventure ? adventureRelicRecordsHtml(adventure) : ""}
     </div>
   `;
   els.enemyInfoModal.hidden = false;
+}
+
+function emptyBattleRecordHtml() {
+  return `
+    <section class="record-modal-card">
+      <span>캐릭터 기록</span>
+      <strong>현재 기록된 고유 정보가 없습니다.</strong>
+    </section>
+  `;
+}
+
+function adventureRelicRecordsHtml(adventure) {
+  const relics = (adventure.playerRelics || []).filter((relic) => !relic?.destroyed);
+  return `
+    ${relics.length
+      ? relics.map((relic) => `
+        <section class="record-modal-card">
+          <span>${escapeHtml(`유물 정보 · ${relic.pool === "event" ? "이벤트 전용" : "유물 상점"}`)}</span>
+          <strong>${escapeHtml(relic.name)}</strong>
+          <p>${escapeHtml(relic.description)}</p>
+        </section>
+      `).join("")
+      : `
+        <section class="record-modal-card">
+          <span>유물 정보</span>
+          <strong>보유한 유물이 없습니다.</strong>
+        </section>
+      `}
+    ${adventure.hasRelicLedger ? `
+      <section class="record-modal-card">
+        <span>유물 정보 · 소지품</span>
+        <strong>유물상의 장부</strong>
+        <p>다음 유물 상점에서 진열된 상품을 한 번 무료로 다시 뽑을 수 있다.</p>
+      </section>
+    ` : ""}
+  `;
 }
 
 function battleRecordSections() {
@@ -2960,8 +3510,8 @@ function fighterInfoHtml(character, fighter) {
     ? infoTileHtml("패시브", character.passive.name, character.passive.description)
     : infoTileHtml("패시브", "없음", "");
   const skills = (character.skills || []).map((skill) => skillTileHtml(skill)).join("");
-
-  return `
+  const previewSprite = characterPreviewSpriteHtml(fighter, "fighter-info-sprite");
+  const summary = `
     <div class="modal-summary">
       <div>
         <span>현재 상태</span>
@@ -2972,6 +3522,12 @@ function fighterInfoHtml(character, fighter) {
         <strong>HP ${formatStat(stats.hp)} / ATK ${formatStat(stats.atk)} / DEF ${formatStat(stats.def)} / SPD ${formatStat(stats.spd)}</strong>
       </div>
     </div>
+  `;
+
+  return `
+    ${previewSprite
+      ? `<div class="fighter-info-hero"><div class="fighter-info-sprite-frame">${previewSprite}</div>${summary}</div>`
+      : summary}
     <div class="modal-grid">
       ${passive}
       ${statuses || infoTileHtml("고유 상태", "없음", "")}
@@ -3053,10 +3609,12 @@ function codexDetailHtml(character) {
     .map((status) => infoTileHtml("고유 상태", status.name, status.description))
     .join("");
   const skills = (character.skills || []).map((skill) => skillTileHtml(skill)).join("");
+  const characterVisual = characterPreviewSpriteHtml(character, "codex-character-sprite")
+    || avatarSvg(character.name || character.id || "?", "codex");
 
   return `
     <div class="codex-hero">
-      <div class="codex-avatar">${portraitHtml(character, "codex")}</div>
+      <div class="codex-avatar">${characterVisual}</div>
       <div class="codex-copy">
         <h2>${escapeHtml(character.name)}</h2>
         <p>${escapeHtml(character.title)}</p>
@@ -3342,48 +3900,89 @@ function findCharacterByName(name) {
 
 function findCharacterForFighter(fighter) {
   const adventureMonster = state.adventure?.monster;
-  if (fighter?.id && adventureMonster?.id === fighter.id) return adventureMonster;
+  const isAi = fighter?.battleSide === "AI" || fighter?.side === "AI" || fighter === state.battle?.ai;
+  if (isAi && fighter?.id && adventureMonster?.id === fighter.id) return adventureMonster;
   return state.options?.characters?.find((character) => (
     (fighter.id && character.id === fighter.id) || character.name === fighter.name
   )) || null;
 }
 
-function portraitHtml(subject, side) {
-  const id = subject?.id || findCharacterByName(subject?.name)?.id;
-  if (!id) {
-    return "";
-  }
-  const name = subject?.name || id;
-  if (!CHARACTER_PORTRAIT_IDS.has(id) && !MONSTER_PORTRAIT_IDS.has(id)) {
-    return avatarSvg(name, side, {
-      monochrome: state.adventure?.monster?.id === id,
-    });
-  }
-  const src = portraitSrcForId(id, portraitVariantForSubject(subject, id));
-  return `<img class="character-portrait" src="${escapeHtml(src)}" alt="${escapeHtml(name)}">`;
+function battleSpriteSrcForSubject(subject, side) {
+  const asset = spriteAssetForSubject(subject);
+  return asset ? battleSpriteStateSrcForSubject(subject, "idle") : "";
+}
+
+function battleSpriteHtml(subject, side, src = battleSpriteSrcForSubject(subject, side)) {
+  if (!src) return "";
+  const name = subject?.name || subject?.id || "character";
+  return `<img class="battle-sprite battle-sprite-side battle-sprite-side-${side}" src="${escapeHtml(src)}" alt="${escapeHtml(name)}" data-sprite-state="idle">`;
 }
 
 function characterPickerThumbHtml(character, side, isRandom = false) {
   if (isRandom || !character) {
     return `<span class="character-picker-random-mark">?</span>`;
   }
-  if (!CHARACTER_PORTRAIT_IDS.has(character.id)) {
-    return avatarSvg(character.name, side);
+  const previewSprite = characterPreviewSpriteHtml(character, "character-picker-sprite");
+  if (previewSprite) return previewSprite;
+  return avatarSvg(character.name, side);
+}
+
+function spriteAssetForSubject(subject) {
+  const id = subject?.id || findCharacterByName(subject?.name)?.id;
+  const assetGroup = id ? SPRITE_ASSETS[id] : null;
+  return assetGroup ? { id, assetGroup } : null;
+}
+
+function battleSpriteStateSrcForSubject(subject, spriteState = "idle") {
+  const asset = spriteAssetForSubject(subject);
+  if (!asset) return "";
+  return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/sprites/${BATTLE_SPRITE_RENDER_STATE}.png`);
+}
+
+function preloadBattleSpriteStates(subject) {
+  const asset = spriteAssetForSubject(subject);
+  if (!asset) return;
+  const src = battleSpriteStateSrcForSubject(subject, "idle");
+  if (!src || state.preloadedSpriteUrls.has(src)) return;
+  state.preloadedSpriteUrls.add(src);
+  const image = new Image();
+  image.src = src;
+}
+
+function setBattleSpriteState(side, spriteState, holdMs = 0) {
+  const fighter = state.battle?.[side];
+  const src = battleSpriteStateSrcForSubject(fighter, spriteState);
+  const image = document.querySelector(fighterIds[side]?.avatar)?.querySelector(".battle-sprite-side");
+  if (!src || !image) return false;
+  const token = ++state.spriteStateTokens[side];
+  image.src = src;
+  image.dataset.spriteState = BATTLE_SPRITE_RENDER_STATE;
+  if (Number(holdMs) > 0) {
+    registerEffectTimeout(window.setTimeout(() => {
+      if (state.spriteStateTokens[side] !== token) return;
+      setBattleSpriteState(side, "idle");
+    }, Number(holdMs)));
   }
-  const src = portraitSrcForId(character.id);
-  return `<img class="character-picker-portrait" src="${escapeHtml(src)}" alt="${escapeHtml(character.name)}">`;
+  return true;
 }
 
-function portraitVariantForSubject(subject, id) {
-  const variant = String(subject?.portraitVariant || "").trim();
-  return CHARACTER_PORTRAIT_VARIANTS[id]?.has(variant) ? variant : null;
+function resetBattleSpriteStates() {
+  for (const side of ["player", "ai"]) {
+    state.spriteStateTokens[side] += 1;
+    const fighter = state.battle?.[side];
+    const src = battleSpriteStateSrcForSubject(fighter, "idle");
+    const image = document.querySelector(fighterIds[side]?.avatar)?.querySelector(".battle-sprite-side");
+    if (!src || !image) continue;
+    image.src = src;
+    image.dataset.spriteState = "idle";
+  }
 }
 
-function portraitSrcForId(id, variant = null) {
-  const assetGroup = MONSTER_PORTRAIT_IDS.has(id) ? "monsters" : "characters";
-  const safeVariant = CHARACTER_PORTRAIT_VARIANTS[id]?.has(variant) ? variant : null;
-  const filename = safeVariant ? `portrait-${safeVariant}.webp` : "portrait.webp";
-  return localAssetUrl(`/assets/${assetGroup}/${encodeURIComponent(id)}/${filename}`);
+function characterPreviewSpriteHtml(subject, className) {
+  const idleSrc = battleSpriteStateSrcForSubject(subject, "idle");
+  if (!idleSrc) return "";
+  const name = subject?.name || subject?.id || "character";
+  return `<img class="${escapeHtml(className)}" src="${escapeHtml(idleSrc)}" alt="${escapeHtml(name)}" data-sprite-state="idle">`;
 }
 
 function withJosa(text, consonant, vowel) {

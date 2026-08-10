@@ -1,0 +1,251 @@
+.battle-fx-ashen-slash {
+  --ashend-slash-direction: 1;
+  --ashend-slash-flip: 1;
+  inset: -4%;
+  z-index: 8;
+  background: url("../assets/characters/ashend/effects/ashen-slash.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    grayscale(1)
+    drop-shadow(0 0 3px rgba(239, 237, 232, 0.96))
+    drop-shadow(0 0 9px rgba(92, 91, 88, 0.86));
+  transform-origin: 50% 50%;
+  animation: ashend-ashen-slash 560ms steps(8, end) forwards;
+}
+
+#aiAvatar .battle-fx-ashen-slash {
+  --ashend-slash-direction: 1;
+  --ashend-slash-flip: 1;
+}
+
+#playerAvatar .battle-fx-ashen-slash {
+  --ashend-slash-direction: -1;
+  --ashend-slash-flip: -1;
+}
+
+.battle-fx-gray-mist {
+  inset: -16% -12%;
+  z-index: 7;
+  background: url("../assets/characters/ashend/effects/gray-mist.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    grayscale(1)
+    contrast(1.08)
+    drop-shadow(0 0 8px rgba(54, 54, 52, 0.82));
+  transform-origin: 50% 62%;
+  animation: ashend-gray-mist 740ms steps(10, end) forwards;
+}
+
+#aiAvatar .battle-fx-gray-mist {
+  scale: -1 1;
+}
+
+.battle-fx-gray-sword-drop {
+  inset: 0;
+  opacity: 0;
+}
+
+.battle-fx-gray-sword-drop-projectile {
+  --ashend-gray-sword-flip: 1;
+  position: absolute;
+  left: 50%;
+  top: -126%;
+  z-index: 9;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: url("../assets/characters/ashend/effects/gray-sword-drop.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    grayscale(1)
+    drop-shadow(0 0 3px rgba(235, 233, 226, 0.98))
+    drop-shadow(0 7px 9px rgba(38, 38, 36, 0.88));
+  transform-origin: 50% 96%;
+  animation: ashend-gray-sword-drop 500ms steps(10, end) forwards;
+}
+
+#playerAvatar .battle-fx-gray-sword-drop-projectile {
+  --ashend-gray-sword-flip: -1;
+}
+
+.battle-fx-gray-sword-impact {
+  inset: 12% 7% -5%;
+  z-index: 8;
+  background: url("../assets/characters/ashend/effects/ash-disperse.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    grayscale(1)
+    contrast(1.18)
+    drop-shadow(0 0 8px rgba(77, 76, 72, 0.88));
+  transform-origin: 50% 88%;
+  animation: ashend-gray-sword-impact 500ms steps(8, end) forwards;
+}
+
+#playerAvatar .battle-fx-gray-sword-impact {
+  scale: -1 1;
+}
+
+.battle-fx-ash-body-disperse {
+  --ashend-body-ash-flip: 1;
+  inset: -8%;
+  z-index: 6;
+  background: url("../assets/characters/ashend/effects/ash-disperse.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    grayscale(1)
+    contrast(1.12)
+    drop-shadow(0 0 8px rgba(52, 52, 50, 0.82));
+  transform-origin: 50% 78%;
+  animation: ashend-body-ash 1120ms steps(12, end) forwards;
+}
+
+#aiAvatar .battle-fx-ash-body-disperse {
+  --ashend-body-ash-flip: -1;
+}
+
+.avatar-stage.is-ashend-ash-body .battle-sprite {
+  animation: ashend-body-vanish 1120ms steps(12, end) both !important;
+}
+
+.avatar-stage.is-fx-ashen-slash .battle-sprite,
+.avatar-stage.is-fx-ashen-slash svg,
+.avatar-stage.is-fx-gray-sword-impact .battle-sprite,
+.avatar-stage.is-fx-gray-sword-impact svg {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes ashend-ashen-slash {
+  0% {
+    opacity: 0;
+    transform: translateX(calc(-24px * var(--ashend-slash-direction)))
+      scaleX(var(--ashend-slash-flip)) scale(0.66);
+  }
+  14% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 1;
+    transform: translateX(0) scaleX(var(--ashend-slash-flip)) scale(1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(calc(18px * var(--ashend-slash-direction)))
+      scaleX(var(--ashend-slash-flip)) scale(1.12);
+  }
+}
+
+@keyframes ashend-gray-mist {
+  0% {
+    opacity: 0;
+    transform: translateY(10%) scale(0.72, 0.58);
+  }
+  22% {
+    opacity: 1;
+    transform: translateY(1%) scale(1.04, 0.96);
+  }
+  64% {
+    opacity: 0.98;
+    transform: translateY(-1%) scale(1, 1.03);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-7%) scale(1.14, 1.08);
+  }
+}
+
+@keyframes ashend-gray-sword-drop {
+  0% {
+    top: -126%;
+    opacity: 0;
+    transform: translateX(-50%) scaleX(var(--ashend-gray-sword-flip)) scale(0.82);
+  }
+  18% {
+    top: -104%;
+    opacity: 1;
+  }
+  62% {
+    top: -35%;
+    opacity: 1;
+    transform: translateX(-50%) scaleX(var(--ashend-gray-sword-flip)) scale(1);
+  }
+  78% {
+    top: -32%;
+    opacity: 0.94;
+    transform: translateX(-50%) scaleX(var(--ashend-gray-sword-flip)) scale(1.04, 0.94);
+  }
+  100% {
+    top: -28%;
+    opacity: 0;
+    transform: translateX(-50%) scaleX(var(--ashend-gray-sword-flip)) scale(1.08, 0.86);
+  }
+}
+
+@keyframes ashend-gray-sword-impact {
+  0% {
+    opacity: 0;
+    transform: translateY(-6%) scale(0.36, 0.2);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(0.94, 0.76);
+  }
+  54% {
+    opacity: 0.9;
+    transform: translateY(2%) scale(1.05, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(8%) scale(1.18, 0.78);
+  }
+}
+
+@keyframes ashend-body-ash {
+  0% {
+    opacity: 0;
+    transform: scaleX(var(--ashend-body-ash-flip)) translateY(0) scale(0.76);
+  }
+  18% {
+    opacity: 0.96;
+    transform: scaleX(var(--ashend-body-ash-flip)) translateY(-1%) scale(0.98);
+  }
+  42% {
+    opacity: 1;
+    transform: scaleX(var(--ashend-body-ash-flip)) translateY(-8%) scale(1.14, 1.08);
+  }
+  68% {
+    opacity: 0.82;
+    transform: scaleX(var(--ashend-body-ash-flip)) translateY(-13%) scale(1.24, 1.14);
+  }
+  84% {
+    opacity: 0.68;
+    transform: scaleX(var(--ashend-body-ash-flip)) translateY(-3%) scale(0.94);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(var(--ashend-body-ash-flip)) translateY(0) scale(0.72);
+  }
+}
+
+@keyframes ashend-body-vanish {
+  0%, 14% {
+    opacity: 1;
+    filter: drop-shadow(0 18px 14px rgba(0, 0, 0, 0.46));
+  }
+  28%, 70% {
+    opacity: 0;
+    filter: grayscale(1) brightness(0.42) blur(1px);
+  }
+  86% {
+    opacity: 0.46;
+    filter: grayscale(1) brightness(0.72);
+  }
+  100% {
+    opacity: 1;
+    filter: drop-shadow(0 18px 14px rgba(0, 0, 0, 0.46));
+  }
+}

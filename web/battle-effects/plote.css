@@ -1,0 +1,330 @@
+.battle-fx-fireball-flight {
+  position: absolute;
+  left: var(--fireball-start-x);
+  top: var(--fireball-start-y);
+  z-index: 6;
+  width: clamp(72px, 10vw, 116px);
+  aspect-ratio: 2 / 1;
+  pointer-events: none;
+  background: url("../assets/characters/plote/effects/fireball-projectile.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 7px rgba(255, 102, 0, 0.92));
+  animation: plote-fireball-flight 160ms steps(7, end) forwards;
+}
+
+.battle-fx-inferno-lotus-seed {
+  position: absolute;
+  left: var(--fireball-start-x);
+  top: var(--fireball-start-y);
+  z-index: 7;
+  width: clamp(38px, 4.6vw, 58px);
+  aspect-ratio: 2 / 1;
+  pointer-events: none;
+  background: url("../assets/characters/plote/effects/inferno-lotus-seed.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 5px rgba(255, 128, 0, 0.9));
+  animation: plote-inferno-lotus-seed 160ms steps(7, end) forwards;
+}
+
+.battle-fx-fireball-impact {
+  --plote-target-flip: 1;
+  inset: 0;
+  background: url("../assets/characters/plote/effects/fireball-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 8px rgba(255, 112, 0, 0.92));
+  animation: plote-fireball-impact 760ms steps(9, end) forwards;
+}
+
+.battle-fx-burn-tick {
+  --plote-target-flip: 1;
+  inset: 18%;
+  background: url("../assets/characters/plote/effects/burn-tick.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 3px rgba(255, 92, 0, 0.72));
+  transform-origin: 50% 58%;
+  animation: plote-burn-tick 440ms steps(6, end) forwards;
+}
+
+.battle-fx-blocking-flames {
+  inset: -4% -4% 10%;
+  --blocking-flames-flip: 1;
+  --blocking-flames-start-x: -18%;
+  --blocking-flames-mid-x: -10%;
+  --blocking-flames-end-x: 10%;
+  filter: drop-shadow(0 0 8px rgba(255, 112, 0, 0.9));
+  transform-origin: 10% 99%;
+  animation: plote-blocking-flames 780ms steps(10, end) forwards;
+}
+
+.battle-fx-blocking-flames::before {
+  position: absolute;
+  content: "";
+  inset: 0;
+  background: url("../assets/characters/plote/effects/blocking-flames.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  scale: var(--blocking-flames-flip) 1;
+}
+
+#aiAvatar .battle-fx-blocking-flames {
+  --blocking-flames-flip: -1;
+  --blocking-flames-start-x: 18%;
+  --blocking-flames-mid-x: 10%;
+  --blocking-flames-end-x: -10%;
+  transform-origin: 90% 99%;
+}
+
+.battle-fx-ember-detonation-cross {
+  --plote-target-flip: 1;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  width: clamp(150px, 76%, 270px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: url("../assets/characters/plote/effects/ember-detonation-blast.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 7px rgba(255, 102, 0, 0.96));
+  opacity: 0;
+  animation: plote-ember-detonation-cross 720ms steps(10, end) forwards;
+}
+
+.battle-fx-inferno-lotus-bloom {
+  --plote-target-flip: 1;
+  inset: -5% -5% 10%;
+  overflow: visible;
+  background: url("../assets/characters/plote/effects/inferno-lotus-bloom.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 8px rgba(255, 92, 0, 0.96));
+  transform-origin: 50% 99%;
+  animation: plote-inferno-lotus-bloom 760ms steps(10, end) forwards;
+}
+
+#playerAvatar .battle-fx-fireball-impact,
+#playerAvatar .battle-fx-burn-tick,
+#playerAvatar .battle-fx-ember-detonation-cross,
+#playerAvatar .battle-fx-inferno-lotus-bloom {
+  --plote-target-flip: -1;
+}
+
+.battle-fx-inferno-lotus-bloom::after {
+  position: absolute;
+  content: "";
+  inset: -42% -16% 10%;
+  background: url("../assets/characters/plote/effects/inferno-lotus-pillar.png") center bottom / 64% 100% no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 11px rgba(255, 118, 0, 0.98));
+  transform-origin: 50% 99%;
+  animation: plote-inferno-lotus-pillar 760ms steps(10, end) forwards;
+}
+
+.battle-fx-value-fireball-impact {
+  color: #ffad32;
+  animation: fx-damage-drop 860ms ease-in forwards;
+}
+
+.battle-fx-value-burn-tick {
+  color: #ff8a24;
+  animation: fx-damage-drop 860ms ease-in forwards;
+}
+
+.battle-fx-value-ember-detonation-blast {
+  color: #ffc03d;
+  text-shadow: 0 0 8px rgba(255, 76, 0, 0.95);
+  animation: fx-damage-drop 920ms ease-in forwards;
+}
+
+.battle-fx-value-inferno-lotus-bloom {
+  color: #ffe066;
+  text-shadow: 0 0 9px rgba(255, 76, 0, 0.98);
+  animation: fx-damage-drop 900ms ease-in forwards;
+}
+
+.avatar-stage.is-fx-fireball-impact .battle-sprite,
+.avatar-stage.is-fx-fireball-impact svg {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.avatar-stage.is-fx-burn-tick .battle-sprite,
+.avatar-stage.is-fx-burn-tick svg {
+  animation: combatant-hit-shake 180ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.avatar-stage.is-fx-ember-detonation-blast .battle-sprite,
+.avatar-stage.is-fx-ember-detonation-blast svg {
+  animation: combatant-hit-shake 520ms cubic-bezier(0.16, 0.92, 0.28, 1);
+}
+
+.avatar-stage.is-fx-inferno-lotus-bloom .battle-sprite,
+.avatar-stage.is-fx-inferno-lotus-bloom svg {
+  animation: combatant-hit-shake 580ms cubic-bezier(0.14, 0.94, 0.26, 1);
+}
+
+@keyframes plote-fireball-flight {
+  0% {
+    left: var(--fireball-start-x);
+    top: var(--fireball-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--fireball-angle)) scaleX(var(--fireball-flip, 1)) scale(0.58);
+  }
+  10% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    left: var(--fireball-end-x);
+    top: var(--fireball-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--fireball-angle)) scaleX(var(--fireball-flip, 1)) scale(1.08);
+  }
+}
+
+@keyframes plote-inferno-lotus-seed {
+  0% {
+    left: var(--fireball-start-x);
+    top: var(--fireball-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--fireball-angle)) scaleX(var(--fireball-flip, 1)) scale(0.42);
+  }
+  12% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--fireball-angle)) scaleX(var(--fireball-flip, 1)) scale(0.78);
+  }
+  100% {
+    left: var(--fireball-end-x);
+    top: var(--fireball-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--fireball-angle)) scaleX(var(--fireball-flip, 1)) scale(0.34);
+  }
+}
+
+@keyframes plote-fireball-impact {
+  0% {
+    opacity: 0;
+    transform: scaleX(var(--plote-target-flip)) scale(0.28) rotate(-10deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scaleX(var(--plote-target-flip)) scale(0.82) rotate(0);
+  }
+  48% {
+    opacity: 1;
+    transform: scaleX(var(--plote-target-flip)) scale(1.12) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(var(--plote-target-flip)) scale(1.34) rotate(14deg);
+  }
+}
+
+@keyframes plote-burn-tick {
+  0% {
+    opacity: 0;
+    transform: scaleX(var(--plote-target-flip)) translateY(6px) scale(0.82);
+  }
+  22% {
+    opacity: 1;
+    transform: scaleX(var(--plote-target-flip)) translateY(2px) scale(0.94);
+  }
+  58% {
+    opacity: 0.85;
+    transform: scaleX(var(--plote-target-flip)) translateY(-4px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(var(--plote-target-flip)) translateY(-10px) scale(0.9);
+  }
+}
+
+@keyframes plote-blocking-flames {
+  0% {
+    opacity: 0;
+    transform: translate(var(--blocking-flames-start-x), 0) scale(0.48, 0.3);
+  }
+  16% {
+    opacity: 1;
+    transform: translate(var(--blocking-flames-mid-x), 0) scale(0.68, 0.55);
+  }
+  52% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1.02, 1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--blocking-flames-end-x), -12%) scale(1.08, 1.16);
+  }
+}
+
+@keyframes plote-ember-detonation-cross {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--plote-target-flip)) scale(0.18) rotate(-5deg);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(var(--plote-target-flip)) scale(0.7) rotate(-2deg);
+  }
+  38% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(var(--plote-target-flip)) scale(1.04) rotate(2deg);
+  }
+  62% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(var(--plote-target-flip)) scale(1) rotate(4deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--plote-target-flip)) scale(1.18) rotate(8deg);
+  }
+}
+
+@keyframes plote-inferno-lotus-bloom {
+  0% {
+    opacity: 0;
+    transform: scaleX(var(--plote-target-flip)) translateY(0) scale(0.16, 0.05);
+  }
+  18% {
+    opacity: 1;
+    transform: scaleX(var(--plote-target-flip)) translateY(0) scale(0.54, 0.28);
+  }
+  42% {
+    opacity: 1;
+    transform: scaleX(var(--plote-target-flip)) translateY(0) scale(1.02, 0.96);
+  }
+  68% {
+    opacity: 0.9;
+    transform: scaleX(var(--plote-target-flip)) translateY(-1%) scale(1.06, 1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(var(--plote-target-flip)) translateY(-4%) scale(0.96, 1.06);
+  }
+}
+
+@keyframes plote-inferno-lotus-pillar {
+  0%, 26% {
+    opacity: 0;
+    transform: scale(0.28, 0.04);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(0.74, 0.72);
+  }
+  56% {
+    opacity: 1;
+    transform: scale(1.06, 1.08);
+  }
+  78% {
+    opacity: 0.94;
+    transform: scale(1, 1.16);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.86, 1.28);
+  }
+}

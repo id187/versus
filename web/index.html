@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VERSUS</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./battle-effects/toxiche.css">
+  <link rel="stylesheet" href="./battle-effects/plote.css">
+  <link rel="stylesheet" href="./battle-effects/nihfle.css">
+  <link rel="stylesheet" href="./battle-effects/neroko.css">
+  <link rel="stylesheet" href="./battle-effects/cryne.css">
+  <link rel="stylesheet" href="./battle-effects/gandrick.css">
+  <link rel="stylesheet" href="./battle-effects/charinel.css">
+  <link rel="stylesheet" href="./battle-effects/revesha.css">
+  <link rel="stylesheet" href="./battle-effects/ashend.css">
+  <link rel="stylesheet" href="./battle-effects/karossy.css">
+  <link rel="stylesheet" href="./battle-effects/demon_scout_kain.css">
+  <link rel="stylesheet" href="./battle-effects/demon_warrior_luke.css">
+  <link rel="stylesheet" href="./battle-effects/demon_mage_zero.css">
+  <link rel="stylesheet" href="./battle-effects/demon_archer_robin.css">
+  <link rel="stylesheet" href="./battle-effects/demon_priest_sara.css">
+  <link rel="stylesheet" href="./battle-effects/demon_fighter_gran.css">
 </head>
 <body>
   <main class="app-shell">
@@ -139,6 +155,7 @@
             <div class="fighter-slot player-slot">
               <div class="avatar-stage" id="playerAvatar" aria-hidden="true"></div>
             </div>
+            <div class="battle-fx-value-layer" aria-hidden="true"></div>
           </div>
         </section>
 
@@ -186,7 +203,7 @@
           </button>
           <button class="rules-tab" id="rulesTabAdventure" type="button" role="tab" aria-selected="false" aria-controls="rulesPanelAdventure" data-rules-tab="adventure" tabindex="-1">
             <strong>Adventure</strong>
-            <span>10스테이지 여정</span>
+            <span>20스테이지 여정</span>
           </button>
           <button class="rules-tab" id="rulesTabPve" type="button" role="tab" aria-selected="false" aria-controls="rulesPanelPve" data-rules-tab="pve" tabindex="-1">
             <strong>PvE</strong>
@@ -525,9 +542,9 @@
 
           <article class="rules-panel" id="rulesPanelAdventure" role="tabpanel" aria-labelledby="rulesTabAdventure" data-rules-panel="adventure" hidden>
             <header class="rules-hero adventure-guide-hero">
-              <span class="rules-kicker">10 STAGE JOURNEY</span>
+              <span class="rules-kicker">20 STAGE JOURNEY</span>
               <h2>전투와 선택을 거듭해<br>최종 결전까지 살아남으세요.</h2>
-              <p>Adventure는 한 캐릭터로 10스테이지를 이어가는 연속 도전입니다. 전투 보상과 이벤트 결과가 다음 스테이지까지 누적됩니다.</p>
+              <p>Adventure는 한 캐릭터로 20스테이지를 이어가는 연속 도전입니다. 전투 보상과 이벤트 결과가 다음 스테이지까지 누적됩니다.</p>
             </header>
 
             <section class="rules-section">
@@ -535,7 +552,7 @@
               <div class="rules-step-grid">
                 <article class="rules-step-card"><b>1</b><h4>캐릭터 선택</h4><p>여정 동안 사용할 캐릭터와 각인을 고릅니다. 상대와 AI 성향은 Adventure 규칙에 따라 자동으로 정해집니다.</p></article>
                 <article class="rules-step-card"><b>2</b><h4>전투 또는 행선지 선택</h4><p>몬스터와 싸우거나 마을·이벤트 같은 행선지를 골라 스테이지를 진행합니다.</p></article>
-                <article class="rules-step-card"><b>3</b><h4>STAGE 10 돌파</h4><p>스테이지가 오를수록 적이 강해집니다. 마지막 스테이지의 최종 결전에서 승리하면 여정을 완료합니다.</p></article>
+                <article class="rules-step-card"><b>3</b><h4>마경·간부와 최종 결전</h4><p>STAGE 12에서는 거울을 대하는 방식을 고른 뒤, 자신의 영구 강화와 전투 능력을 복제해 공격형·동일형·생존형으로 변한 마왕의 마경과 싸웁니다. 이후 STAGE 14~18에서는 마왕군 간부의 기습을 받을 수 있으며, STAGE 20의 최종 결전에서 승리하면 여정을 완료합니다.</p></article>
               </div>
               <aside class="rules-note"><strong>자동 저장</strong><p>진행 중인 여정은 행동과 선택마다 이 기기에 자동 저장됩니다. 게임을 종료해도 Adventure에 다시 들어오면 이어서 진행하며, 패배하거나 클리어하면 저장이 초기화됩니다. 진행 중 ‘새 여정’을 누르면 현재 저장을 지우고 새 모험을 시작합니다.</p></aside>
             </section>
@@ -543,9 +560,10 @@
             <section class="rules-section">
               <div class="rules-section-heading"><span>02</span><div><h3>전투가 끝난 뒤</h3><p>일반 PvE와 달리 다음 전투로 이어지는 자원이 있습니다.</p></div></div>
               <div class="rules-card-grid">
-                <article class="rules-info-card"><span>CARRY OVER</span><h4>HP와 MP 유지</h4><p>승리하면 최대 HP의 20%를 회복하고 현재 MP를 유지합니다. 전투 중 버프·디버프와 캐릭터 고유 자원은 초기화됩니다.</p></article>
+                <article class="rules-info-card"><span>CARRY OVER</span><h4>HP·MP와 G 유지</h4><p>여정은 20G로 시작합니다. 승리하면 최대 HP의 20%를 회복하고 현재 MP와 보유 G를 유지합니다. 일반 마왕군에게는 10G, 마경 이후 적에게는 15G를 얻습니다. 전투 중 버프·디버프와 캐릭터 고유 자원은 초기화됩니다.</p></article>
                 <article class="rules-info-card"><span>REWARD</span><h4>능력치 강화</h4><p>기본 전투 보상으로 ATK·DEF·SPD 중 하나를 골라 10% 강화합니다. 일부 이벤트는 보상의 수나 강화량을 바꿀 수 있습니다.</p></article>
                 <article class="rules-info-card"><span>ROUTE</span><h4>다음 행선지</h4><p>보상을 고른 뒤 표시된 행선지 중 하나를 선택합니다. 전투뿐 아니라 회복, 강화, 위험한 거래도 등장합니다.</p></article>
+                <article class="rules-info-card"><span>RELIC</span><h4>유물과 캐릭터 기록</h4><p>유물은 여정 동안 유지되는 특별 효과입니다. Adventure에서는 모든 캐릭터에게 전투 로그 옆 ‘캐릭터 기록’이 표시되며, 이곳에서 캐릭터 고유 기록과 보유 유물을 함께 확인할 수 있습니다. 마왕의 마경은 플레이어의 유물을 복제하지 않습니다.</p></article>
               </div>
             </section>
 
@@ -553,9 +571,10 @@
               <div class="rules-section-heading"><span>03</span><div><h3>행선지 이해하기</h3><p>눈앞의 이득뿐 아니라 남은 HP와 MP도 함께 생각하세요.</p></div></div>
               <div class="rules-term-grid">
                 <article><strong>전투</strong><p>몬스터를 쓰러뜨리면 능력치 보상을 얻습니다. 패배하면 여정이 종료됩니다.</p></article>
-                <article><strong>마을</strong><p>한 여정에서 최대 두 번 방문할 수 있습니다. HP·MP 회복 또는 무작위 능력치 강화를 선택합니다.</p></article>
-                <article><strong>이벤트</strong><p>선택에 따라 회복·영구 강화·다음 전투 효과를 얻거나 HP와 MP를 잃을 수 있습니다.</p></article>
-                <article><strong>기습</strong><p>비전투 행선지로 향하다 적의 기습을 받을 수 있습니다. 항상 안전한 선택지는 아니라는 뜻입니다.</p></article>
+                <article><strong>마을</strong><p>첫 전투 뒤 STAGE 2에서 한 번 방문합니다. HP·MP 회복 또는 무작위 능력치 강화를 선택합니다.</p></article>
+                <article><strong>이벤트</strong><p>선택에 따라 G를 지불하거나 얻고, 회복·영구 강화·다음 전투 효과를 얻거나 HP와 MP를 잃을 수 있습니다.</p></article>
+                <article><strong>유물 상점</strong><p>보유하지 않은 상점 유물 두 개와 무료 HP·MP 10 회복 중 하나를 고릅니다. 유물상의 장부가 있으면 무료 물약 대신 두 상품을 한 번 다시 뽑을 수 있습니다. STAGE 11과 19에는 세 행선지 중 하나로 반드시 노출되지만 선택하지 않고 지나갈 수 있습니다.</p></article>
+                <article><strong>기습</strong><p>STAGE 3~10의 비전투 행선지에서는 일반 마왕군, STAGE 14~18에서는 마왕군 간부의 기습을 받을 수 있습니다. 같은 적은 한 여정에서 다시 등장하지 않으며 해당 적 풀을 모두 쓰러뜨리면 이후 기습은 발생하지 않습니다. STAGE 11·13·19와 고정 전투에서는 기습이 발생하지 않습니다.</p></article>
               </div>
               <aside class="rules-note"><strong>운영 팁</strong><p>HP는 승리 후 일부만 회복되지만 MP는 그대로 이어집니다. 전투를 끝내기 직전에도 다음 스테이지를 생각해 자원을 남겨 두세요. 첫 전투 뒤에는 마을에서 여정을 정비할 수 있습니다.</p></aside>
             </section>
@@ -745,6 +764,23 @@
 
   <script src="./mobile-runtime.js"></script>
   <script src="./adventure-save.js"></script>
+  <script src="./battle-effects/registry.js"></script>
+  <script src="./battle-effects/toxiche.js"></script>
+  <script src="./battle-effects/plote.js"></script>
+  <script src="./battle-effects/nihfle.js"></script>
+  <script src="./battle-effects/neroko.js"></script>
+  <script src="./battle-effects/cryne.js"></script>
+  <script src="./battle-effects/gandrick.js"></script>
+  <script src="./battle-effects/charinel.js"></script>
+  <script src="./battle-effects/revesha.js"></script>
+  <script src="./battle-effects/ashend.js"></script>
+  <script src="./battle-effects/karossy.js"></script>
+  <script src="./battle-effects/demon_scout_kain.js"></script>
+  <script src="./battle-effects/demon_warrior_luke.js"></script>
+  <script src="./battle-effects/demon_mage_zero.js"></script>
+  <script src="./battle-effects/demon_archer_robin.js"></script>
+  <script src="./battle-effects/demon_priest_sara.js"></script>
+  <script src="./battle-effects/demon_fighter_gran.js"></script>
   <script src="./app.js" defer></script>
 </body>
 </html>

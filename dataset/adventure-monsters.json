@@ -216,6 +216,200 @@
     ]
   },
   {
+    "id": "demon_pawn_opawn",
+    "name": "오파운",
+    "title": "마왕의 보병",
+    "officer": true,
+    "stats": {
+      "hp": 140,
+      "atk": 120,
+      "def": 100,
+      "spd": 90
+    },
+    "unique_statuses": [
+      {
+        "name": "흑백의 승급",
+        "description": "5턴 동안 자신의 ATK·DEF·SPD가 1.5배가 된다. 이 효과가 지속되는 동안 자신은 액티브 스킬을 선택할 수 없다."
+      }
+    ],
+    "passive": {
+      "name": "마왕의 영광",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "회창의 진군",
+        "target": "상대",
+        "mp": 18,
+        "power": 17,
+        "accuracy": 95,
+        "priority": 0,
+        "description": "피해 계산 시, 자신이 선공자라면 이 스킬로 상대에게 입히는 공격 피해가 1.4배가 된다."
+      },
+      {
+        "name": "흑백의 승급",
+        "target": "자신",
+        "mp": 30,
+        "power": null,
+        "accuracy": null,
+        "priority": 3,
+        "description": "5턴 동안 자신의 ATK·DEF·SPD가 1.5배가 된다. 이 효과가 지속되는 동안 자신은 액티브 스킬을 선택할 수 없다."
+      },
+      {
+        "name": "무채의 공훈",
+        "target": "상대",
+        "mp": 36,
+        "power": 26,
+        "accuracy": 85,
+        "priority": -1,
+        "description": "피해 계산 시, 상대의 HP가 상대의 최대 HP의 50% 이하라면 이 스킬로 상대에게 입히는 공격 피해가 1.5배가 된다."
+      }
+    ]
+  },
+  {
+    "id": "demon_rook_chatrang",
+    "name": "차트랑",
+    "title": "마왕의 전차",
+    "officer": true,
+    "stats": {
+      "hp": 140,
+      "atk": 100,
+      "def": 160,
+      "spd": 50
+    },
+    "unique_statuses": [
+      {
+        "name": "전략적 위치 변경",
+        "description": "4턴 동안 자신의 ATK와 DEF를 서로 바꾼다. 이 효과가 지속되는 동안 자신은 전략적 위치 변경을 선택할 수 없다."
+      }
+    ],
+    "passive": {
+      "name": "마왕의 영광",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "백철의 난타",
+        "target": "상대",
+        "mp": 20,
+        "power": 10,
+        "accuracy": 90,
+        "priority": 0,
+        "description": "[연격] 2회 공격한다."
+      },
+      {
+        "name": "전략적 위치 변경",
+        "target": "자신",
+        "mp": 24,
+        "power": null,
+        "accuracy": null,
+        "priority": 3,
+        "description": "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다. 4턴 동안 자신의 ATK와 DEF를 서로 바꾼다. 이 효과가 지속되는 동안 자신은 이 스킬을 선택할 수 없다."
+      },
+      {
+        "name": "무채의 파성",
+        "target": "상대",
+        "mp": 36,
+        "power": 28,
+        "accuracy": 80,
+        "priority": -1,
+        "description": "피해 계산 시, 자신에게 전략적 위치 변경이 적용 중이라면 이 스킬로 상대에게 입히는 공격 피해가 1.5배가 된다."
+      }
+    ]
+  },
+  {
+    "id": "demon_knight_kaighton",
+    "name": "카이튼",
+    "title": "마왕의 기사",
+    "officer": true,
+    "stats": {
+      "hp": 150,
+      "atk": 110,
+      "def": 120,
+      "spd": 70
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 영광",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "회색의 일기토",
+        "target": "상대",
+        "mp": 18,
+        "power": 18,
+        "accuracy": 95,
+        "priority": 0,
+        "description": "피해 계산 시, 상대가 공격 행동을 선택했다면 이 스킬로 상대에게 입히는 공격 피해가 1.4배가 된다."
+      },
+      {
+        "name": "백은의 예우",
+        "target": "자신",
+        "mp": 24,
+        "power": null,
+        "accuracy": null,
+        "priority": 3,
+        "description": "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다. 상대의 공격 명중 시, 자신이 입은 공격 피해의 50%만큼 MP를 회복한다."
+      },
+      {
+        "name": "흑마의 양공",
+        "target": "상대",
+        "mp": 32,
+        "power": 23,
+        "accuracy": 85,
+        "priority": -1,
+        "description": "명중 시, 상대의 MP를 15 감소시킨다."
+      }
+    ]
+  },
+  {
+    "id": "demon_bishop_eveque",
+    "name": "이브큐",
+    "title": "마왕의 주교",
+    "officer": true,
+    "stats": {
+      "hp": 120,
+      "atk": 130,
+      "def": 80,
+      "spd": 120
+    },
+    "unique_statuses": [],
+    "passive": {
+      "name": "마왕의 영광",
+      "description": "HP·ATK·DEF·SPD가 (1 + 현재 스테이지 × 0.05)배가 된다."
+    },
+    "skills": [
+      {
+        "name": "백선의 계시",
+        "target": "상대",
+        "mp": 18,
+        "power": 18,
+        "accuracy": 95,
+        "priority": 0,
+        "description": "피해 계산 시, 상대가 직전 턴과 같은 행동을 선택했다면 이 스킬로 상대에게 입히는 공격 피해가 1.5배가 된다. 직전 턴에 상대가 선택한 행동이 없다면 적용하지 않는다."
+      },
+      {
+        "name": "회색의 성역",
+        "target": "자신",
+        "mp": 26,
+        "power": null,
+        "accuracy": null,
+        "priority": 3,
+        "description": "[방어] 자신이 이 턴에 입는 공격 피해를 경감한다. 턴 종료 시, 자신이 이 턴에 공격 피해를 받지 않았다면 자신의 최대 HP의 15%만큼 HP를 회복한다."
+      },
+      {
+        "name": "흑선의 단죄",
+        "target": "상대",
+        "mp": 34,
+        "power": 25,
+        "accuracy": 85,
+        "priority": -1,
+        "description": "피해 계산 시, 상대가 직전 턴과 다른 행동을 선택했다면 이 스킬로 상대에게 입히는 공격 피해가 1.3배가 된다. 직전 턴에 상대가 선택한 행동이 없다면 적용하지 않는다."
+      }
+    ]
+  },
+  {
     "id": "demon_king_monochrem",
     "name": "모노크렘",
     "title": "흑백의 마왕",

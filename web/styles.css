@@ -719,7 +719,7 @@ select:not(.native-select):disabled {
     0 0 0 2px color-mix(in srgb, var(--character-color) 26%, transparent);
 }
 
-.character-picker-tile-portrait {
+.character-picker-tile-visual {
   display: grid;
   place-items: center;
   min-width: 0;
@@ -745,13 +745,13 @@ select:not(.native-select):disabled {
   text-align: center;
 }
 
-.character-picker-portrait {
+.character-picker-sprite {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  transform: scale(1.2);
-  transform-origin: center top;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto;
+  filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.5));
 }
 
 .character-picker-random-mark {
@@ -765,7 +765,7 @@ select:not(.native-select):disabled {
   text-shadow: 0 2px 16px color-mix(in srgb, var(--character-color) 48%, transparent);
 }
 
-.character-picker-tile-portrait svg {
+.character-picker-tile-visual svg {
   width: 100%;
   height: 100%;
 }
@@ -927,6 +927,11 @@ button:focus-visible {
   font-weight: 900;
 }
 
+.adventure-gold {
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(242, 198, 85, 0.28);
+}
+
 .state-box {
   min-height: 56px;
   height: clamp(56px, 9dvh, 100px);
@@ -1003,11 +1008,15 @@ button:focus-visible {
 }
 
 .arena-surface::before {
-  content: "";
+  content: none;
+}
+
+.battle-fx-value-layer {
   position: absolute;
-  inset: 50% -12% auto;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(244, 246, 251, 0.35), transparent);
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  overflow: visible;
 }
 
 .battle-record-button {
@@ -1083,10 +1092,10 @@ button:focus-visible {
   aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: 6px;
-  background: rgba(7, 10, 14, 0.12);
+  background: transparent;
   --character-color: #aeb4bd;
   --effect-color: #aeb4bd;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--character-color) 22%, transparent);
+  box-shadow: none;
 }
 
 .avatar-stage.is-empty::after {
@@ -1115,46 +1124,53 @@ button:focus-visible {
   transition: filter 1900ms ease, opacity 1900ms ease;
 }
 
-.avatar-stage .character-portrait {
+.avatar-stage.has-battle-sprite {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  aspect-ratio: auto;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.avatar-stage .battle-sprite {
   position: relative;
   z-index: 1;
   width: 100%;
   height: 100%;
   border: 0;
-  border-radius: 0;
-  object-fit: cover;
-  object-position: center top;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(0 18px 14px rgba(0, 0, 0, 0.46));
   transition: filter 1900ms ease, opacity 1900ms ease;
 }
 
-.avatar-stage.is-portrait-transforming {
-  --portrait-transform-color: #f4f7ff;
+.avatar-stage .battle-sprite-side {
+  scale: 0.86;
+  image-rendering: pixelated;
+  transform-origin: center;
 }
 
-.avatar-stage.is-portrait-transforming-demonic-bullet {
-  --portrait-transform-color: #ffd46a;
+.avatar-stage .battle-sprite-side-ai {
+  scale: -0.86 0.86;
 }
 
-.avatar-stage.is-portrait-transforming-iron-bullet {
-  --portrait-transform-color: #edf5ff;
+.avatar-stage.is-adventure-monochrome .battle-sprite {
+  filter: grayscale(1) drop-shadow(0 18px 14px rgba(0, 0, 0, 0.46));
 }
 
-.avatar-stage.is-portrait-transforming::before {
-  content: "";
-  position: absolute;
-  inset: -24%;
-  z-index: 4;
-  pointer-events: none;
-  opacity: 0;
-  background:
-    radial-gradient(circle at 50% 48%, #fff 0 4%, var(--portrait-transform-color) 10%, transparent 43%),
-    conic-gradient(from 18deg, transparent, var(--portrait-transform-color), transparent 24%, transparent 50%, var(--portrait-transform-color), transparent 76%);
-  mix-blend-mode: screen;
-  animation: portrait-transform-flash 820ms cubic-bezier(0.2, 0.82, 0.28, 1) forwards;
+.avatar-stage.is-adventure-monochrome svg {
+  filter: grayscale(1) drop-shadow(0 24px 24px rgba(0, 0, 0, 0.44));
 }
 
-.avatar-stage.is-portrait-transforming .character-portrait {
-  animation: portrait-transform-reveal 820ms cubic-bezier(0.16, 0.82, 0.28, 1) both !important;
+.avatar-stage.is-adventure-mirror .battle-sprite:not(.battle-sprite-side) {
+  scale: -1 1;
+}
+
+.avatar-stage.is-adventure-mirror svg {
+  scale: -1 1;
 }
 
 .avatar-stage .adventure-scene-illustration {
@@ -1181,12 +1197,8 @@ button:focus-visible {
   display: none;
 }
 
-.avatar-stage.is-defeated::after {
-  opacity: 1;
-}
-
-.avatar-stage.is-defeated .character-portrait {
-  filter: grayscale(1) saturate(0) contrast(0.86) brightness(0.58);
+.avatar-stage.is-defeated .battle-sprite {
+  filter: grayscale(1) saturate(0) contrast(0.86) brightness(0.58) drop-shadow(0 18px 14px rgba(0, 0, 0, 0.46));
   opacity: 0.72;
 }
 
@@ -1202,11 +1214,67 @@ button:focus-visible {
   z-index: 3;
 }
 
+.battle-fx-monochrome-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
 .battle-fx-effect {
   inset: 0;
   color: var(--effect-color, #aeb4bd);
   opacity: 0;
   mix-blend-mode: screen;
+}
+
+.battle-fx-normal-attack,
+.battle-fx-common-defense,
+.battle-fx-meditation {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  image-rendering: pixelated;
+}
+
+.battle-fx-normal-attack {
+  inset: 12% 5%;
+  background-image: url("./assets/effects/normal-attack.png");
+  filter: drop-shadow(0 0 7px rgba(255, 18, 198, 0.92));
+  animation: fx-pixel-slash 760ms steps(8, end) forwards;
+}
+
+#aiAvatar .battle-fx-normal-attack {
+  --fx-slash-direction: 1;
+  --fx-slash-flip: 1;
+}
+
+#playerAvatar .battle-fx-normal-attack {
+  --fx-slash-direction: -1;
+  --fx-slash-flip: -1;
+}
+
+.battle-fx-common-defense {
+  inset: 10%;
+  background-image: url("./assets/effects/normal-defense.png");
+  filter: drop-shadow(0 0 7px rgba(23, 224, 255, 0.9));
+  animation: fx-pixel-shield 760ms steps(8, end) forwards;
+}
+
+#aiAvatar .battle-fx-common-defense {
+  scale: -1 1;
+}
+
+.battle-fx-meditation {
+  inset: 10%;
+  background-image: url("./assets/effects/meditation.png");
+  filter: drop-shadow(0 0 7px rgba(255, 218, 24, 0.9));
+  animation: fx-pixel-gather 760ms steps(8, end) forwards;
+}
+
+#aiAvatar .battle-fx-meditation {
+  scale: -1 1;
 }
 
 .battle-fx-hit {
@@ -1299,6 +1367,11 @@ button:focus-visible {
   animation: fx-damage-drop 860ms ease-in forwards;
 }
 
+.battle-fx-value-normal-attack {
+  color: #ff4fc9;
+  animation: fx-damage-drop 860ms ease-in forwards;
+}
+
 .battle-fx-value-shadow-hit {
   color: var(--effect-color, #b1185a);
   animation: fx-damage-drop 860ms ease-in forwards;
@@ -1326,7 +1399,7 @@ button:focus-visible {
 }
 
 .battle-fx-value-debuff {
-  color: #c99cff;
+  color: #ffe27a;
   animation: fx-label-fall 820ms ease-out forwards;
 }
 
@@ -1336,45 +1409,132 @@ button:focus-visible {
 }
 
 .battle-fx-value-stack-spend {
-  color: #d7dce5;
+  color: #ffe27a;
   animation: fx-label-pop 820ms ease-out forwards;
 }
 
-.avatar-stage.is-fx-hit .character-portrait,
-.avatar-stage.is-fx-hit svg {
-  animation: portrait-hit-shake 430ms cubic-bezier(0.2, 0.9, 0.3, 1);
+.battle-fx-value.battle-fx-value-hp-loss {
+  color: #ff4d55;
+  text-shadow: 0 2px 0 rgba(38, 0, 4, 0.9), 0 0 10px rgba(255, 77, 85, 0.82);
+  animation: fx-damage-drop 860ms ease-in forwards;
 }
 
-.avatar-stage.is-fx-miss .character-portrait,
+.battle-fx-value.battle-fx-value-hp-gain {
+  color: #65f28a;
+  text-shadow: 0 2px 0 rgba(0, 28, 8, 0.9), 0 0 10px rgba(101, 242, 138, 0.78);
+  animation: fx-heal-rise 820ms ease-out forwards;
+}
+
+.battle-fx-value.battle-fx-value-mp-loss {
+  color: #bd8cff;
+  text-shadow: 0 2px 0 rgba(20, 5, 42, 0.9), 0 0 10px rgba(189, 140, 255, 0.78);
+  animation: fx-label-fall 820ms ease-out forwards;
+}
+
+.battle-fx-value.battle-fx-value-mp-gain {
+  color: #67d9ff;
+  text-shadow: 0 2px 0 rgba(0, 20, 36, 0.9), 0 0 10px rgba(103, 217, 255, 0.8);
+  animation: fx-heal-rise 820ms ease-out forwards;
+}
+
+.avatar-stage.is-fx-hit .battle-sprite,
+.avatar-stage.is-fx-hit svg,
+.avatar-stage.is-fx-normal-attack .battle-sprite,
+.avatar-stage.is-fx-normal-attack svg {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.avatar-stage.is-fx-miss .battle-sprite,
 .avatar-stage.is-fx-miss svg {
-  animation: portrait-miss-sidestep 520ms cubic-bezier(0.18, 0.92, 0.32, 1);
+  animation: combatant-miss-sidestep 520ms cubic-bezier(0.18, 0.92, 0.32, 1);
 }
 
-.avatar-stage.is-fx-defense .character-portrait,
-.avatar-stage.is-fx-defense svg {
-  animation: portrait-guard-pulse 520ms ease-out;
+.avatar-stage.is-fx-defense .battle-sprite,
+.avatar-stage.is-fx-defense svg,
+.avatar-stage.is-fx-common-defense .battle-sprite,
+.avatar-stage.is-fx-common-defense svg {
+  animation: combatant-guard-pulse 520ms ease-out;
 }
 
-.avatar-stage.is-fx-heal .character-portrait,
+.avatar-stage.is-fx-heal .battle-sprite,
 .avatar-stage.is-fx-heal svg,
-.avatar-stage.is-fx-buff .character-portrait,
-.avatar-stage.is-fx-buff svg {
-  animation: portrait-soft-lift 520ms ease-out;
+.avatar-stage.is-fx-buff .battle-sprite,
+.avatar-stage.is-fx-buff svg,
+.avatar-stage.is-fx-meditation .battle-sprite,
+.avatar-stage.is-fx-meditation svg {
+  animation: combatant-soft-lift 520ms ease-out;
 }
 
-.avatar-stage.is-fx-debuff .character-portrait,
+.avatar-stage.is-fx-debuff .battle-sprite,
 .avatar-stage.is-fx-debuff svg {
-  animation: portrait-debuff-dip 520ms ease-out;
+  animation: combatant-debuff-dip 520ms ease-out;
 }
 
-.avatar-stage.is-fx-stack-gain .character-portrait,
+.avatar-stage.is-fx-stack-gain .battle-sprite,
 .avatar-stage.is-fx-stack-gain svg {
-  animation: portrait-soft-lift 520ms ease-out;
+  animation: combatant-soft-lift 520ms ease-out;
 }
 
-.avatar-stage.is-fx-stack-spend .character-portrait,
+.avatar-stage.is-fx-stack-spend .battle-sprite,
 .avatar-stage.is-fx-stack-spend svg {
-  animation: portrait-stack-drain 560ms ease-out;
+  animation: combatant-stack-drain 560ms ease-out;
+}
+
+@keyframes fx-pixel-slash {
+  0% {
+    opacity: 0;
+    transform: translateX(calc(-30px * var(--fx-slash-direction, 1)))
+      scaleX(var(--fx-slash-flip, 1)) scale(0.74);
+  }
+  13% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 1;
+    transform: translateX(0) scaleX(var(--fx-slash-flip, 1)) scale(1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(calc(22px * var(--fx-slash-direction, 1)))
+      scaleX(var(--fx-slash-flip, 1)) scale(1.1);
+  }
+}
+
+@keyframes fx-pixel-shield {
+  0% {
+    opacity: 0;
+    transform: scale(0.58);
+  }
+  24% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes fx-pixel-gather {
+  0% {
+    opacity: 0;
+    transform: rotate(-18deg) scale(1.28);
+  }
+  20% {
+    opacity: 0.88;
+  }
+  68% {
+    opacity: 1;
+    transform: rotate(0) scale(0.78);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(8deg) scale(0.54);
+  }
 }
 
 @keyframes fx-hit-slash {
@@ -1590,25 +1750,25 @@ button:focus-visible {
   }
 }
 
-@keyframes portrait-hit-shake {
+@keyframes combatant-hit-shake {
   0%, 100% {
     transform: translateX(0);
   }
   18% {
-    transform: translateX(-8px) rotate(-0.8deg);
+    transform: translateX(var(--hit-shake-x-1, -8px)) rotate(var(--hit-shake-angle-1, -0.8deg));
   }
   38% {
-    transform: translateX(7px) rotate(0.6deg);
+    transform: translateX(var(--hit-shake-x-2, 7px)) rotate(var(--hit-shake-angle-2, 0.6deg));
   }
   58% {
-    transform: translateX(-4px) rotate(-0.4deg);
+    transform: translateX(var(--hit-shake-x-3, -4px)) rotate(var(--hit-shake-angle-3, -0.4deg));
   }
   78% {
-    transform: translateX(3px);
+    transform: translateX(var(--hit-shake-x-4, 3px));
   }
 }
 
-@keyframes portrait-miss-sidestep {
+@keyframes combatant-miss-sidestep {
   0%, 100% {
     transform: translateX(0);
   }
@@ -1620,7 +1780,7 @@ button:focus-visible {
   }
 }
 
-@keyframes portrait-guard-pulse {
+@keyframes combatant-guard-pulse {
   0%, 100% {
     transform: scale(1);
   }
@@ -1629,7 +1789,7 @@ button:focus-visible {
   }
 }
 
-@keyframes portrait-soft-lift {
+@keyframes combatant-soft-lift {
   0%, 100% {
     transform: translateY(0);
   }
@@ -1638,7 +1798,7 @@ button:focus-visible {
   }
 }
 
-@keyframes portrait-debuff-dip {
+@keyframes combatant-debuff-dip {
   0%, 100% {
     transform: translateY(0);
   }
@@ -1647,55 +1807,12 @@ button:focus-visible {
   }
 }
 
-@keyframes portrait-stack-drain {
+@keyframes combatant-stack-drain {
   0%, 100% {
     transform: scale(1);
   }
   44% {
     transform: scale(0.96);
-  }
-}
-
-@keyframes portrait-transform-flash {
-  0% {
-    opacity: 0;
-    transform: scale(0.45) rotate(-8deg);
-  }
-  22% {
-    opacity: 0.96;
-  }
-  52% {
-    opacity: 0.46;
-    transform: scale(1.04) rotate(2deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.24) rotate(5deg);
-  }
-}
-
-@keyframes portrait-transform-reveal {
-  0% {
-    opacity: 0.08;
-    filter: brightness(3.2) saturate(0.25) blur(10px);
-    transform: scale(1.06);
-  }
-  34% {
-    opacity: 1;
-    filter: brightness(1.65) saturate(1.25) blur(1px);
-    transform: scale(1.025);
-  }
-  100% {
-    opacity: 1;
-    filter: none;
-    transform: scale(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .avatar-stage.is-portrait-transforming::before,
-  .avatar-stage.is-portrait-transforming .character-portrait {
-    animation: none !important;
   }
 }
 
@@ -1881,7 +1998,7 @@ button:focus-visible {
   overflow: auto;
   color: #d8e1ef;
   line-height: 1.34;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
 }
 
 .turn-log {
@@ -2447,6 +2564,41 @@ button:focus-visible {
   grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
   gap: 10px;
   margin-bottom: 10px;
+}
+
+.fighter-info-hero {
+  display: grid;
+  grid-template-columns: minmax(150px, 200px) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.fighter-info-sprite-frame {
+  display: grid;
+  place-items: center;
+  min-height: 190px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--character-color, #aeb4bd) 34%, rgba(146, 164, 194, 0.22));
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--character-color, #aeb4bd) 18%, transparent), transparent 62%),
+    rgba(7, 10, 14, 0.42);
+}
+
+.fighter-info-sprite {
+  width: 100%;
+  height: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto;
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.46));
+}
+
+.fighter-info-hero .modal-summary {
+  grid-template-columns: 1fr;
+  margin-bottom: 0;
 }
 
 .modal-summary > div,
@@ -3503,17 +3655,15 @@ button:focus-visible {
   height: auto;
 }
 
-.codex-avatar .character-portrait {
+.codex-avatar .codex-character-sprite {
   width: min(260px, 100%);
   aspect-ratio: 1 / 1;
-  border: 1px solid color-mix(in srgb, var(--character-color) 42%, rgba(242, 198, 85, 0.18));
-  border-radius: 8px;
-  object-fit: cover;
-  object-position: center top;
-  background: rgba(7, 10, 14, 0.52);
-  box-shadow:
-    0 18px 34px rgba(0, 0, 0, 0.34),
-    0 0 28px color-mix(in srgb, var(--character-color) 18%, transparent);
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto;
+  filter:
+    drop-shadow(0 18px 12px rgba(0, 0, 0, 0.48))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--character-color) 20%, transparent));
 }
 
 .codex-copy {
@@ -3785,6 +3935,16 @@ button:focus-visible {
 }
 
 @media (max-width: 520px) {
+  .fighter-info-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .fighter-info-sprite-frame {
+    justify-self: center;
+    width: min(190px, 100%);
+    min-height: 170px;
+  }
+
   .inscription-popover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: minmax(70px, 1fr);
@@ -4249,11 +4409,14 @@ button:focus-visible {
   }
 
   .battle-fx-value-hit,
-  .battle-fx-value-shadow-hit {
+  .battle-fx-value-shadow-hit,
+  .battle-fx-value-hp-loss {
     animation-name: fx-damage-drop-mobile;
   }
 
-  .battle-fx-value-heal {
+  .battle-fx-value-heal,
+  .battle-fx-value-hp-gain,
+  .battle-fx-value-mp-gain {
     animation-name: fx-heal-rise-mobile;
   }
 
@@ -4262,7 +4425,8 @@ button:focus-visible {
     animation-name: fx-label-rise-mobile;
   }
 
-  .battle-fx-value-debuff {
+  .battle-fx-value-debuff,
+  .battle-fx-value-mp-loss {
     animation-name: fx-label-fall-mobile;
   }
 
@@ -4296,7 +4460,7 @@ button:focus-visible {
     min-height: 140px;
   }
 
-  .codex-avatar .character-portrait {
+  .codex-avatar .codex-character-sprite {
     width: min(180px, 100%);
   }
 
@@ -4575,7 +4739,7 @@ button:focus-visible {
     min-height: 170px;
   }
 
-  .codex-avatar .character-portrait {
+  .codex-avatar .codex-character-sprite {
     width: min(210px, 100%);
   }
 
@@ -4589,6 +4753,80 @@ button:focus-visible {
 
   .codex-skill-strip {
     flex-wrap: nowrap;
+  }
+}
+
+@media (min-width: 901px) and (min-height: 641px) {
+  .battle-grid {
+    grid-template-columns: minmax(210px, 0.82fr) minmax(360px, 1.7fr) minmax(210px, 0.82fr);
+    grid-template-rows: minmax(0, 1fr) minmax(190px, 0.48fr);
+    grid-template-areas:
+      "player arena enemy"
+      "actions actions log";
+  }
+
+  .status-column,
+  .right-column {
+    display: contents;
+  }
+
+  .player-card {
+    grid-area: player;
+  }
+
+  .enemy-card {
+    grid-area: enemy;
+  }
+
+  .arena-panel {
+    grid-area: arena;
+  }
+
+  .log-card {
+    grid-area: log;
+    min-height: 0;
+  }
+
+  .skills-card {
+    grid-area: actions;
+    min-height: 0;
+    padding: 9px 12px;
+  }
+
+  .actions-grid:not(.is-adventure-choices) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(50px, 1fr));
+    grid-auto-rows: minmax(50px, 1fr);
+  }
+
+  .arena-surface {
+    background: none;
+  }
+
+  .arena-surface::before {
+    content: none;
+  }
+
+  .turn-chip {
+    top: 12px;
+  }
+
+  .enemy-slot {
+    top: 50%;
+    right: 0;
+    left: auto;
+    width: 48%;
+    height: 76%;
+    transform: translateY(-50%);
+  }
+
+  .player-slot {
+    top: 50%;
+    bottom: auto;
+    left: 0;
+    width: 48%;
+    height: 76%;
+    transform: translateY(-50%);
   }
 }
 

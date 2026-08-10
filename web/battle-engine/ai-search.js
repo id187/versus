@@ -675,6 +675,11 @@ function appendFighter(parts, fighter) {
     appendStable(parts, fighter[key]);
     parts.push(",");
   }
+  if (Array.isArray(fighter.adventureRelics) && fighter.adventureRelics.length > 0) {
+    parts.push("relics=");
+    appendStable(parts, fighter.adventureRelics);
+    parts.push(",");
+  }
 }
 
 function appendStable(parts, value) {

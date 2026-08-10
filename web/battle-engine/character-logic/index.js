@@ -128,9 +128,6 @@ const hooks = {
     if (!match) return null;
     return callById(match[1], "actionDefinitionForKey", [actionKey], null);
   },
-  portraitVariant(battle, fighter) {
-    return call(fighter, "portraitVariant", [battle, fighter], null);
-  },
   adjustInitialStats(fighter) {
     call(fighter, "adjustInitialStats", [fighter]);
   },
