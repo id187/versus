@@ -1349,7 +1349,14 @@ function handleRulesTabKeydown(event) {
 
 function leaveBattleScreen() {
   const request = currentPvpLeaveRequest();
+  const leavesTutorial = state.battleMode === "tutorial";
   els.pvpRoomInput.value = "";
+  if (leavesTutorial) {
+    setTutorialEnabled(false);
+    resetBattleScreen();
+    setBattleMode("pve");
+    renderTutorialGuide();
+  }
   showScreen("play");
   if (request) {
     state.battle = null;
@@ -1797,6 +1804,7 @@ async function startConfiguredBattle() {
 
 async function startTutorialBattle() {
   if (state.busy || state.tutorial?.setupStep !== 3 || selectedTutorialCharacter()?.id !== TUTORIAL_CHARACTER_ID) return;
+  const tutorialSession = state.tutorial;
   stopPvpPolling();
   state.pvp = null;
   state.tutorial.started = true;
@@ -1809,18 +1817,24 @@ async function startTutorialBattle() {
       playerInscriptionId: state.selectedInscriptionId,
       seed: "versus-guided-tutorial",
     });
+    if (!isCurrentTutorialSession(tutorialSession)) return;
     state.battle = data;
     syncSetupFromBattle(data);
     renderBattle(data);
     await pushTurnLog("튜토리얼 시작", data.log, true);
   } catch (error) {
+    if (!isCurrentTutorialSession(tutorialSession)) return;
     state.tutorial.started = false;
     stopBgm(300);
     pushTurnLog("오류", [`튜토리얼 시작 실패: ${error.message}`], false);
     renderTutorialGuide();
   } finally {
-    setBusy(false);
+    if (isCurrentTutorialSession(tutorialSession)) setBusy(false);
   }
+}
+
+function isCurrentTutorialSession(session) {
+  return Boolean(session && state.battleMode === "tutorial" && state.tutorial === session);
 }
 
 function openAdventureRestartConfirm() {
@@ -1975,6 +1989,7 @@ async function chooseAction(actionNumber) {
     return choosePvpAction(actionNumber);
   }
   if (state.busy || !state.battle || state.battle.is_over) return;
+  const tutorialSession = state.battleMode === "tutorial" ? state.tutorial : null;
   primeAudio();
   setBusy(true);
   try {
@@ -1982,6 +1997,7 @@ async function chooseAction(actionNumber) {
     const data = state.battleMode === "adventure"
       ? await adventureActionRequest({ action: actionNumber })
       : await api("/api/action", { action: actionNumber });
+    if (tutorialSession && !isCurrentTutorialSession(tutorialSession)) return;
     const isGameOver = Boolean(data.is_over || data.gameOver);
     if (state.battleMode === "tutorial" && data.tutorial?.completed) {
       setTutorialEnabled(false);
@@ -1997,6 +2013,7 @@ async function chooseAction(actionNumber) {
       settleEffects: isGameOver,
       syncState: true,
     });
+    if (tutorialSession && !isCurrentTutorialSession(tutorialSession)) return;
     if (state.adventureRestartRequested) return;
     state.battle = data;
     renderBattle(data, { animateDefeat: isGameOver });
@@ -2019,9 +2036,12 @@ async function chooseAction(actionNumber) {
       playResultBgm(data, data.adventure?.phase === "reward" ? "village" : null);
     }
   } catch (error) {
+    if (tutorialSession && !isCurrentTutorialSession(tutorialSession)) return;
     pushTurnLog("오류", [`행동 처리 실패: ${error.message}`], false);
   } finally {
-    if (state.adventureRestartRequested) {
+    if (tutorialSession && !isCurrentTutorialSession(tutorialSession)) {
+      // The tutorial back button already reset the screen and unlocked the next mode.
+    } else if (state.adventureRestartRequested) {
       state.adventureRestartRequested = false;
       state.busy = false;
       document.body.classList.remove("is-waiting");
