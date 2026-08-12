@@ -3,7 +3,7 @@
   left: var(--zero-start-x);
   top: var(--zero-start-y);
   z-index: 7;
-  width: clamp(54px, 7vw, 82px);
+  width: clamp(124px, 18vw, 202px);
   aspect-ratio: 2 / 1;
   pointer-events: none;
   background: url("../assets/monsters/demon_mage_zero/effects/white-magic-bullet.png") center / contain no-repeat;
@@ -13,15 +13,21 @@
 }
 
 .battle-fx-zero-white-magic-impact {
-  inset: 31%;
-  background: url("../assets/monsters/demon_mage_zero/effects/white-magic-bullet.png") center / contain no-repeat;
+  top: calc(var(--fx-body-y, 50%) - 45%);
+  right: 5%;
+  bottom: calc(55% - var(--fx-body-y, 50%));
+  left: 5%;
+  background: url("../assets/monsters/demon_mage_zero/effects/white-magic-impact.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);
   animation: zero-bullet-impact 300ms steps(4, end) forwards;
 }
 
 .battle-fx-zero-gray-force-field {
-  inset: 7%;
+  top: calc(var(--fx-body-y, 50%) - 43%);
+  right: 7%;
+  bottom: calc(57% - var(--fx-body-y, 50%));
+  left: 7%;
   background: url("../assets/monsters/demon_mage_zero/effects/gray-force-field.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);

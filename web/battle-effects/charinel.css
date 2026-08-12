@@ -1,5 +1,8 @@
 .battle-fx-focus-gain {
-  inset: -20% 18% 42%;
+  top: calc(var(--fx-head-y, 12%) - 42%);
+  right: 18%;
+  bottom: calc(64% - var(--fx-head-y, 12%));
+  left: 18%;
   background: url("../assets/characters/charinel/effects/focus-gain.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -44,7 +47,10 @@
 }
 
 .battle-fx-flashing-bullet-impact {
-  inset: 6%;
+  top: calc(var(--fx-body-y, 50%) - 44%);
+  right: 6%;
+  bottom: calc(56% - var(--fx-body-y, 50%));
+  left: 6%;
   background: url("../assets/characters/charinel/effects/flashing-bullet-impact.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -60,7 +66,10 @@
 }
 
 .battle-fx-berserk-sparkle-aura {
-  inset: -28% -4% 4%;
+  top: calc(var(--fx-ground-y, 96%) - 124%);
+  right: -4%;
+  bottom: calc(95% - var(--fx-ground-y, 96%));
+  left: -4%;
   background: url("../assets/characters/charinel/effects/berserk-sparkle-aura.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -98,7 +107,10 @@
 }
 
 .battle-fx-light-absorption-vortex {
-  inset: -12%;
+  top: calc(var(--fx-body-y, 50%) - 62%);
+  right: -12%;
+  bottom: calc(62% - var(--fx-body-y, 50%));
+  left: -12%;
   background: url("../assets/characters/charinel/effects/light-absorption-vortex.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -147,14 +159,17 @@
 }
 
 .battle-fx-infinite-radiant-impact {
-  inset: -44%;
-  background: url("../assets/characters/charinel/effects/infinite-radiant-impact.png") center / contain no-repeat;
+  top: calc(var(--fx-ground-y, 96%) - 82%);
+  right: -44%;
+  bottom: calc(97% - var(--fx-ground-y, 96%));
+  left: -44%;
+  background: url("../assets/characters/charinel/effects/infinite-radiant-impact.png") center / 100% 100% no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
   filter:
     drop-shadow(0 0 5px rgba(255, 244, 253, 0.98))
     drop-shadow(0 0 16px rgba(255, 18, 182, 0.94));
-  transform-origin: 50% 58%;
+  transform-origin: 50% 100%;
   animation: charinel-infinite-radiant-impact 680ms steps(9, end) forwards;
 }
 
@@ -163,7 +178,7 @@
 }
 
 .battle-fx-value-infinite-radiant-impact {
-  top: 45%;
+  top: calc(var(--fx-body-y, 50%) - 5%);
   color: #fff0fb;
   text-shadow:
     0 2px 0 rgba(28, 4, 24, 0.98),

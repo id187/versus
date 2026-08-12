@@ -15,12 +15,19 @@
   <link rel="stylesheet" href="./battle-effects/revesha.css">
   <link rel="stylesheet" href="./battle-effects/ashend.css">
   <link rel="stylesheet" href="./battle-effects/karossy.css">
+  <link rel="stylesheet" href="./battle-effects/balef.css">
+  <link rel="stylesheet" href="./battle-effects/zeroven.css">
   <link rel="stylesheet" href="./battle-effects/demon_scout_kain.css">
   <link rel="stylesheet" href="./battle-effects/demon_warrior_luke.css">
   <link rel="stylesheet" href="./battle-effects/demon_mage_zero.css">
   <link rel="stylesheet" href="./battle-effects/demon_archer_robin.css">
   <link rel="stylesheet" href="./battle-effects/demon_priest_sara.css">
   <link rel="stylesheet" href="./battle-effects/demon_fighter_gran.css">
+  <link rel="stylesheet" href="./battle-effects/demon_pawn_opawn.css">
+  <link rel="stylesheet" href="./battle-effects/demon_rook_chatrang.css">
+  <link rel="stylesheet" href="./battle-effects/demon_knight_kaighton.css">
+  <link rel="stylesheet" href="./battle-effects/demon_bishop_eveque.css">
+  <link rel="stylesheet" href="./battle-effects/demon_king_monochrem.css">
 </head>
 <body>
   <main class="app-shell">
@@ -34,6 +41,7 @@
           <button class="menu-button" id="openPlayButton" type="button">Play</button>
           <button class="menu-button" id="openRulesButton" type="button">Rules</button>
           <button class="menu-button" id="openCodexButton" type="button">Characters</button>
+          <button class="menu-button" id="openAchievementsButton" type="button">Achievements</button>
           <button class="menu-button" id="openSettingsButton" type="button">Settings</button>
           <button class="menu-button secondary-menu-button" id="exitButton" type="button">Exit</button>
         </nav>
@@ -51,6 +59,7 @@
           <button class="menu-button" id="openAdventureButton" type="button">Adventure</button>
           <button class="menu-button" id="openBattleButton" type="button">PvE</button>
           <button class="menu-button" id="openPvpButton" type="button">PvP</button>
+          <button class="menu-button dev-menu-button" id="openSkillDebugButton" type="button" hidden>Skill Debug · DEV</button>
           <button class="menu-button secondary-menu-button" id="playBackButton" type="button">Back</button>
         </nav>
       </div>
@@ -65,7 +74,7 @@
         </div>
         <div class="battle-setup" aria-label="전투 설정">
           <div class="setup-field player-setup-field">
-            <span class="setup-label">내 캐릭터</span>
+            <span class="setup-label" id="playerSetupLabel">내 캐릭터</span>
             <div class="player-select-row">
               <button class="inscription-button" id="inscriptionButton" type="button" aria-haspopup="true" aria-expanded="false">
                 <span class="inscription-gem" aria-hidden="true"></span>
@@ -90,15 +99,23 @@
         </div>
       </header>
 
+      <aside class="tutorial-guide" id="tutorialGuide" aria-live="polite" hidden>
+        <span class="tutorial-guide-step" id="tutorialGuideStep">STEP 1</span>
+        <div class="tutorial-guide-copy">
+          <strong id="tutorialGuideTitle">플로테를 선택하세요.</strong>
+          <p id="tutorialGuideText">상단의 내 캐릭터를 눌러 플로테를 찾아 선택합니다.</p>
+        </div>
+        <button class="tutorial-skip-button" id="tutorialSkipButton" type="button">건너뛰기</button>
+        <button class="tutorial-guide-button" id="tutorialGuideButton" type="button" hidden>다음</button>
+      </aside>
+
       <div class="battle-grid">
         <aside class="status-column" aria-label="전투 상태">
           <section class="hud-card fighter-card enemy-card">
             <div class="card-head">
               <div class="card-kicker">상대 상태</div>
-              <button class="mini-info-button" id="enemyInfoButton" type="button">상대 정보</button>
+              <button class="mini-info-button" id="enemyInfoButton" type="button" aria-label="상대 상세 정보" title="상대 상세 정보">ⓘ</button>
             </div>
-            <h2 id="aiSideName">-</h2>
-            <p id="aiSideTitle">대기 중</p>
             <div class="meter-list">
               <div class="meter-row">
                 <span>HP</span>
@@ -111,18 +128,14 @@
                 <b id="aiMpText">-</b>
               </div>
             </div>
-            <div class="stat-line" id="aiStats">ATK - / DEF - / SPD -</div>
-            <div class="state-box" id="aiState">없음</div>
-            <div class="record-box" id="aiRecord" hidden></div>
+            <div class="fighter-status-line"><span id="aiState"></span></div>
           </section>
 
           <section class="hud-card fighter-card player-card">
             <div class="card-head">
               <div class="card-kicker">플레이어 상태</div>
-              <button class="mini-info-button" id="playerInfoButton" type="button">내 정보</button>
+              <button class="mini-info-button" id="playerInfoButton" type="button" aria-label="내 상세 정보" title="내 상세 정보">ⓘ</button>
             </div>
-            <h2 id="playerSideName">-</h2>
-            <p id="playerSideTitle">캐릭터 선택</p>
             <div class="meter-list">
               <div class="meter-row">
                 <span>HP</span>
@@ -135,10 +148,13 @@
                 <b id="playerMpText">-</b>
               </div>
             </div>
-            <div class="stat-line" id="playerStats">ATK - / DEF - / SPD -</div>
-            <div class="state-box" id="playerState">없음</div>
-            <div class="record-box" id="playerRecord" hidden></div>
+            <div class="fighter-status-line">
+              <span id="playerState"></span>
+              <span class="adventure-gold" id="playerGold" hidden>G 0</span>
+            </div>
           </section>
+
+          <button class="battle-record-button" id="battleRecordButton" type="button" aria-label="캐릭터 기록" title="캐릭터 기록" hidden>기록</button>
 
           <section class="hud-card compact-card">
             <div class="card-kicker">AI</div>
@@ -164,7 +180,6 @@
             <div class="panel-title">
               <div class="panel-title-left">
                 <h2>전투 로그</h2>
-                <button class="battle-record-button" id="battleRecordButton" type="button" hidden>캐릭터 기록</button>
               </div>
               <div class="log-controls">
                 <button id="prevLogButton" type="button">이전</button>
@@ -174,7 +189,7 @@
             <div id="battleLog"></div>
           </section>
 
-          <section class="hud-card skills-card" aria-label="기술창">
+          <section class="hud-card skills-card" aria-label="행동 선택">
             <div class="panel-title skills-title">
               <button class="passive-chip" id="passiveChip" type="button" hidden></button>
               <span id="actionHint" hidden></span>
@@ -200,6 +215,10 @@
           <button class="rules-tab is-selected" id="rulesTabHowTo" type="button" role="tab" aria-selected="true" aria-controls="rulesPanelHowTo" data-rules-tab="how-to-play">
             <strong>How to Play</strong>
             <span>전투의 기본</span>
+          </button>
+          <button class="rules-tab" id="rulesTabRulings" type="button" role="tab" aria-selected="false" aria-controls="rulesPanelRulings" data-rules-tab="rulings" tabindex="-1">
+            <strong>Rulings</strong>
+            <span>타이밍과 세부 판정</span>
           </button>
           <button class="rules-tab" id="rulesTabAdventure" type="button" role="tab" aria-selected="false" aria-controls="rulesPanelAdventure" data-rules-tab="adventure" tabindex="-1">
             <strong>Adventure</strong>
@@ -318,7 +337,7 @@
               </aside>
             </section>
 
-            <section class="rules-section" aria-labelledby="effectTimingTitle">
+            <section class="rules-section" aria-labelledby="effectTimingTitle" data-rules-category="rulings">
               <div class="rules-section-heading">
                 <span>04</span>
                 <div>
@@ -446,7 +465,7 @@
               </div>
             </section>
 
-            <section class="rules-section" aria-labelledby="statusRulesTitle">
+            <section class="rules-section" aria-labelledby="statusRulesTitle" data-rules-category="rulings">
               <div class="rules-section-heading">
                 <span>08</span>
                 <div>
@@ -507,7 +526,7 @@
               <aside class="rules-note"><strong>모드별 상대 각인</strong><p>PvE의 AI 각인은 전투 시작 시 무작위로 정해집니다. PvP는 양쪽 플레이어가 직접 고릅니다. Random을 골랐다면 전투 시작 직후 실제 각인 하나로 확정됩니다.</p></aside>
             </section>
 
-            <section class="rules-section" aria-labelledby="keywordRulesTitle">
+            <section class="rules-section" aria-labelledby="keywordRulesTitle" data-rules-category="rulings">
               <div class="rules-section-heading">
                 <span>10</span>
                 <div>
@@ -540,6 +559,14 @@
             </section>
           </article>
 
+          <article class="rules-panel" id="rulesPanelRulings" role="tabpanel" aria-labelledby="rulesTabRulings" data-rules-panel="rulings" hidden>
+            <header class="rules-hero">
+              <span class="rules-kicker">REFERENCE</span>
+              <h2>판정이 헷갈릴 때<br>타이밍과 처리 순서를 확인하세요.</h2>
+              <p>처음 플레이할 때 외울 필요는 없습니다. 효과 문구, 지속시간, 공통 키워드의 정확한 판정이 필요할 때 찾아보는 상세 규정입니다.</p>
+            </header>
+          </article>
+
           <article class="rules-panel" id="rulesPanelAdventure" role="tabpanel" aria-labelledby="rulesTabAdventure" data-rules-panel="adventure" hidden>
             <header class="rules-hero adventure-guide-hero">
               <span class="rules-kicker">20 STAGE JOURNEY</span>
@@ -563,7 +590,7 @@
                 <article class="rules-info-card"><span>CARRY OVER</span><h4>HP·MP와 G 유지</h4><p>여정은 20G로 시작합니다. 승리하면 최대 HP의 20%를 회복하고 현재 MP와 보유 G를 유지합니다. 일반 마왕군에게는 10G, 마경 이후 적에게는 15G를 얻습니다. 전투 중 버프·디버프와 캐릭터 고유 자원은 초기화됩니다.</p></article>
                 <article class="rules-info-card"><span>REWARD</span><h4>능력치 강화</h4><p>기본 전투 보상으로 ATK·DEF·SPD 중 하나를 골라 10% 강화합니다. 일부 이벤트는 보상의 수나 강화량을 바꿀 수 있습니다.</p></article>
                 <article class="rules-info-card"><span>ROUTE</span><h4>다음 행선지</h4><p>보상을 고른 뒤 표시된 행선지 중 하나를 선택합니다. 전투뿐 아니라 회복, 강화, 위험한 거래도 등장합니다.</p></article>
-                <article class="rules-info-card"><span>RELIC</span><h4>유물과 캐릭터 기록</h4><p>유물은 여정 동안 유지되는 특별 효과입니다. Adventure에서는 모든 캐릭터에게 전투 로그 옆 ‘캐릭터 기록’이 표시되며, 이곳에서 캐릭터 고유 기록과 보유 유물을 함께 확인할 수 있습니다. 마왕의 마경은 플레이어의 유물을 복제하지 않습니다.</p></article>
+                <article class="rules-info-card"><span>RELIC</span><h4>유물과 캐릭터 기록</h4><p>유물은 여정 동안 유지되는 특별 효과이며 플레이어의 ⓘ 상세 정보에서 확인합니다. 캐릭터 고유 기록이 있는 전투에서는 두 상태창 사이의 ‘기록’에서 해당 기록만 따로 확인할 수 있습니다. 마왕의 마경은 플레이어의 유물을 복제하지 않습니다.</p></article>
               </div>
             </section>
 
@@ -678,47 +705,96 @@
       </div>
     </section>
 
+    <section class="screen achievements-screen" id="achievementsScreen" aria-label="도전과제">
+      <header class="app-header">
+        <button class="ghost-button" id="achievementsBackButton" type="button">뒤로</button>
+        <div class="header-title">
+          <strong>Achievements</strong>
+          <span>Adventure</span>
+        </div>
+      </header>
+      <div class="achievements-layout">
+        <aside class="achievements-summary" aria-label="Adventure 도전과제 진행도">
+          <span>ADVENTURE</span>
+          <strong id="achievementsCount">0 / 0</strong>
+          <p>Adventure에서 달성한 기록과 캐릭터별 20 STAGE 클리어 타이틀입니다.</p>
+          <div class="achievements-total-track" aria-hidden="true">
+            <i id="achievementsTotalFill"></i>
+          </div>
+          <small id="achievementsPercent">0% COMPLETE</small>
+        </aside>
+        <main class="achievements-content">
+          <header class="achievements-list-heading">
+            <div>
+              <span>CATEGORY</span>
+              <h2>Adventure</h2>
+            </div>
+            <p>전투 중 기록은 피해가 한 번 적용될 때마다 판정합니다.</p>
+          </header>
+          <div class="achievements-list" id="achievementsList"></div>
+        </main>
+      </div>
+    </section>
+
     <section class="screen settings-screen" id="settingsScreen" aria-label="설정">
       <header class="app-header">
         <button class="ghost-button" id="settingsBackButton" type="button">뒤로</button>
         <div class="header-title">
           <strong>Settings</strong>
-          <span>Sound</span>
+          <span>Game &amp; Sound</span>
         </div>
       </header>
       <div class="settings-layout">
         <article class="settings-panel">
-          <header class="settings-heading">
-            <span>SOUND</span>
-            <h2>음량 설정</h2>
-            <p>음악과 전투 효과음의 크기를 조절합니다.</p>
-          </header>
-
-          <div class="volume-control-list">
-            <label class="volume-control" for="bgmVolumeSlider">
+          <section class="settings-section">
+            <header class="settings-heading">
+              <span>GAME</span>
+              <h2>게임 설정</h2>
+              <p>첫 진입 안내와 반복 플레이 방식을 설정합니다.</p>
+            </header>
+            <label class="settings-toggle-row" for="tutorialEnabledToggle">
               <span class="volume-control-copy">
-                <strong>BGM</strong>
-                <small>배경 음악</small>
+                <strong>첫 플레이 튜토리얼</strong>
+                <small>ON이면 다음 Play 진입 때 시작하며, 완료하면 자동으로 OFF됩니다.</small>
               </span>
-              <output id="bgmVolumeValue" for="bgmVolumeSlider">35%</output>
-              <input id="bgmVolumeSlider" type="range" min="0" max="100" step="1" value="35">
+              <input id="tutorialEnabledToggle" type="checkbox" role="switch" checked>
+              <span class="settings-switch" aria-hidden="true"></span>
             </label>
+          </section>
 
-            <label class="volume-control" for="sfxVolumeSlider">
-              <span class="volume-control-copy">
-                <strong>효과음</strong>
-                <small>공격과 방어 등의 전투 소리</small>
-              </span>
-              <output id="sfxVolumeValue" for="sfxVolumeSlider">50%</output>
-              <input id="sfxVolumeSlider" type="range" min="0" max="100" step="1" value="50">
-            </label>
-          </div>
+          <section class="settings-section">
+            <header class="settings-heading">
+              <span>SOUND</span>
+              <h2>음량 설정</h2>
+              <p>음악과 전투 효과음의 크기를 조절합니다.</p>
+            </header>
 
-          <div class="settings-actions">
-            <button class="settings-mute-button" id="audioMuteButton" type="button" aria-pressed="false">전체 음소거</button>
-            <button class="ghost-button" id="audioResetButton" type="button">기본값으로 복원</button>
-          </div>
-          <p class="settings-save-note">변경한 음량은 이 기기에 자동으로 저장됩니다.</p>
+            <div class="volume-control-list">
+              <label class="volume-control" for="bgmVolumeSlider">
+                <span class="volume-control-copy">
+                  <strong>BGM</strong>
+                  <small>배경 음악</small>
+                </span>
+                <output id="bgmVolumeValue" for="bgmVolumeSlider">35%</output>
+                <input id="bgmVolumeSlider" type="range" min="0" max="100" step="1" value="35">
+              </label>
+
+              <label class="volume-control" for="sfxVolumeSlider">
+                <span class="volume-control-copy">
+                  <strong>효과음</strong>
+                  <small>공격과 방어 등의 전투 소리</small>
+                </span>
+                <output id="sfxVolumeValue" for="sfxVolumeSlider">50%</output>
+                <input id="sfxVolumeSlider" type="range" min="0" max="100" step="1" value="50">
+              </label>
+            </div>
+
+            <div class="settings-actions">
+              <button class="settings-mute-button" id="audioMuteButton" type="button" aria-pressed="false">전체 음소거</button>
+              <button class="ghost-button" id="audioResetButton" type="button">음량 기본값</button>
+            </div>
+          </section>
+          <p class="settings-save-note">변경한 설정은 이 기기에 자동으로 저장됩니다.</p>
         </article>
       </div>
     </section>
@@ -764,6 +840,7 @@
 
   <script src="./mobile-runtime.js"></script>
   <script src="./adventure-save.js"></script>
+  <script src="./adventure-achievements.js"></script>
   <script src="./battle-effects/registry.js"></script>
   <script src="./battle-effects/toxiche.js"></script>
   <script src="./battle-effects/plote.js"></script>
@@ -775,12 +852,19 @@
   <script src="./battle-effects/revesha.js"></script>
   <script src="./battle-effects/ashend.js"></script>
   <script src="./battle-effects/karossy.js"></script>
+  <script src="./battle-effects/balef.js"></script>
+  <script src="./battle-effects/zeroven.js"></script>
   <script src="./battle-effects/demon_scout_kain.js"></script>
   <script src="./battle-effects/demon_warrior_luke.js"></script>
   <script src="./battle-effects/demon_mage_zero.js"></script>
   <script src="./battle-effects/demon_archer_robin.js"></script>
   <script src="./battle-effects/demon_priest_sara.js"></script>
   <script src="./battle-effects/demon_fighter_gran.js"></script>
+  <script src="./battle-effects/demon_pawn_opawn.js"></script>
+  <script src="./battle-effects/demon_rook_chatrang.js"></script>
+  <script src="./battle-effects/demon_knight_kaighton.js"></script>
+  <script src="./battle-effects/demon_bishop_eveque.js"></script>
+  <script src="./battle-effects/demon_king_monochrem.js"></script>
   <script src="./app.js" defer></script>
 </body>
 </html>

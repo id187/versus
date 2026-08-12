@@ -1,0 +1,283 @@
+.battle-fx-balef-shatter-punch,
+.battle-fx-balef-drain-punch,
+.battle-fx-balef-spiral-punch {
+  inset: 0;
+  overflow: visible;
+  opacity: 1;
+  background: none;
+  mix-blend-mode: normal;
+}
+
+.battle-fx-balef-shatter-punch::before,
+.battle-fx-balef-drain-punch::before,
+.battle-fx-balef-spiral-punch::before {
+  position: absolute;
+  content: "";
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  width: clamp(78px, 35%, 124px);
+  aspect-ratio: 240 / 207;
+  background: url("../assets/characters/balef/effects/orange-fist-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 237, 128, 0.96))
+    drop-shadow(0 0 9px rgba(255, 117, 16, 0.88));
+  transform-origin: 50% 50%;
+  animation: balef-common-fist-hit 520ms steps(7, end) forwards;
+}
+
+.battle-fx-balef-shatter-punch::after,
+.battle-fx-balef-spiral-punch::after {
+  position: absolute;
+  content: "";
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  pointer-events: none;
+  image-rendering: pixelated;
+  transform-origin: 50% 50%;
+}
+
+.battle-fx-balef-shatter-punch::after {
+  width: clamp(190px, 84%, 315px);
+  aspect-ratio: 360 / 359;
+  background: url("../assets/characters/balef/effects/shattering-cracks.png") center / contain no-repeat;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 231, 112, 0.96))
+    drop-shadow(0 0 8px rgba(255, 91, 8, 0.92));
+  animation: balef-shattering-cracks 650ms steps(9, end) forwards;
+}
+
+.battle-fx-balef-spiral-punch::after {
+  width: clamp(170px, 76%, 282px);
+  aspect-ratio: 1;
+  background: url("../assets/characters/balef/effects/spiral-pierce.png") center / contain no-repeat;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 244, 160, 0.98))
+    drop-shadow(0 0 10px rgba(255, 104, 8, 0.94));
+  animation: balef-spiral-pierce 650ms steps(10, end) forwards;
+}
+
+.battle-fx-balef-absorption-orbs {
+  opacity: 0;
+}
+
+.battle-fx-balef-absorption-orb {
+  position: absolute;
+  left: var(--balef-orb-start-x);
+  top: var(--balef-orb-start-y);
+  z-index: 9;
+  width: var(--balef-orb-size);
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: 0;
+  background: url("../assets/characters/balef/effects/absorption-orb.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 242, 143, 0.98))
+    drop-shadow(0 0 8px rgba(255, 111, 8, 0.92));
+  animation: balef-absorption-orb-flight var(--balef-orb-duration) steps(10, end) var(--balef-orb-delay) both;
+}
+
+.battle-fx-balef-triad-sigil {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-head-y, 18%);
+  width: clamp(104px, 46%, 164px);
+  aspect-ratio: 240 / 214;
+  opacity: 0;
+  background: url("../assets/characters/balef/effects/tri-circle-sigil.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 238, 128, 0.98))
+    drop-shadow(0 0 9px rgba(255, 116, 12, 0.9));
+  transform-origin: 50% 100%;
+  animation: balef-triad-sigil 720ms steps(9, end) forwards;
+}
+
+.battle-fx-balef-flow-gain {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-head-y, 18%);
+  width: clamp(35px, 15%, 53px);
+  aspect-ratio: 88 / 180;
+  opacity: 0;
+  background: url("../assets/characters/balef/effects/flow-fist.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 237, 122, 0.98))
+    drop-shadow(0 0 8px rgba(255, 109, 9, 0.9));
+  transform-origin: 50% 100%;
+  animation: balef-flow-fist-rise 700ms steps(8, end) forwards;
+}
+
+.battle-fx-value-balef-shatter-punch,
+.battle-fx-value-balef-drain-punch,
+.battle-fx-value-balef-spiral-punch {
+  top: calc(var(--fx-body-y, 50%) - 5%);
+  color: #ff9b31;
+  text-shadow:
+    0 2px 0 rgba(42, 14, 0, 0.98),
+    0 0 7px rgba(255, 239, 162, 0.98),
+    0 0 12px rgba(255, 105, 10, 0.9);
+}
+
+.battle-fx-value-balef-flow-gain {
+  color: #ffb13b;
+  text-shadow:
+    0 2px 0 rgba(42, 14, 0, 0.98),
+    0 0 8px rgba(255, 236, 146, 0.98),
+    0 0 12px rgba(255, 104, 8, 0.92);
+}
+
+.avatar-stage.is-fx-balef-shatter-punch .battle-sprite,
+.avatar-stage.is-fx-balef-shatter-punch svg,
+.avatar-stage.is-fx-balef-drain-punch .battle-sprite,
+.avatar-stage.is-fx-balef-drain-punch svg,
+.avatar-stage.is-fx-balef-spiral-punch .battle-sprite,
+.avatar-stage.is-fx-balef-spiral-punch svg {
+  animation: combatant-hit-shake 410ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes balef-common-fist-hit {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.42);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.16);
+  }
+  36% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  62% {
+    opacity: 0.94;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+@keyframes balef-shattering-cracks {
+  0%, 18% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.1);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.66);
+  }
+  54% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+  76% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+@keyframes balef-spiral-pierce {
+  0%, 16% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-36deg) scale(0.22);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(4deg) scale(0.72);
+  }
+  58% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(94deg) scale(1.04);
+  }
+  80% {
+    opacity: 0.92;
+    transform: translate(-50%, -50%) rotate(166deg) scale(0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(238deg) scale(0.54);
+  }
+}
+
+@keyframes balef-absorption-orb-flight {
+  0% {
+    left: var(--balef-orb-start-x);
+    top: var(--balef-orb-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+  12% {
+    opacity: 1;
+  }
+  48% {
+    left: var(--balef-orb-mid-x);
+    top: var(--balef-orb-mid-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  82% {
+    opacity: 0.96;
+  }
+  100% {
+    left: var(--balef-orb-end-x);
+    top: var(--balef-orb-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.24);
+  }
+}
+
+@keyframes balef-triad-sigil {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -96%) scale(0.28) rotate(-24deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -112%) scale(0.84) rotate(0);
+  }
+  48% {
+    opacity: 1;
+    transform: translate(-50%, -116%) scale(1.03) rotate(0);
+  }
+  72% {
+    opacity: 0.94;
+    transform: translate(-50%, -116%) scale(0.98) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -126%) scale(0.56) rotate(18deg);
+  }
+}
+
+@keyframes balef-flow-fist-rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -76%) scale(0.36);
+  }
+  22% {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -116%) scale(1.02);
+  }
+  76% {
+    opacity: 0.94;
+    transform: translate(-50%, -128%) scale(0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -150%) scale(0.62);
+  }
+}

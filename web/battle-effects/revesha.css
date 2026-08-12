@@ -1,5 +1,8 @@
 .battle-fx-insight-eye {
-  inset: -8% 20% 64%;
+  top: calc(var(--fx-head-y, 12%) - 30%);
+  right: 20%;
+  bottom: calc(86% - var(--fx-head-y, 12%));
+  left: 20%;
   background: url("../assets/characters/revesha/effects/insight-eye.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -16,7 +19,10 @@
 
 .battle-fx-reversed-blade-slash {
   --revesha-reversed-slash-flip: 1;
-  inset: -3%;
+  top: calc(var(--fx-body-y, 50%) - 53%);
+  right: -3%;
+  bottom: calc(53% - var(--fx-body-y, 50%));
+  left: -3%;
   background: url("../assets/characters/revesha/effects/reversed-blade-slash.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -34,7 +40,10 @@
 .battle-fx-broken-mirror-barrier {
   --revesha-mirror-flip: 1;
   --revesha-mirror-shift: 18%;
-  inset: -16% -2% -2%;
+  top: calc(var(--fx-body-y, 50%) - 66%);
+  right: -2%;
+  bottom: calc(48% - var(--fx-body-y, 50%));
+  left: -2%;
   background: url("../assets/characters/revesha/effects/broken-mirror-barrier.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter:
@@ -90,7 +99,10 @@
 }
 
 .battle-fx-faded-orb-impact {
-  inset: -4%;
+  top: calc(var(--fx-body-y, 50%) - 54%);
+  right: -4%;
+  bottom: calc(54% - var(--fx-body-y, 50%));
+  left: -4%;
   background: url("../assets/characters/revesha/effects/faded-orb-impact.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -107,7 +119,10 @@
 }
 
 .battle-fx-foreseen-end-cross {
-  inset: -42% -18% 5%;
+  top: calc(var(--fx-ground-y, 96%) - 138%);
+  right: -18%;
+  bottom: calc(94% - var(--fx-ground-y, 96%));
+  left: -18%;
   background: url("../assets/characters/revesha/effects/foreseen-end-cross.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;

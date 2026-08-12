@@ -1,0 +1,315 @@
+[
+  {
+    "id": "mirror_breaker",
+    "category": "adventure",
+    "title": "가장 강한 적",
+    "description": "Adventure 12 STAGE를 처음 클리어",
+    "metric": "mirror_clear",
+    "target": 1
+  },
+  {
+    "id": "first_adventure_clear",
+    "category": "adventure",
+    "title": "무채색의 종언",
+    "description": "Adventure 20 STAGE를 처음 클리어",
+    "metric": "adventure_clear",
+    "target": 1
+  },
+  {
+    "id": "single_attack_100",
+    "category": "adventure",
+    "title": "성벽을 가르는 일격",
+    "description": "Adventure 전투에서 한 번의 공격 피해로 100 이상 기록",
+    "metric": "best_single_attack_damage",
+    "target": 100
+  },
+  {
+    "id": "single_attack_200",
+    "category": "adventure",
+    "title": "마왕군을 꿰뚫은 일격",
+    "description": "Adventure 전투에서 한 번의 공격 피해로 200 이상 기록",
+    "metric": "best_single_attack_damage",
+    "target": 200
+  },
+  {
+    "id": "single_attack_300",
+    "category": "adventure",
+    "title": "한계를 지운 일격",
+    "description": "Adventure 전투에서 한 번의 공격 피해로 300 이상 기록",
+    "metric": "best_single_attack_damage",
+    "target": 300
+  },
+  {
+    "id": "single_fixed_50",
+    "category": "adventure",
+    "title": "갑옷 밖의 상처",
+    "description": "Adventure 전투에서 한 번의 고정 피해로 50 이상 기록",
+    "metric": "best_single_fixed_damage",
+    "target": 50
+  },
+  {
+    "id": "single_fixed_100",
+    "category": "adventure",
+    "title": "피할 수 없는 파멸",
+    "description": "Adventure 전투에서 한 번의 고정 피해로 100 이상 기록",
+    "metric": "best_single_fixed_damage",
+    "target": 100
+  },
+  {
+    "id": "low_hp_clear",
+    "category": "adventure",
+    "title": "마지막 숨으로",
+    "description": "남은 HP 10 이하로 Adventure 20 STAGE 클리어",
+    "metric": "low_hp_clear",
+    "target": 1
+  },
+  {
+    "id": "high_hp_clear",
+    "category": "adventure",
+    "title": "흠집 없는 귀환",
+    "description": "남은 HP가 최대 HP의 90% 이상인 상태로 Adventure 20 STAGE 클리어",
+    "metric": "best_final_hp_percent",
+    "target": 90
+  },
+  {
+    "id": "relicless_clear",
+    "category": "adventure",
+    "title": "빈손의 승리",
+    "description": "유물을 한 번도 획득하지 않고 Adventure 20 STAGE 클리어",
+    "metric": "relicless_clear",
+    "target": 1
+  },
+  {
+    "id": "ten_relic_clear",
+    "category": "adventure",
+    "title": "탐욕의 무게",
+    "description": "유물 10개 이상을 보유한 상태로 Adventure 20 STAGE 클리어",
+    "metric": "most_relics_at_clear",
+    "target": 10
+  },
+  {
+    "id": "clear_toxiche",
+    "category": "adventure",
+    "title": "망설임을 삼킨 독",
+    "description": "톡시케로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "toxiche",
+    "target": 1
+  },
+  {
+    "id": "clear_cryne",
+    "category": "adventure",
+    "title": "고통 끝의 속죄",
+    "description": "크라인으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "cryne",
+    "target": 1
+  },
+  {
+    "id": "clear_plote",
+    "category": "adventure",
+    "title": "잿더미에 핀 홍련",
+    "description": "플로테로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "plote",
+    "target": 1
+  },
+  {
+    "id": "clear_ashend",
+    "category": "adventure",
+    "title": "재로 쓴 반역",
+    "description": "아셴드로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "ashend",
+    "target": 1
+  },
+  {
+    "id": "clear_karossy",
+    "category": "adventure",
+    "title": "내일은 맑음",
+    "description": "카롯시로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "karossy",
+    "target": 1
+  },
+  {
+    "id": "clear_nihfle",
+    "category": "adventure",
+    "title": "만악을 꿰뚫는 빙창",
+    "description": "니흐플로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "nihfle",
+    "target": 1
+  },
+  {
+    "id": "clear_serpen",
+    "category": "adventure",
+    "title": "달을 되찾은 춤",
+    "description": "세르펜으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "serpen",
+    "target": 1
+  },
+  {
+    "id": "clear_melague",
+    "category": "adventure",
+    "title": "저주보다 질긴 생",
+    "description": "멜래그로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "melague",
+    "target": 1
+  },
+  {
+    "id": "clear_balef",
+    "category": "adventure",
+    "title": "삼문을 잇는 주먹",
+    "description": "발레프로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "balef",
+    "target": 1
+  },
+  {
+    "id": "clear_revesha",
+    "category": "adventure",
+    "title": "필연을 의심한 신앙",
+    "description": "레베샤로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "revesha",
+    "target": 1
+  },
+  {
+    "id": "clear_gandrick",
+    "category": "adventure",
+    "title": "최후의 탄환은 누구의 것인가",
+    "description": "간드릭으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "gandrick",
+    "target": 1
+  },
+  {
+    "id": "clear_charinel",
+    "category": "adventure",
+    "title": "인색의 광휘",
+    "description": "챠리넬로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "charinel",
+    "target": 1
+  },
+  {
+    "id": "clear_dethus",
+    "category": "adventure",
+    "title": "고갈 뒤의 새 흐름",
+    "description": "데서스로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "dethus",
+    "target": 1
+  },
+  {
+    "id": "clear_zeroven",
+    "category": "adventure",
+    "title": "원혼이 잠든 밤",
+    "description": "제로벤으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "zeroven",
+    "target": 1
+  },
+  {
+    "id": "clear_neroko",
+    "category": "adventure",
+    "title": "아홉 번째 행운",
+    "description": "네로코로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "neroko",
+    "target": 1
+  },
+  {
+    "id": "clear_happyrin",
+    "category": "adventure",
+    "title": "마왕 해부 보고서",
+    "description": "하피린으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "happyrin",
+    "target": 1
+  },
+  {
+    "id": "clear_librang",
+    "category": "adventure",
+    "title": "대의의 집행자",
+    "description": "리브랑으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "librang",
+    "target": 1
+  },
+  {
+    "id": "clear_dracle",
+    "category": "adventure",
+    "title": "용이 돌아갈 하늘",
+    "description": "드라클로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "dracle",
+    "target": 1
+  },
+  {
+    "id": "clear_saqua",
+    "category": "adventure",
+    "title": "운명으로 돌아온 화살",
+    "description": "사쿠아로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "saqua",
+    "target": 1
+  },
+  {
+    "id": "clear_queenas",
+    "category": "adventure",
+    "title": "팔레티아의 유일한 여왕",
+    "description": "퀴나스로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "queenas",
+    "target": 1
+  },
+  {
+    "id": "clear_jitrom",
+    "category": "adventure",
+    "title": "강철 심장의 해답",
+    "description": "지트롬으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "jitrom",
+    "target": 1
+  },
+  {
+    "id": "clear_fimit",
+    "category": "adventure",
+    "title": "진짜보다 화려한 모조",
+    "description": "파이밋으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "fimit",
+    "target": 1
+  },
+  {
+    "id": "clear_emento",
+    "category": "adventure",
+    "title": "끝내 이루어진 꿈",
+    "description": "에멘토로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "emento",
+    "target": 1
+  },
+  {
+    "id": "clear_necoulomb",
+    "category": "adventure",
+    "title": "빚으로 산 내일",
+    "description": "네쿨롱으로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "necoulomb",
+    "target": 1
+  },
+  {
+    "id": "clear_xerox",
+    "category": "adventure",
+    "title": "필연 밖의 궤도",
+    "description": "제록스로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "xerox",
+    "target": 1
+  }
+]

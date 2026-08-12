@@ -18,6 +18,8 @@ function modifyAccuracyStatus(_battle, choice, _target, accuracy) {
 }
 
 module.exports = {
+  hiddenCounters: ["재로부터의 엄습", "재가 되어 회피"],
+
   extraStateParts(_battle, fighter) {
     const parts = [];
     if (Number(fighter.counters["재로부터의 엄습"] || 0) > 0) parts.push("다음 공격 피해 x1.5");

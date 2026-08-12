@@ -1,6 +1,9 @@
 .battle-fx-life-flame-extinguish,
 .battle-fx-life-flame-ignite {
-  inset: -24% 22% 46%;
+  top: calc(var(--fx-head-y, 12%) - 46%);
+  right: 22%;
+  bottom: calc(68% - var(--fx-head-y, 12%));
+  left: 22%;
   background: url("../assets/characters/neroko/effects/life-flame.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -17,7 +20,10 @@
 }
 
 .battle-fx-cat-grudge {
-  inset: 13% 3%;
+  top: calc(var(--fx-body-y, 50%) - 37%);
+  right: 3%;
+  bottom: calc(63% - var(--fx-body-y, 50%));
+  left: 3%;
   background: url("../assets/characters/neroko/effects/cat-grudge.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -26,7 +32,10 @@
 }
 
 .battle-fx-desperate-heart {
-  inset: -28% 14% 41%;
+  top: calc(var(--fx-head-y, 12%) - 50%);
+  right: 14%;
+  bottom: calc(63% - var(--fx-head-y, 12%));
+  left: 14%;
   background: url("../assets/characters/neroko/effects/desperate-heart.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -36,7 +45,10 @@
 }
 
 .battle-fx-companion-smoke {
-  inset: -10% -4% 10%;
+  top: calc(var(--fx-ground-y, 96%) - 106%);
+  right: -4%;
+  bottom: calc(98% - var(--fx-ground-y, 96%));
+  left: -4%;
   background: url("../assets/characters/neroko/effects/companion-smoke.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;

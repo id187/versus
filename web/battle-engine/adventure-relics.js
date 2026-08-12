@@ -68,6 +68,11 @@ function grantAdventureRelic(adventure, fighter, relic) {
   }
   const owned = clone({ ...relic, destroyed: false });
   adventure.playerRelics = [...current.filter((item) => item?.id !== relic.id), owned];
+  adventure.achievementStats = adventure.achievementStats || {};
+  adventure.achievementStats.relicsAcquired = Math.max(
+    0,
+    Math.trunc(Number(adventure.achievementStats.relicsAcquired || 0)),
+  ) + 1;
   if (fighter) fighter.adventureRelics = clone(adventure.playerRelics);
   return owned;
 }

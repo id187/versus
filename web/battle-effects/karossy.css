@@ -25,7 +25,10 @@
 
 .battle-fx-cloudy-fog {
   --karossy-fog-flip: 1;
-  inset: 10% -4% 8%;
+  top: calc(var(--fx-body-y, 50%) - 40%);
+  right: -4%;
+  bottom: calc(58% - var(--fx-body-y, 50%));
+  left: -4%;
   background: url("../assets/characters/karossy/effects/cloudy-fog.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -40,7 +43,10 @@
 
 .battle-fx-sunshine {
   --karossy-sunshine-flip: 1;
-  inset: -34% -14% -12%;
+  top: calc(var(--fx-head-y, 12%) - 56%);
+  right: -14%;
+  bottom: calc(10% - var(--fx-head-y, 12%));
+  left: -14%;
   background: url("../assets/characters/karossy/effects/sunshine.png") center top / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -76,7 +82,10 @@
 .battle-fx-weather-bomb-cloudy-impact,
 .battle-fx-weather-bomb-sunny-impact {
   --karossy-impact-flip: 1;
-  inset: -8%;
+  top: calc(var(--fx-body-y, 50%) - 58%);
+  right: -8%;
+  bottom: calc(58% - var(--fx-body-y, 50%));
+  left: -8%;
   image-rendering: pixelated;
   transform-origin: 50% 50%;
   animation: karossy-weather-bomb-impact 700ms steps(10, end) forwards;

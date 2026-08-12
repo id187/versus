@@ -1,0 +1,163 @@
+.battle-fx-monochrem-white-collapse {
+  --monochrem-white-direction: 1;
+  top: calc(var(--fx-body-y, 50%) - 51%);
+  right: -2%;
+  bottom: calc(51% - var(--fx-body-y, 50%));
+  left: -2%;
+  background: url("../assets/monsters/demon_king_monochrem/effects/white-collapse.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter: grayscale(1) drop-shadow(0 0 5px rgba(255, 255, 255, 0.74));
+  transform-origin: 50% 50%;
+  animation: monochrem-white-collapse 760ms steps(8, end) forwards;
+}
+
+#playerAvatar .battle-fx-monochrem-white-collapse {
+  --monochrem-white-direction: -1;
+}
+
+.battle-fx-monochrem-black-reversal {
+  top: calc(var(--fx-body-y, 50%) - 52%);
+  right: -3%;
+  bottom: calc(52% - var(--fx-body-y, 50%));
+  left: -3%;
+  background: url("../assets/monsters/demon_king_monochrem/effects/black-reversal.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter: grayscale(1) drop-shadow(0 0 3px rgba(230, 230, 230, 0.42));
+  transform-origin: 50% 50%;
+  animation: monochrem-black-reversal 760ms steps(10, end) forwards;
+}
+
+#aiAvatar .battle-fx-monochrem-black-reversal {
+  scale: -1 1;
+}
+
+.battle-fx-monochrem-achromatic-silence {
+  top: calc(var(--fx-body-y, 50%) - 40%);
+  right: 10%;
+  bottom: calc(60% - var(--fx-body-y, 50%));
+  left: 10%;
+  z-index: 8;
+  background: url("../assets/monsters/demon_king_monochrem/effects/achromatic-silence.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter: grayscale(1) drop-shadow(0 0 4px rgba(240, 240, 240, 0.54));
+  transform-origin: 50% 50%;
+  animation: monochrem-achromatic-silence 760ms steps(12, end) forwards;
+}
+
+#playerAvatar .battle-fx-monochrem-achromatic-silence {
+  scale: -1 1;
+}
+
+.battle-fx-monochrem-achromatic-silence-impact,
+.battle-fx-monochrem-colors-end,
+.battle-fx-monochrem-colors-end-impact {
+  opacity: 0;
+}
+
+.battle-fx-monochrem-colors-end-king,
+.battle-fx-monochrem-colors-end-wave {
+  --monochrem-colors-end-direction: 1;
+  position: absolute;
+  pointer-events: none;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  transform-origin: 50% 50%;
+}
+
+.battle-fx-monochrem-colors-end-king {
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  width: clamp(94px, 13vw, 154px);
+  aspect-ratio: 1;
+  background: url("../assets/monsters/demon_king_monochrem/effects/colors-end-king.png") center / contain no-repeat;
+  filter: grayscale(1) drop-shadow(0 9px 5px rgba(0, 0, 0, 0.78));
+  animation: monochrem-colors-end-king 1760ms cubic-bezier(0.18, 0.82, 0.28, 1) forwards;
+}
+
+.battle-fx-monochrem-colors-end-wave {
+  left: var(--monochrem-colors-end-center-x, 50%);
+  top: var(--monochrem-colors-end-center-y, 50%);
+  z-index: 50;
+  width: clamp(240px, 46vw, 560px);
+  aspect-ratio: 1;
+  background: url("../assets/monsters/demon_king_monochrem/effects/colors-end-wave.png") center / contain no-repeat;
+  filter: grayscale(1) drop-shadow(0 0 4px rgba(220, 220, 220, 0.5));
+  animation: monochrem-colors-end-wave 1760ms ease-out forwards;
+}
+
+.battle-fx-monochrome-layer[data-source-side="ai"] > .battle-fx-monochrem-colors-end-king,
+.battle-fx-monochrem-colors-end-wave[data-source-side="ai"] {
+  --monochrem-colors-end-direction: -1;
+}
+
+.battle-screen.is-monochrem-colors-end {
+  animation: monochrem-colors-end-screen 1760ms steps(18, end) both;
+}
+
+.battle-fx-value-monochrem-white-collapse,
+.battle-fx-value-monochrem-achromatic-silence-impact,
+.battle-fx-value-monochrem-colors-end-impact {
+  color: #f4f4f4;
+  text-shadow: 0 2px 0 #0b0b0b, 0 0 7px rgba(255, 255, 255, 0.78);
+}
+
+.avatar-stage.is-fx-monochrem-white-collapse .battle-sprite,
+.avatar-stage.is-fx-monochrem-white-collapse svg,
+.avatar-stage.is-fx-monochrem-achromatic-silence-impact .battle-sprite,
+.avatar-stage.is-fx-monochrem-achromatic-silence-impact svg {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+.avatar-stage.is-fx-monochrem-colors-end-impact .battle-sprite,
+.avatar-stage.is-fx-monochrem-colors-end-impact svg {
+  animation: combatant-hit-shake 620ms cubic-bezier(0.12, 0.98, 0.2, 1);
+}
+
+@keyframes monochrem-white-collapse {
+  0% { opacity: 0; transform: translateX(calc(-12% * var(--monochrem-white-direction))) scaleX(var(--monochrem-white-direction)) scale(0.74); }
+  13% { opacity: 1; }
+  48% { opacity: 1; transform: translateX(0) scaleX(var(--monochrem-white-direction)) scale(1.04); }
+  100% { opacity: 0; transform: translateX(calc(12% * var(--monochrem-white-direction))) scaleX(var(--monochrem-white-direction)) scale(1.1); }
+}
+
+@keyframes monochrem-black-reversal {
+  0% { opacity: 0; transform: scale(0.38); }
+  22% { opacity: 1; transform: scale(1.06); }
+  44%, 70% { opacity: 0.94; transform: scale(0.98); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+
+@keyframes monochrem-achromatic-silence {
+  0% { opacity: 0; transform: rotate(18deg) scale(0.24); }
+  18% { opacity: 0.9; }
+  64% { opacity: 1; transform: rotate(-112deg) scale(0.86); }
+  82% { opacity: 0.94; transform: rotate(-148deg) scale(1.02); }
+  100% { opacity: 0; transform: rotate(-176deg) scale(1.18); }
+}
+
+@keyframes monochrem-colors-end-king {
+  0% { top: clamp(55px, calc(6.5vw + 8px), 85px); opacity: 0; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(0.82); }
+  8% { top: clamp(55px, calc(6.5vw + 8px), 85px); opacity: 1; }
+  32% { top: 50%; opacity: 1; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(1.12, 0.88); }
+  38%, 76% { top: 50%; opacity: 1; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(1); }
+  90% { top: 50%; opacity: 0.78; transform: translate(-50%, -46%) scaleX(var(--monochrem-colors-end-direction)) scale(0.74); }
+  100% { opacity: 0; transform: translate(-50%, -42%) scaleX(var(--monochrem-colors-end-direction)) scale(0.16); }
+}
+
+@keyframes monochrem-colors-end-wave {
+  0%, 31% { opacity: 0; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(0.04); }
+  34% { opacity: 0.92; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(0.18); }
+  58% { opacity: 1; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(2.05); }
+  74% { opacity: 0.84; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(2.12); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scaleX(var(--monochrem-colors-end-direction)) scale(0.08); }
+}
+
+@keyframes monochrem-colors-end-screen {
+  0%, 32% { filter: grayscale(0); }
+  58%, 76% { filter: grayscale(1); }
+  100% { filter: grayscale(0); }
+}

@@ -106,13 +106,15 @@
       const arenaRect = arena.getBoundingClientRect();
       const sourceRect = sourceStage.getBoundingClientRect();
       const targetRect = targetStage.getBoundingClientRect();
+      const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
+      const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
       const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
       const targetCenterX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
       const horizontalDirection = targetCenterX >= sourceCenterX ? 1 : -1;
       const startX = sourceCenterX + horizontalDirection * sourceRect.width * 0.23;
-      const startY = sourceRect.top + sourceRect.height * 0.5 - arenaRect.top;
+      const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
       const endX = targetCenterX;
-      const endY = targetRect.top + targetRect.height * 0.52 - arenaRect.top;
+      const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
       const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * horizontalDirection;
 
       const orb = document.createElement("span");

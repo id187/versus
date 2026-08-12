@@ -1,5 +1,8 @@
 .battle-fx-kain-shadow-ambush {
-  inset: 10%;
+  top: calc(var(--fx-body-y, 50%) - 40%);
+  right: 10%;
+  bottom: calc(60% - var(--fx-body-y, 50%));
+  left: 10%;
   background: url("../assets/monsters/demon_scout_kain/effects/shadow-ambush.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1) drop-shadow(0 0 3px rgba(220, 220, 220, 0.42));
@@ -7,8 +10,11 @@
 }
 
 .battle-fx-kain-shadow-stealth {
-  inset: 20% 12% 2%;
-  background: url("../assets/monsters/demon_scout_kain/effects/shadow-stealth.png") center bottom / contain no-repeat;
+  top: calc(var(--fx-ground-y, 96%) - 78%);
+  right: -6%;
+  bottom: calc(77% - var(--fx-ground-y, 96%));
+  left: -6%;
+  background: url("../assets/monsters/demon_scout_kain/effects/shadow-stealth.png") center bottom / 100% 100% no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);
   animation: kain-shadow-stealth 520ms steps(6, end) forwards;

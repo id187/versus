@@ -1,5 +1,8 @@
 .battle-fx-precise-shot-reticle {
-  inset: 9%;
+  top: calc(var(--fx-body-y, 50%) - 41%);
+  right: 9%;
+  bottom: calc(59% - var(--fx-body-y, 50%));
+  left: 9%;
   background: url("../assets/characters/gandrick/effects/precise-shot-reticle.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -11,7 +14,10 @@
 }
 
 .battle-fx-precise-shot-burst {
-  inset: 13%;
+  top: calc(var(--fx-body-y, 50%) - 37%);
+  right: 13%;
+  bottom: calc(63% - var(--fx-body-y, 50%));
+  left: 13%;
   background: url("../assets/characters/gandrick/effects/precise-shot-burst.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -28,7 +34,7 @@
 }
 
 .battle-fx-value-precise-shot-burst {
-  top: 45%;
+  top: calc(var(--fx-body-y, 50%) - 5%);
   color: #fff3c5;
   text-shadow:
     0 2px 0 rgba(20, 13, 2, 0.98),
@@ -42,7 +48,10 @@
 }
 
 .battle-fx-reload-cylinder {
-  inset: 8%;
+  top: calc(var(--fx-body-y, 50%) - 42%);
+  right: 8%;
+  bottom: calc(58% - var(--fx-body-y, 50%));
+  left: 8%;
   background: url("../assets/characters/gandrick/effects/reload-cylinder.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: screen;
@@ -86,7 +95,7 @@
 }
 
 .battle-fx-value-magic-marksman-impact {
-  top: 45%;
+  top: calc(var(--fx-body-y, 50%) - 5%);
   color: #fff2a6;
   text-shadow:
     0 2px 0 rgba(24, 14, 0, 0.98),
@@ -124,7 +133,7 @@
 }
 
 .battle-fx-value-grand-finale-impact {
-  top: 45%;
+  top: calc(var(--fx-body-y, 50%) - 5%);
   color: #fff5b4;
   text-shadow:
     0 2px 0 rgba(26, 16, 2, 0.98),

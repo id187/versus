@@ -41,6 +41,18 @@ const { normalizeAdventureSave } = require("../adventure-save");
 const FIREBASE_ROOMS_PATH = "versusRoomsJs";
 const PVP_DEFAULT_PERSONALITY_ID = "R";
 const PVP_MAX_TURNS = 200;
+const TUTORIAL_PLAYER_ID = "plote";
+const TUTORIAL_OPPONENT_ID = "demon_warrior_luke";
+const TUTORIAL_PLAYER_ACTION_PATTERN = Object.freeze(["normal_attack", "defense", "meditation", "plote:0"]);
+const TUTORIAL_AI_ACTION_PATTERN = Object.freeze(["meditation", "normal_attack", "defense", "meditation"]);
+
+function actionMatchesPattern(action, key) {
+  if (!action || !key) return false;
+  const skillMatch = String(key).match(/^([^:]+):(\d+)$/);
+  return skillMatch
+    ? action.isSkill(skillMatch[1], Number(skillMatch[2]))
+    : action.isCommonAction(key);
+}
 
 class FirebaseClient {
   constructor(config) {
@@ -77,16 +89,18 @@ class FirebaseClient {
 }
 
 class MobileGameStore {
-  constructor({ characters, adventureMonsters, adventureEvents = [], adventureRelics = [], adventureDialogue = {}, inscriptions, firebaseConfig = null }) {
+  constructor({ characters, adventureMonsters, adventureEvents = [], adventureRelics = [], adventureDialogue = {}, adventureAchievements = [], inscriptions, firebaseConfig = null }) {
     this.characters = characters;
     this.adventureMonsters = adventureMonsters;
     this.adventureEvents = adventureEvents;
     this.adventureRelics = adventureRelics;
     this.adventureDialogue = adventureDialogue;
+    this.adventureAchievements = adventureAchievements;
     this.inscriptions = normalizeInscriptions(inscriptions);
     this.aiData = { personalities: AI_PERSONALITIES };
     this.battle = null;
     this.adventureState = null;
+    this.tutorialState = null;
     this.pendingAiAction = null;
     this.firebaseHostRooms = new Map();
     this.firebase = firebaseConfig?.databaseURL ? new FirebaseClient(firebaseConfig) : null;
@@ -99,13 +113,20 @@ class MobileGameStore {
       personalities: AI_PERSONALITIES,
       ai: this.aiData,
       inscriptions: this.inscriptions,
+      adventureAchievements: this.adventureAchievements,
       defaultInscriptionId: "gray",
       randomInscriptionId: "random",
+      tutorial: {
+        playerId: TUTORIAL_PLAYER_ID,
+        opponent: { ...this.adventureMonsters.find((combatant) => combatant.id === TUTORIAL_OPPONENT_ID), assetGroup: "monsters" },
+        steps: [...TUTORIAL_PLAYER_ACTION_PATTERN],
+      },
     };
   }
 
   newBattle(payload) {
     this.adventureState = null;
+    this.tutorialState = null;
     const rng = new Mulberry32(payload.seed ?? null);
     const playerIndex = resolveCharacterIndex(this.characters, payload.playerIndex, rng);
     const aiIndex = resolveCharacterIndex(this.characters, payload.aiIndex, rng);
@@ -138,7 +159,42 @@ class MobileGameStore {
     return state;
   }
 
+  newTutorialBattle(payload) {
+    this.adventureState = null;
+    const rng = new Mulberry32(payload.seed ?? "versus-guided-tutorial");
+    const combatants = [...this.characters, ...this.adventureMonsters];
+    const playerIndex = combatants.findIndex((combatant) => combatant.id === TUTORIAL_PLAYER_ID);
+    const aiIndex = combatants.findIndex((combatant) => combatant.id === TUTORIAL_OPPONENT_ID);
+    if (playerIndex < 0 || aiIndex < 0) throw new Error("튜토리얼 전투 대상을 찾을 수 없습니다.");
+    const playerInscriptionId = resolveInscriptionId(this.inscriptions, payload.playerInscriptionId, rng);
+    this.tutorialState = { step: 1, totalSteps: TUTORIAL_PLAYER_ACTION_PATTERN.length, completed: false };
+    this.battle = new Battle({
+      characters: combatants,
+      inscriptions: this.inscriptions,
+      playerIndex,
+      aiIndex,
+      personalityId: "R",
+      rng,
+      playerInscriptionId,
+      aiInscriptionId: "gray",
+      maxTurns: payload.maxTurns || 200,
+    });
+    this.battle.startTurn();
+    this.lockAiAction();
+    const state = this.withTutorialState(stateForBattle(this.battle));
+    state.ok = true;
+    state.aiChoiceLocked = Boolean(this.pendingAiAction && !this.battle.gameOver);
+    state.log = [
+      `튜토리얼 시작: ${this.battle.player.name} vs ${this.battle.ai.name}`,
+      `${this.battle.player.name} 각인: ${this.battle.player.inscriptionName}`,
+      `${this.battle.ai.name} 각인: ${this.battle.ai.inscriptionName}`,
+      "안내된 행동을 선택해 기본 전투 흐름을 익혀 보세요.",
+    ];
+    return state;
+  }
+
   newAdventure(payload) {
+    this.tutorialState = null;
     const encounter = createAdventureBattle({
       characters: this.characters,
       monsters: this.adventureMonsters,
@@ -197,9 +253,21 @@ class MobileGameStore {
     const action = battle.findActionByInput(battle.player, payload.action);
     if (!action) throw new Error("Unknown action.");
     if (!battle.isLegalChoice(battle.player, action)) throw new Error("That action is not currently available.");
+    if (this.tutorialState && !this.tutorialState.completed) {
+      const expectedKey = TUTORIAL_PLAYER_ACTION_PATTERN[this.tutorialState.step - 1];
+      if (!actionMatchesPattern(action, expectedKey)) throw new Error("현재 튜토리얼에서 안내한 행동을 선택해 주세요.");
+    }
     const aiAction = this.consumeAiAction();
     battle.logs = [];
     battle.resolveTurn(battle.makeChoice(battle.player, action), battle.makeChoice(battle.ai, aiAction));
+    if (this.tutorialState && !this.tutorialState.completed) {
+      this.tutorialState.step += 1;
+      if (this.tutorialState.step > TUTORIAL_PLAYER_ACTION_PATTERN.length) {
+        this.tutorialState.step = TUTORIAL_PLAYER_ACTION_PATTERN.length;
+        this.tutorialState.completed = true;
+        battle.logs.push("기본 훈련을 모두 마쳤다. 이제 모든 행동을 자유롭게 선택할 수 있다.");
+      }
+    }
     if (!battle.gameOver) {
       battle.turn += 1;
       battle.startTurn();
@@ -239,7 +307,7 @@ class MobileGameStore {
         }
       }
     }
-    const state = stateForBattle(battle);
+    const state = this.withTutorialState(stateForBattle(battle));
     state.ok = true;
     if (this.adventureState) state.adventure = { ...this.adventureState };
     state.aiChoiceLocked = Boolean(this.pendingAiAction && !battle.gameOver);
@@ -504,7 +572,7 @@ class MobileGameStore {
 
   state() {
     if (!this.battle) return { started: false };
-    const state = stateForBattle(this.battle);
+    const state = this.withTutorialState(stateForBattle(this.battle));
     if (this.adventureState) state.adventure = { ...this.adventureState };
     state.aiChoiceLocked = Boolean(this.pendingAiAction && !this.battle.gameOver);
     return state;
@@ -512,7 +580,35 @@ class MobileGameStore {
 
   lockAiAction() {
     const battle = this.requireBattle();
-    this.pendingAiAction = battle.gameOver ? null : battle.selectAiAction(battle.ai, battle.player, battle.personality);
+    if (battle.gameOver) {
+      this.pendingAiAction = null;
+      return;
+    }
+    if (this.tutorialState && !this.tutorialState.completed) {
+      const expectedKey = TUTORIAL_AI_ACTION_PATTERN[this.tutorialState.step - 1];
+      const actions = battle.availableActions(battle.ai);
+      this.pendingAiAction = actions.find((action) => actionMatchesPattern(action, expectedKey) && battle.isLegalChoice(battle.ai, action))
+        || actions.find((action) => battle.isLegalChoice(battle.ai, action))
+        || null;
+      return;
+    }
+    this.pendingAiAction = battle.selectAiAction(battle.ai, battle.player, battle.personality);
+  }
+
+  withTutorialState(state) {
+    if (!this.tutorialState) return state;
+    const expectedActionKey = this.tutorialState.completed
+      ? null
+      : TUTORIAL_PLAYER_ACTION_PATTERN[this.tutorialState.step - 1];
+    const expectedAction = expectedActionKey
+      ? this.battle.availableActions(this.battle.player).find((action) => actionMatchesPattern(action, expectedActionKey))
+      : null;
+    state.tutorial = {
+      ...this.tutorialState,
+      expectedActionKey,
+      expectedActionNumber: expectedAction?.number ?? null,
+    };
+    return state;
   }
 
   consumeAiAction() {

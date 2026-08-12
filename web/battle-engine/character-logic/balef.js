@@ -74,7 +74,7 @@ module.exports = {
 
   onActionStart(battle, choice) {
     const actor = choice.actor;
-    if (choice.action.isActive && choice.action.isAttack && choice.prevAttackActive && choice.prevAttackActive !== choice.action.key) {
+    if (!choice.copiedFrom && choice.action.isActive && choice.action.isAttack && choice.prevAttackActive && choice.prevAttackActive !== choice.action.key) {
       const before = Number(actor.counters[FLOW] || 0);
       actor.counters[FLOW] = before + 1;
       battle.logs.push(`${actor.name}의 ${FLOW} ${before} -> ${actor.counters[FLOW]}`);
@@ -149,7 +149,9 @@ module.exports = {
       battle.logs.push("복제할 공격 액티브 기록이 부족하다.");
       return true;
     }
-    actor.counters[FLOW] = Number(actor.counters[FLOW] || 0) + 1;
+    const beforeFlow = Number(actor.counters[FLOW] || 0);
+    actor.counters[FLOW] = beforeFlow + 1;
+    battle.logs.push(`${actor.name}의 ${FLOW} ${beforeFlow} -> ${actor.counters[FLOW]}`);
     const first = selected[selected.length - 2];
     const second = selected[selected.length - 1];
     const original = battle.findActionByInput(actor, first);

@@ -27,6 +27,8 @@ function modifyAccuracyActorAfterTarget(_battle, choice, _target, accuracy) {
 }
 
 module.exports = {
+  hiddenCounters: ["탄환형태"],
+
   initUniqueState(fighter, uniqueNames) {
     if (uniqueNames.has("탄환")) {
       fighter.counters["탄환"] = 6;
@@ -37,6 +39,12 @@ module.exports = {
 
   extraStateParts(_battle, fighter) {
     return fighter.counters["탄환형태"] ? [`${fighter.counters["탄환형태"]} 형태`] : [];
+  },
+
+  battleSpriteVariant(_battle, fighter) {
+    if (fighter.counters["탄환형태"] === "철의 탄환") return "iron-bullet";
+    if (fighter.counters["탄환형태"] === "마의 탄환") return "demonic-bullet";
+    return null;
   },
 
   counterStateText(_fighter, name, value) {

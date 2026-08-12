@@ -1,0 +1,107 @@
+.battle-fx-eveque-white-revelation,
+.battle-fx-eveque-black-condemnation {
+  top: calc(var(--fx-body-y, 50%) - 48%);
+  right: -4%;
+  bottom: calc(52% - var(--fx-body-y, 50%));
+  left: -4%;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+}
+
+.battle-fx-eveque-white-revelation {
+  background: url("../assets/monsters/demon_bishop_eveque/effects/white-revelation-slash.png") center / contain no-repeat;
+  filter: grayscale(1) drop-shadow(0 0 4px rgba(255, 255, 255, 0.82));
+  animation: eveque-white-revelation 480ms steps(7, end) forwards;
+}
+
+.battle-fx-eveque-black-condemnation {
+  background: url("../assets/monsters/demon_bishop_eveque/effects/black-condemnation-slash.png") center / contain no-repeat;
+  filter: grayscale(1) drop-shadow(0 0 3px rgba(225, 225, 225, 0.68));
+  animation: eveque-black-condemnation 560ms steps(8, end) forwards;
+}
+
+#playerAvatar .battle-fx-eveque-white-revelation,
+#playerAvatar .battle-fx-eveque-black-condemnation {
+  scale: -1 1;
+}
+
+.battle-fx-eveque-gray-sanctuary-marker {
+  --eveque-sanctuary-direction: 1;
+  position: absolute;
+  z-index: 5;
+  top: calc(var(--fx-head-y, 12%) - 18%);
+  left: 50%;
+  width: 80%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: url("../assets/monsters/demon_bishop_eveque/effects/gray-sanctuary.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter: grayscale(1) drop-shadow(0 0 5px rgba(248, 248, 248, 0.66));
+  transform-origin: 50% 38%;
+  animation: eveque-sanctuary-rise 620ms steps(8, end) forwards;
+}
+
+#aiAvatar .battle-fx-eveque-gray-sanctuary-marker {
+  --eveque-sanctuary-direction: -1;
+}
+
+.battle-fx-eveque-gray-sanctuary-marker.is-breaking {
+  animation: eveque-sanctuary-break 500ms steps(7, end) forwards;
+}
+
+.battle-fx-eveque-gray-sanctuary-marker.is-healing {
+  animation: eveque-sanctuary-heal 700ms steps(9, end) forwards;
+}
+
+.battle-fx-value-eveque-white-revelation,
+.battle-fx-value-eveque-black-condemnation {
+  color: #f4f4f4;
+  text-shadow: 0 2px 0 #111, 0 0 7px rgba(255, 255, 255, 0.78);
+  animation: fx-damage-drop 860ms ease-in forwards;
+}
+
+.avatar-stage.is-fx-eveque-white-revelation .battle-sprite,
+.avatar-stage.is-fx-eveque-white-revelation svg {
+  animation: combatant-hit-shake 340ms cubic-bezier(0.18, 0.92, 0.28, 1);
+}
+
+.avatar-stage.is-fx-eveque-black-condemnation .battle-sprite,
+.avatar-stage.is-fx-eveque-black-condemnation svg {
+  animation: combatant-hit-shake 480ms cubic-bezier(0.14, 0.96, 0.24, 1);
+}
+
+@keyframes eveque-white-revelation {
+  0% { opacity: 0; transform: translate(-5%, 5%) scale(0.58); }
+  18%, 46% { opacity: 1; transform: translate(0, 0) scale(1); }
+  68% { opacity: 0.9; transform: translate(2%, -2%) scale(1.04); }
+  100% { opacity: 0; transform: translate(6%, -6%) scale(1.08); }
+}
+
+@keyframes eveque-black-condemnation {
+  0% { opacity: 0; transform: translate(-6%, -6%) scale(0.5); }
+  18% { opacity: 1; transform: translate(-1%, -1%) scale(0.88); }
+  42%, 64% { opacity: 1; transform: translate(0, 0) scale(1.04); }
+  100% { opacity: 0; transform: translate(6%, 6%) scale(1.12); }
+}
+
+@keyframes eveque-sanctuary-rise {
+  0% { opacity: 0; transform: translate(-50%, 20%) scaleX(var(--eveque-sanctuary-direction)) scale(0.48); }
+  24% { opacity: 1; transform: translate(-50%, 4%) scaleX(var(--eveque-sanctuary-direction)) scale(0.78); }
+  58% { opacity: 1; transform: translate(-50%, -3%) scaleX(var(--eveque-sanctuary-direction)) scale(0.9); }
+  100% { opacity: 0.94; transform: translate(-50%, -5%) scaleX(var(--eveque-sanctuary-direction)) scale(0.88); }
+}
+
+@keyframes eveque-sanctuary-break {
+  0% { opacity: 0.94; transform: translate(-50%, -5%) scaleX(var(--eveque-sanctuary-direction)) scale(0.88); filter: grayscale(1) brightness(1); }
+  30% { opacity: 1; transform: translate(-50%, -1%) scaleX(var(--eveque-sanctuary-direction)) scale(0.7, 0.9); filter: grayscale(1) brightness(0.78); }
+  64% { opacity: 0.68; transform: translate(-50%, 8%) scaleX(var(--eveque-sanctuary-direction)) scale(0.46, 0.82); filter: grayscale(1) brightness(0.5); }
+  100% { opacity: 0; transform: translate(-50%, 20%) scaleX(var(--eveque-sanctuary-direction)) scale(0.24, 0.7); filter: grayscale(1) brightness(0.3); }
+}
+
+@keyframes eveque-sanctuary-heal {
+  0% { opacity: 0.94; transform: translate(-50%, -5%) scaleX(var(--eveque-sanctuary-direction)) scale(0.88); filter: grayscale(1) brightness(1); }
+  24%, 48% { opacity: 1; transform: translate(-50%, -10%) scaleX(var(--eveque-sanctuary-direction)) scale(1); filter: grayscale(1) brightness(1.9); }
+  72% { opacity: 0.82; transform: translate(-50%, -16%) scaleX(var(--eveque-sanctuary-direction)) scale(1.05); filter: grayscale(1) brightness(1.35); }
+  100% { opacity: 0; transform: translate(-50%, -24%) scaleX(var(--eveque-sanctuary-direction)) scale(1.1); filter: grayscale(1) brightness(1.1); }
+}

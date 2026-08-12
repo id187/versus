@@ -123,6 +123,13 @@ const hooks = {
   activeCharacterId(battle, fighter) {
     return activeCharacterIdFor(battle, fighter);
   },
+  battleSpriteVariant(battle, fighter) {
+    for (const id of fighterLogicIds(battle, fighter)) {
+      const variant = callById(id, "battleSpriteVariant", [battle, fighter], null);
+      if (variant) return String(variant);
+    }
+    return null;
+  },
   actionDefinitionForKey(actionKey) {
     const match = /^([^:]+):(.+)$/.exec(String(actionKey || ""));
     if (!match) return null;

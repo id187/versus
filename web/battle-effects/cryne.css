@@ -1,5 +1,8 @@
 .battle-fx-scar-thorns {
-  inset: 0 20% 56%;
+  top: calc(var(--fx-head-y, 12%) - 22%);
+  right: 20%;
+  bottom: calc(78% - var(--fx-head-y, 12%));
+  left: 20%;
   background: url("../assets/characters/cryne/effects/scar-thorns.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -9,7 +12,10 @@
 }
 
 .battle-fx-wailing-wound-ring-sides {
-  inset: 0;
+  top: calc(var(--fx-body-y, 50%) - 50%);
+  right: 0;
+  bottom: calc(50% - var(--fx-body-y, 50%));
+  left: 0;
   background: url("../assets/characters/cryne/effects/wailing-wound-ring-sides.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -22,7 +28,10 @@
 }
 
 .battle-fx-thorn-chain {
-  inset: 25% 20%;
+  top: calc(var(--fx-body-y, 50%) - 25%);
+  right: 20%;
+  bottom: calc(75% - var(--fx-body-y, 50%));
+  left: 20%;
   background: url("../assets/characters/cryne/effects/thorn-chain.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -41,7 +50,7 @@
 }
 
 .battle-fx-value-thorn-chain {
-  top: 42%;
+  top: calc(var(--fx-body-y, 50%) - 8%);
   color: #f05a68;
   text-shadow: 0 2px 0 rgba(20, 0, 4, 0.96), 0 0 8px rgba(202, 20, 45, 0.94);
 }
@@ -52,7 +61,10 @@
 }
 
 .battle-fx-sin-and-punishment-bind {
-  inset: 17%;
+  top: calc(var(--fx-body-y, 50%) - 33%);
+  right: 17%;
+  bottom: calc(67% - var(--fx-body-y, 50%));
+  left: 17%;
   background: url("../assets/characters/cryne/effects/sin-and-punishment.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -65,7 +77,10 @@
 }
 
 .battle-fx-sin-and-punishment-slash {
-  inset: 18% 8%;
+  top: calc(var(--fx-body-y, 50%) - 32%);
+  right: 8%;
+  bottom: calc(68% - var(--fx-body-y, 50%));
+  left: 8%;
   background: url("../assets/characters/cryne/effects/sin-and-punishment-slash.png") center / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -84,7 +99,7 @@
 }
 
 .battle-fx-value-sin-and-punishment-slash {
-  top: 46%;
+  top: calc(var(--fx-body-y, 50%) - 4%);
   color: #fa5e70;
   text-shadow: 0 2px 0 rgba(20, 0, 4, 0.96), 0 0 9px rgba(219, 26, 51, 0.96);
 }
@@ -97,7 +112,10 @@
 .battle-fx-endless-pain-1,
 .battle-fx-endless-pain-2,
 .battle-fx-endless-pain-3 {
-  inset: 12%;
+  top: calc(var(--fx-body-y, 50%) - 38%);
+  right: 12%;
+  bottom: calc(62% - var(--fx-body-y, 50%));
+  left: 12%;
   --cryne-endless-angle: -20deg;
   background: url("../assets/characters/cryne/effects/endless-pain.png") center / contain no-repeat;
   image-rendering: pixelated;
@@ -120,7 +138,7 @@
 .battle-fx-value-endless-pain-1,
 .battle-fx-value-endless-pain-2,
 .battle-fx-value-endless-pain-3 {
-  top: 48%;
+  top: calc(var(--fx-body-y, 50%) - 2%);
   color: #ff6474;
   text-shadow: 0 2px 0 rgba(20, 0, 4, 0.98), 0 0 10px rgba(225, 26, 51, 0.98);
 }

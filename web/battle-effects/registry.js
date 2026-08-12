@@ -25,6 +25,13 @@
       return entries;
     },
 
+    stagePercent(stage, property, fallback) {
+      const raw = global.getComputedStyle?.(stage)?.getPropertyValue(property)?.trim();
+      if (!raw) return fallback;
+      const value = Number.parseFloat(raw);
+      return Number.isFinite(value) ? value / 100 : fallback;
+    },
+
     resolve(characterId, phase, payload) {
       const profile = profiles.get(characterId);
       const resolver = profile?.[phase];

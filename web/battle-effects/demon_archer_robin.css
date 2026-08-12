@@ -3,7 +3,7 @@
   left: var(--robin-start-x);
   top: var(--robin-start-y);
   z-index: 7;
-  width: clamp(70px, 9vw, 106px);
+  width: clamp(90px, 12vw, 138px);
   aspect-ratio: 2 / 1;
   pointer-events: none;
   background: url("../assets/monsters/demon_archer_robin/effects/silver-piercing-arrow.png") center / contain no-repeat;
@@ -13,16 +13,22 @@
 }
 
 .battle-fx-robin-silver-piercing-impact {
-  inset: 29%;
-  background: url("../assets/monsters/demon_archer_robin/effects/silver-piercing-arrow.png") center / contain no-repeat;
+  top: calc(var(--fx-body-y, 50%) - 40%);
+  right: 10%;
+  bottom: calc(60% - var(--fx-body-y, 50%));
+  left: 10%;
+  background: url("../assets/monsters/demon_archer_robin/effects/silver-piercing-impact.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);
   animation: robin-arrow-impact 300ms steps(4, end) forwards;
 }
 
 .battle-fx-robin-gray-shadow-cover {
-  inset: 22% 16% 7%;
-  background: url("../assets/monsters/demon_archer_robin/effects/gray-shadow-cover.png") center bottom / contain no-repeat;
+  top: calc(var(--fx-ground-y, 96%) - 56%);
+  right: -7%;
+  bottom: calc(81% - var(--fx-ground-y, 96%));
+  left: -7%;
+  background: url("../assets/monsters/demon_archer_robin/effects/gray-shadow-cover.png") center bottom / 100% 100% no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);
   animation: robin-cover 520ms steps(6, end) forwards;

@@ -1,5 +1,8 @@
 .battle-fx-freeze-failure {
-  inset: -6% 3% 8%;
+  top: calc(var(--fx-ground-y, 96%) - 102%);
+  right: 3%;
+  bottom: calc(95% - var(--fx-ground-y, 96%));
+  left: 3%;
   background: url("../assets/characters/nihfle/effects/freeze-failure.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
@@ -9,7 +12,10 @@
 }
 
 .battle-fx-frost-stab {
-  inset: 24% -18%;
+  top: calc(var(--fx-body-y, 50%) - 26%);
+  right: -18%;
+  bottom: calc(74% - var(--fx-body-y, 50%));
+  left: -18%;
   filter: drop-shadow(0 0 7px rgba(32, 184, 255, 0.92));
   animation: nihfle-frost-stab 760ms steps(8, end) forwards;
 }
@@ -34,7 +40,10 @@
 }
 
 .battle-fx-refreeze-star {
-  inset: 4%;
+  top: calc(var(--fx-body-y, 50%) - 46%);
+  right: 4%;
+  bottom: calc(54% - var(--fx-body-y, 50%));
+  left: 4%;
   background: url("../assets/characters/nihfle/effects/refreeze-star.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: drop-shadow(0 0 8px rgba(49, 190, 255, 0.94));
@@ -42,7 +51,10 @@
 }
 
 .battle-fx-glacier-breaker {
-  inset: -7%;
+  top: calc(var(--fx-body-y, 50%) - 57%);
+  right: -7%;
+  bottom: calc(57% - var(--fx-body-y, 50%));
+  left: -7%;
   background: url("../assets/characters/nihfle/effects/glacier-breaker.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: drop-shadow(0 0 9px rgba(38, 177, 255, 0.94));
@@ -50,12 +62,15 @@
 }
 
 .battle-fx-absolute-zero {
-  inset: -9% -3% 2%;
+  top: calc(var(--fx-ground-y, 96%) - 112%);
+  right: -12%;
+  bottom: calc(100% - var(--fx-ground-y, 96%));
+  left: -12%;
   background: url("../assets/characters/nihfle/effects/absolute-zero.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   mix-blend-mode: normal;
   filter: drop-shadow(0 0 10px rgba(72, 196, 255, 0.88));
-  transform-origin: 50% 88%;
+  transform-origin: 50% 100%;
   animation: nihfle-absolute-zero 760ms steps(8, end) forwards;
 }
 
@@ -102,7 +117,8 @@
 }
 
 @keyframes nihfle-absolute-zero {
-  0% { opacity: 0; transform: scale(0.72); }
-  24%, 72% { opacity: 0.62; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.04); }
+  0% { opacity: 0; transform: scale(0.52, 0.08); }
+  16% { opacity: 0.5; transform: scale(0.78, 0.34); }
+  34%, 72% { opacity: 0.62; transform: scale(1.02, 1); }
+  100% { opacity: 0; transform: scale(1.04, 1.02); }
 }

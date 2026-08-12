@@ -1,0 +1,285 @@
+.battle-fx-zeroven-curse-cannon-projectile {
+  position: absolute;
+  left: var(--zeroven-curse-start-x);
+  top: var(--zeroven-curse-start-y);
+  z-index: 7;
+  width: clamp(132px, 17vw, 196px);
+  aspect-ratio: 360 / 157;
+  pointer-events: none;
+  background: url("../assets/characters/zeroven/effects/curse-cannon-projectile.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(211, 255, 255, 0.98))
+    drop-shadow(0 0 8px rgba(0, 228, 218, 0.92));
+  animation: zeroven-curse-cannon-flight 320ms steps(10, end) forwards;
+}
+
+.battle-fx-zeroven-requiem-ascension {
+  opacity: 1;
+  background: none;
+  mix-blend-mode: normal;
+}
+
+.battle-fx-zeroven-requiem-ghost {
+  position: absolute;
+  left: var(--zeroven-requiem-x);
+  top: calc(var(--fx-body-y, 50%) + 18%);
+  z-index: 6;
+  width: clamp(58px, 24%, 88px);
+  aspect-ratio: 165 / 300;
+  pointer-events: none;
+  opacity: 0;
+  background: url("../assets/characters/zeroven/effects/requiem-smiling-ghost.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(215, 255, 255, 0.98))
+    drop-shadow(0 0 8px rgba(0, 226, 215, 0.92));
+  animation: zeroven-requiem-ghost-rise 850ms steps(10, end) var(--zeroven-requiem-delay) forwards;
+}
+
+.battle-fx-value-zeroven-requiem-ascension {
+  top: calc(var(--fx-head-y, 12%) - 2%);
+  color: #91fff4;
+  text-shadow: 0 0 8px rgba(0, 220, 210, 0.95);
+}
+
+.battle-fx-zeroven-soul-barrage-impact {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  z-index: 6;
+  width: clamp(160px, 72%, 255px);
+  aspect-ratio: 333 / 340;
+  opacity: 0;
+  background: url("../assets/characters/zeroven/effects/soul-barrage-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(215, 255, 255, 0.98))
+    drop-shadow(0 0 9px rgba(0, 226, 215, 0.94));
+  transform-origin: 50% 50%;
+  animation: zeroven-soul-barrage-impact 430ms steps(8, end) forwards;
+}
+
+.battle-fx-value-zeroven-soul-barrage-impact {
+  top: calc(var(--fx-body-y, 50%) - 7%);
+  color: #8efff5;
+  text-shadow: 0 0 7px rgba(0, 220, 210, 0.96);
+  animation: fx-damage-drop 760ms ease-in forwards;
+}
+
+.avatar-stage.is-fx-zeroven-soul-barrage-impact .battle-sprite,
+.avatar-stage.is-fx-zeroven-soul-barrage-impact svg {
+  animation: combatant-hit-shake 320ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+.battle-fx-zeroven-cannon-evocation-circle {
+  --zeroven-circle-x: 69%;
+  inset: auto;
+  left: var(--zeroven-circle-x);
+  top: var(--fx-body-y, 50%);
+  z-index: 5;
+  width: clamp(138px, 61%, 218px);
+  aspect-ratio: 345 / 343;
+  opacity: 0;
+  background: url("../assets/characters/zeroven/effects/cannon-evocation-circle.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    drop-shadow(0 0 4px rgba(215, 255, 255, 0.98))
+    drop-shadow(0 0 10px rgba(0, 218, 210, 0.94));
+  transform-origin: 50% 50%;
+  animation: zeroven-cannon-evocation-circle 900ms steps(12, end) forwards;
+}
+
+#aiAvatar .battle-fx-zeroven-cannon-evocation-circle {
+  --zeroven-circle-x: 31%;
+}
+
+.battle-fx-zeroven-curse-cannon-impact {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  z-index: 6;
+  width: clamp(156px, 70%, 248px);
+  aspect-ratio: 340 / 338;
+  opacity: 0;
+  background: url("../assets/characters/zeroven/effects/curse-cannon-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 4px rgba(211, 255, 255, 0.98))
+    drop-shadow(0 0 11px rgba(0, 222, 213, 0.94));
+  transform-origin: 50% 50%;
+  animation: zeroven-curse-cannon-impact 680ms steps(10, end) forwards;
+}
+
+.battle-fx-value-zeroven-curse-cannon-impact {
+  top: calc(var(--fx-body-y, 50%) - 8%);
+  color: #9afff6;
+  text-shadow: 0 0 8px rgba(0, 220, 210, 0.98);
+  animation: fx-damage-drop 860ms ease-in forwards;
+}
+
+.avatar-stage.is-fx-zeroven-curse-cannon-impact .battle-sprite,
+.avatar-stage.is-fx-zeroven-curse-cannon-impact svg {
+  animation: combatant-hit-shake 440ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+.battle-fx-zeroven-vengeance-overheat {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  z-index: 4;
+  width: clamp(168px, 76%, 270px);
+  aspect-ratio: 360 / 333;
+  opacity: 0;
+  background: url("../assets/characters/zeroven/effects/vengeance-overheat.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    drop-shadow(0 0 4px rgba(194, 255, 255, 0.98))
+    drop-shadow(0 0 11px rgba(0, 222, 213, 0.92));
+  transform-origin: 50% 50%;
+  animation: zeroven-vengeance-overheat 700ms steps(10, end) forwards;
+}
+
+.battle-fx-value-zeroven-vengeance-overheat {
+  top: calc(var(--fx-body-y, 50%) - 6%);
+}
+
+.avatar-stage.is-fx-zeroven-vengeance-overheat .battle-sprite,
+.avatar-stage.is-fx-zeroven-vengeance-overheat svg {
+  animation: combatant-hit-shake 460ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes zeroven-curse-cannon-flight {
+  0% {
+    left: var(--zeroven-curse-start-x);
+    top: var(--zeroven-curse-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--zeroven-curse-angle)) scaleX(var(--zeroven-curse-direction)) scale(0.46);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--zeroven-curse-angle)) scaleX(var(--zeroven-curse-direction)) scale(0.76);
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    left: var(--zeroven-curse-end-x);
+    top: var(--zeroven-curse-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--zeroven-curse-angle)) scaleX(var(--zeroven-curse-direction)) scale(1.02);
+  }
+}
+
+@keyframes zeroven-requiem-ghost-rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 18px) scale(0.48) rotate(-5deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(var(--zeroven-requiem-scale)) rotate(0);
+  }
+  62% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--zeroven-requiem-drift-mid)), -82px) scale(var(--zeroven-requiem-scale)) rotate(4deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--zeroven-requiem-drift)), -168px) scale(0.68) rotate(-3deg);
+  }
+}
+
+@keyframes zeroven-soul-barrage-impact {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.48) rotate(-8deg);
+  }
+  16% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.86) rotate(3deg);
+  }
+  42% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(0.96) rotate(-2deg);
+  }
+  58% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.06) rotate(4deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.2) rotate(7deg);
+  }
+}
+
+@keyframes zeroven-cannon-evocation-circle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.28) rotate(-22deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.82) rotate(-8deg);
+  }
+  48% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(4deg);
+  }
+  72% {
+    opacity: 0.94;
+    transform: translate(-50%, -50%) scale(1.02) rotate(11deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.1) rotate(18deg);
+  }
+}
+
+@keyframes zeroven-curse-cannon-impact {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.24) rotate(-7deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.78) rotate(-2deg);
+  }
+  44% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.04) rotate(3deg);
+  }
+  68% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.12) rotate(5deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.28) rotate(8deg);
+  }
+}
+
+@keyframes zeroven-vengeance-overheat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.18);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.76);
+  }
+  38% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  62% {
+    opacity: 0.96;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.14);
+  }
+}

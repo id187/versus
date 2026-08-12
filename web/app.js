@@ -6,13 +6,15 @@ const FINAL_BATTLE_DIALOGUE_HOLD_MS = 3000;
 const EFFECT_SETTLE_MS = 620;
 const BATTLE_SPRITE_ACTION_HOLD_MS = 1280;
 const BATTLE_SPRITE_HIT_HOLD_MS = 560;
-// Battle characters currently render a single canonical idle sprite for every action.
 const BATTLE_SPRITE_RENDER_STATE = "idle";
 const SFX_POOL_SIZE = 3;
 const BGM_FADE_MS = 900;
 const AUDIO_SETTINGS_KEY = "versus.audio-settings.v1";
+const TUTORIAL_ENABLED_KEY = "versus.tutorial-enabled.v1";
 const DEFAULT_AUDIO_SETTINGS = Object.freeze({ bgm: 0.35, sfx: 0.5, muted: false });
 const AdventureSave = window.VersusAdventureSave;
+const AdventureAchievements = window.VersusAdventureAchievements;
+const TUTORIAL_CHARACTER_ID = "plote";
 
 function localAssetUrl(path) {
   const baseUrl = window.__VERSUS_BASE_URL__ || new URL("./", window.location.href).href;
@@ -26,18 +28,22 @@ const els = {
   battleScreenTitle: document.querySelector("#battleScreen .header-title strong"),
   rulesScreen: document.querySelector("#rulesScreen"),
   codexScreen: document.querySelector("#codexScreen"),
+  achievementsScreen: document.querySelector("#achievementsScreen"),
   settingsScreen: document.querySelector("#settingsScreen"),
   openPlayButton: document.querySelector("#openPlayButton"),
   openAdventureButton: document.querySelector("#openAdventureButton"),
   openBattleButton: document.querySelector("#openBattleButton"),
   openPvpButton: document.querySelector("#openPvpButton"),
+  openSkillDebugButton: document.querySelector("#openSkillDebugButton"),
   openRulesButton: document.querySelector("#openRulesButton"),
   openCodexButton: document.querySelector("#openCodexButton"),
+  openAchievementsButton: document.querySelector("#openAchievementsButton"),
   openSettingsButton: document.querySelector("#openSettingsButton"),
   exitButton: document.querySelector("#exitButton"),
   battleBackButton: document.querySelector("#battleBackButton"),
   rulesBackButton: document.querySelector("#rulesBackButton"),
   codexBackButton: document.querySelector("#codexBackButton"),
+  achievementsBackButton: document.querySelector("#achievementsBackButton"),
   settingsBackButton: document.querySelector("#settingsBackButton"),
   playBackButton: document.querySelector("#playBackButton"),
   bgmVolumeSlider: document.querySelector("#bgmVolumeSlider"),
@@ -46,12 +52,20 @@ const els = {
   sfxVolumeValue: document.querySelector("#sfxVolumeValue"),
   audioMuteButton: document.querySelector("#audioMuteButton"),
   audioResetButton: document.querySelector("#audioResetButton"),
+  tutorialEnabledToggle: document.querySelector("#tutorialEnabledToggle"),
   rulesSubtitle: document.querySelector("#rulesSubtitle"),
   rulesContent: document.querySelector("#rulesContent"),
   rulesTabs: [...document.querySelectorAll("[data-rules-tab]")],
   rulesPanels: [...document.querySelectorAll("[data-rules-panel]")],
+  tutorialGuide: document.querySelector("#tutorialGuide"),
+  tutorialGuideStep: document.querySelector("#tutorialGuideStep"),
+  tutorialGuideTitle: document.querySelector("#tutorialGuideTitle"),
+  tutorialGuideText: document.querySelector("#tutorialGuideText"),
+  tutorialGuideButton: document.querySelector("#tutorialGuideButton"),
+  tutorialSkipButton: document.querySelector("#tutorialSkipButton"),
   inscriptionButton: document.querySelector("#inscriptionButton"),
   inscriptionPopover: document.querySelector("#inscriptionPopover"),
+  playerSetupLabel: document.querySelector("#playerSetupLabel"),
   playerSelect: document.querySelector("#playerSelect"),
   aiSelect: document.querySelector("#aiSelect"),
   personalitySelect: document.querySelector("#personalitySelect"),
@@ -71,10 +85,15 @@ const els = {
   codexList: document.querySelector("#codexList"),
   codexDetail: document.querySelector("#codexDetail"),
   codexSubtitle: document.querySelector("#codexSubtitle"),
+  achievementsCount: document.querySelector("#achievementsCount"),
+  achievementsTotalFill: document.querySelector("#achievementsTotalFill"),
+  achievementsPercent: document.querySelector("#achievementsPercent"),
+  achievementsList: document.querySelector("#achievementsList"),
   aiModeText: document.querySelector("#aiModeText"),
   enemyInfoButton: document.querySelector("#enemyInfoButton"),
   battleRecordButton: document.querySelector("#battleRecordButton"),
   playerInfoButton: document.querySelector("#playerInfoButton"),
+  playerGold: document.querySelector("#playerGold"),
   enemyInfoModal: document.querySelector("#enemyInfoModal"),
   enemyInfoScrim: document.querySelector("#enemyInfoScrim"),
   enemyInfoCloseButton: document.querySelector("#enemyInfoCloseButton"),
@@ -94,28 +113,20 @@ const els = {
 
 const fighterIds = {
   player: {
-    sideName: "#playerSideName",
-    sideTitle: "#playerSideTitle",
     avatar: "#playerAvatar",
     hpBar: "#playerHpBar",
     mpBar: "#playerMpBar",
     hpText: "#playerHpText",
     mpText: "#playerMpText",
-    stats: "#playerStats",
     state: "#playerState",
-    record: "#playerRecord",
   },
   ai: {
-    sideName: "#aiSideName",
-    sideTitle: "#aiSideTitle",
     avatar: "#aiAvatar",
     hpBar: "#aiHpBar",
     mpBar: "#aiMpBar",
     hpText: "#aiHpText",
     mpText: "#aiMpText",
-    stats: "#aiStats",
     state: "#aiState",
-    record: "#aiRecord",
   },
 };
 
@@ -251,6 +262,9 @@ const SPRITE_ASSETS = Object.freeze({
   demon_knight_kaighton: "monsters",
   demon_bishop_eveque: "monsters",
   demon_king_monochrem: "monsters",
+});
+const BATTLE_SPRITE_VARIANTS = Object.freeze({
+  gandrick: Object.freeze(["iron-bullet", "demonic-bullet"]),
 });
 const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_pawn_opawn", "demon_rook_chatrang", "demon_knight_kaighton", "demon_bishop_eveque", "demon_king_monochrem"]);
 const ADVENTURE_DESTINATION_ICONS = Object.freeze({
@@ -595,6 +609,9 @@ const state = {
   characterPickers: [],
   activeCharacterPicker: null,
   selectedInscriptionId: DEFAULT_INSCRIPTION_OPTIONS[0].id,
+  normalPlayerSelection: "random",
+  skillDebugCombatantId: "",
+  tutorial: null,
   effectTimers: [],
   spriteStateTokens: { player: 0, ai: 0 },
   preloadedSpriteUrls: new Set(),
@@ -605,6 +622,8 @@ const state = {
   currentBgm: null,
   currentBgmType: null,
   audioSettings: { ...DEFAULT_AUDIO_SETTINGS },
+  tutorialEnabled: true,
+  achievements: AdventureAchievements.emptyState(),
 };
 
 init();
@@ -614,7 +633,11 @@ async function init() {
     els.exitButton.hidden = true;
   }
   state.audioSettings = loadAudioSettings();
+  state.tutorialEnabled = loadTutorialEnabled();
+  state.achievements = AdventureAchievements.load(window.localStorage);
   syncAudioSettingsControls();
+  syncTutorialSettingControl();
+  organizeRulesPanels();
   bindEvents();
   syncInscriptionPicker();
   setBattleMode("pve");
@@ -625,16 +648,21 @@ async function init() {
 }
 
 function bindEvents() {
-  els.openPlayButton.addEventListener("click", () => showScreen("play"));
+  els.openPlayButton.addEventListener("click", openPlayEntry);
   els.openAdventureButton.addEventListener("click", openAdventureMode);
   els.openBattleButton.addEventListener("click", () => openBattleMode("pve"));
   els.openPvpButton.addEventListener("click", () => openBattleMode("pvp"));
+  els.openSkillDebugButton.addEventListener("click", () => openBattleMode("skill-debug"));
   els.openRulesButton.addEventListener("click", () => showScreen("rules"));
+  els.tutorialGuideButton.addEventListener("click", handleTutorialGuideButton);
+  els.tutorialSkipButton.addEventListener("click", skipTutorial);
   els.openCodexButton.addEventListener("click", () => showScreen("codex"));
+  els.openAchievementsButton.addEventListener("click", () => showScreen("achievements"));
   els.openSettingsButton.addEventListener("click", () => showScreen("settings"));
   els.battleBackButton.addEventListener("click", leaveBattleScreen);
   els.rulesBackButton.addEventListener("click", () => showScreen("home"));
   els.codexBackButton.addEventListener("click", () => showScreen("home"));
+  els.achievementsBackButton.addEventListener("click", () => showScreen("home"));
   els.settingsBackButton.addEventListener("click", () => showScreen("home"));
   els.playBackButton.addEventListener("click", () => showScreen("home"));
   els.bgmVolumeSlider.addEventListener("input", () => setAudioVolume("bgm", els.bgmVolumeSlider.value));
@@ -642,6 +670,7 @@ function bindEvents() {
   els.sfxVolumeSlider.addEventListener("change", () => playEffectSound("buff"));
   els.audioMuteButton.addEventListener("click", toggleAudioMuted);
   els.audioResetButton.addEventListener("click", resetAudioSettings);
+  els.tutorialEnabledToggle.addEventListener("change", () => setTutorialEnabled(els.tutorialEnabledToggle.checked));
   for (const tab of els.rulesTabs) {
     tab.addEventListener("click", () => selectRulesTab(tab.dataset.rulesTab));
     tab.addEventListener("keydown", handleRulesTabKeydown);
@@ -683,6 +712,147 @@ function openBattleMode(mode) {
   resetBattleScreen();
   previewSelectedMatch();
   showScreen("battle");
+}
+
+function openPlayEntry() {
+  if (state.tutorialEnabled && state.options) {
+    openTutorialMode();
+    return;
+  }
+  showScreen("play");
+}
+
+function openTutorialMode() {
+  if (!state.options) return;
+  els.pvpRoomInput.value = "";
+  setBattleMode("tutorial");
+  resetBattleScreen();
+  state.tutorial = {
+    setupStep: 1,
+    inscriptionChosen: false,
+    started: false,
+  };
+  renderTutorialGuide();
+  previewSelectedMatch();
+  syncSetupLock();
+  showScreen("battle");
+}
+
+function selectedTutorialCharacter() {
+  return state.options?.characters?.find((character) => String(character.index) === String(els.playerSelect.value)) || null;
+}
+
+function advanceTutorialCharacterStep() {
+  if (state.battleMode !== "tutorial" || !state.tutorial || state.tutorial.started) return;
+  const selected = selectedTutorialCharacter();
+  if (selected?.id === TUTORIAL_CHARACTER_ID) {
+    state.tutorial.setupStep = 2;
+  } else {
+    state.tutorial.setupStep = 1;
+    state.tutorial.inscriptionChosen = false;
+  }
+  renderTutorialGuide();
+  syncSetupLock();
+}
+
+function handleTutorialGuideButton() {
+  if (state.battleMode !== "tutorial") return;
+  if (!state.battle && state.tutorial?.setupStep === 3) {
+    startTutorialBattle();
+    return;
+  }
+  if (state.tutorial?.skipped || state.battle?.tutorial?.completed) {
+    finishTutorialToPlay();
+    return;
+  }
+  if (state.battle?.is_over) openTutorialMode();
+}
+
+function skipTutorial() {
+  if (state.battleMode !== "tutorial") return;
+  setTutorialEnabled(false);
+  state.tutorial.skipped = true;
+  renderTutorialGuide(state.battle);
+}
+
+function finishTutorialToPlay() {
+  resetBattleScreen();
+  setBattleMode("pve");
+  renderTutorialGuide();
+  showScreen("play");
+}
+
+function renderTutorialGuide(data = state.battle) {
+  const isTutorial = state.battleMode === "tutorial" && state.tutorial;
+  els.tutorialGuide.hidden = !isTutorial;
+  els.battleScreen.classList.remove("tutorial-focus-character", "tutorial-focus-inscription", "tutorial-focus-start", "tutorial-focus-actions", "tutorial-focus-info");
+  if (!isTutorial) return;
+
+  els.tutorialGuideButton.hidden = true;
+  els.tutorialSkipButton.hidden = false;
+  if (state.tutorial.skipped) {
+    els.tutorialGuideStep.textContent = "SKIPPED";
+    els.tutorialGuideTitle.textContent = "튜토리얼을 건너뛰었습니다.";
+    els.tutorialGuideText.textContent = "Settings에서 ‘Play 진입 시 튜토리얼’을 ON으로 바꾼 뒤 Play에 들어가면 다시 체험할 수 있습니다.";
+    els.tutorialGuideButton.textContent = "Play로 이동";
+    els.tutorialGuideButton.hidden = false;
+    els.tutorialSkipButton.hidden = true;
+    return;
+  }
+  if (!data) {
+    const step = Number(state.tutorial.setupStep || 1);
+    if (step === 1) {
+      els.tutorialGuideStep.textContent = "STEP 1 / 7";
+      els.tutorialGuideTitle.textContent = "플로테를 선택하세요.";
+      els.tutorialGuideText.textContent = "상단의 내 캐릭터를 열고 플로테를 찾아 선택합니다.";
+      els.battleScreen.classList.add("tutorial-focus-character");
+    } else if (step === 2) {
+      els.tutorialGuideStep.textContent = "STEP 2 / 7";
+      els.tutorialGuideTitle.textContent = "각인을 하나 선택하세요.";
+      els.tutorialGuideText.textContent = "플로테 왼쪽의 보석을 열어 공통 보정의 효과를 읽고 하나를 고릅니다.";
+      els.battleScreen.classList.add("tutorial-focus-inscription");
+    } else {
+      const inscription = findInscriptionOption();
+      els.tutorialGuideStep.textContent = "STEP 3 / 7";
+      els.tutorialGuideTitle.textContent = `${inscription.summary} 각인 선택 완료`;
+      els.tutorialGuideText.textContent = `상대는 루크로 고정됩니다. ${inscription.detail} 오른쪽의 전투 시작을 누르세요.`;
+      els.battleScreen.classList.add("tutorial-focus-start");
+    }
+    return;
+  }
+
+  const tutorial = data.tutorial || {};
+  if (tutorial.completed) {
+    els.tutorialGuideStep.textContent = "COMPLETE";
+    els.tutorialGuideTitle.textContent = "기본 훈련 완료";
+    els.tutorialGuideText.textContent = "Settings에서 ‘Play 진입 시 튜토리얼’을 ON으로 바꾼 뒤 Play에 들어가면 다시 체험할 수 있습니다.";
+    els.tutorialGuideButton.textContent = "Play로 이동";
+    els.tutorialGuideButton.hidden = false;
+    els.tutorialSkipButton.hidden = true;
+    return;
+  }
+  if (data.is_over) {
+    els.tutorialGuideStep.textContent = "RETRY";
+    els.tutorialGuideTitle.textContent = "안내를 마치기 전에 전투가 끝났습니다.";
+    els.tutorialGuideText.textContent = "같은 준비 단계부터 다시 시작할 수 있습니다.";
+    els.tutorialGuideButton.textContent = "다시 시작";
+    els.tutorialGuideButton.hidden = false;
+    return;
+  }
+
+  const instructions = {
+    1: ["일반 공격을 선택하세요.", "일반 공격은 MP를 쓰지 않는 기본 공격입니다. 이번 턴 루크는 명상하므로 [방어]되지 않은 기본 피해를 확인할 수 있습니다."],
+    2: ["일반 방어를 선택하세요.", "[방어] 행동은 상대의 공격이 명중할 때 피해를 경감합니다. 연속으로 사용하면 경감률이 낮아지며, 이번 턴에는 루크의 일반 공격으로 효과를 확인합니다."],
+    3: ["명상을 선택하세요.", "명상은 MP를 15 회복하고 턴 종료 기본 회복도 따로 받습니다. 공격 행동이 아니므로 상대의 [방어] 경감이 적용되지 않아, [방어] 행동을 낭비시킬 수 있습니다."],
+    4: ["내 정보를 살펴본 뒤 화염탄을 선택하세요.", "플레이어 캐릭터는 MP를 소모하는 4개의 액티브 스킬을 가집니다. 고유 효과는 ⓘ 내 정보에서, 상대의 스킬은 ⓘ 상대 정보에서 확인할 수 있습니다."],
+  };
+  const step = Number(tutorial.step || 1);
+  const [title, description] = instructions[step] || instructions[1];
+  els.tutorialGuideStep.textContent = `STEP ${Math.min(7, step + 3)} / 7`;
+  els.tutorialGuideTitle.textContent = title;
+  els.tutorialGuideText.textContent = description;
+  els.battleScreen.classList.add("tutorial-focus-actions");
+  if (step === 4) els.battleScreen.classList.add("tutorial-focus-info");
 }
 
 async function openAdventureMode() {
@@ -813,6 +983,7 @@ function resetBattleScreen() {
   state.pvp = null;
   state.busy = false;
   state.adventureRestartRequested = false;
+  state.tutorial = null;
   document.body.classList.remove("is-waiting");
   closeCustomSelects();
   closeInscriptionPopover();
@@ -827,7 +998,16 @@ function resetBattleScreen() {
 }
 
 function resetCharacterSelections() {
-  els.playerSelect.value = "random";
+  if (state.battleMode === "skill-debug") {
+    const combatants = sortCharacters(skillDebugConfig()?.combatants || []);
+    const requested = state.skillDebugCombatantId;
+    els.playerSelect.value = combatants.some((combatant) => combatant.id === requested)
+      ? requested
+      : String(combatants[0]?.id || "");
+    state.skillDebugCombatantId = els.playerSelect.value;
+  } else {
+    els.playerSelect.value = "random";
+  }
   els.aiSelect.value = "random";
   syncAllCustomSelects();
 }
@@ -905,8 +1085,14 @@ function syncInscriptionPicker() {
     item.addEventListener("click", (event) => {
       event.stopPropagation();
       state.selectedInscriptionId = option.id;
+      if (state.battleMode === "tutorial" && state.tutorial && !state.tutorial.started) {
+        state.tutorial.inscriptionChosen = true;
+        state.tutorial.setupStep = 3;
+      }
       syncInscriptionPicker();
       closeInscriptionPopover();
+      renderTutorialGuide();
+      syncSetupLock();
       els.inscriptionButton.focus();
     });
     els.inscriptionPopover.append(item);
@@ -963,6 +1149,30 @@ function loadAudioSettings() {
   } catch {
     return { ...DEFAULT_AUDIO_SETTINGS };
   }
+}
+
+function loadTutorialEnabled() {
+  try {
+    const stored = window.localStorage.getItem(TUTORIAL_ENABLED_KEY);
+    return stored == null ? true : stored === "true";
+  } catch {
+    return true;
+  }
+}
+
+function setTutorialEnabled(enabled) {
+  state.tutorialEnabled = Boolean(enabled);
+  try {
+    window.localStorage.setItem(TUTORIAL_ENABLED_KEY, String(state.tutorialEnabled));
+  } catch {
+    // The setting still works for this session when storage is unavailable.
+  }
+  syncTutorialSettingControl();
+}
+
+function syncTutorialSettingControl() {
+  els.tutorialEnabledToggle.checked = state.tutorialEnabled;
+  els.tutorialEnabledToggle.setAttribute("aria-checked", String(state.tutorialEnabled));
 }
 
 function saveAudioSettings() {
@@ -1048,7 +1258,7 @@ function showScreen(name) {
   if (name !== "battle") {
     stopPvpPolling();
   }
-  for (const screen of [els.homeScreen, els.playScreen, els.battleScreen, els.rulesScreen, els.codexScreen, els.settingsScreen]) {
+  for (const screen of [els.homeScreen, els.playScreen, els.battleScreen, els.rulesScreen, els.codexScreen, els.achievementsScreen, els.settingsScreen]) {
     screen.classList.remove("is-active");
   }
   if (name === "play") {
@@ -1065,6 +1275,11 @@ function showScreen(name) {
     primeAudio();
     playBgm("village");
     els.rulesScreen.classList.add("is-active");
+  } else if (name === "achievements") {
+    primeAudio();
+    playBgm("village");
+    renderAchievements();
+    els.achievementsScreen.classList.add("is-active");
   } else if (name === "settings") {
     primeAudio();
     playBgm("village");
@@ -1078,6 +1293,7 @@ function showScreen(name) {
 
 const RULES_TAB_LABELS = Object.freeze({
   "how-to-play": "How to Play",
+  rulings: "Rulings",
   adventure: "Adventure",
   pve: "PvE",
   pvp: "PvP",
@@ -1097,6 +1313,25 @@ function selectRulesTab(tabId, { focus = false } = {}) {
   }
   els.rulesSubtitle.textContent = RULES_TAB_LABELS[selectedId];
   els.rulesContent.scrollTop = 0;
+}
+
+function organizeRulesPanels() {
+  const howToPanel = document.querySelector("#rulesPanelHowTo");
+  const rulingsPanel = document.querySelector("#rulesPanelRulings");
+  if (!howToPanel || !rulingsPanel) return;
+  for (const section of howToPanel.querySelectorAll('[data-rules-category="rulings"]')) {
+    rulingsPanel.append(section);
+  }
+  renumberRulesSections(howToPanel);
+  renumberRulesSections(rulingsPanel);
+}
+
+function renumberRulesSections(panel) {
+  const sections = [...panel.querySelectorAll(":scope > .rules-section")];
+  sections.forEach((section, index) => {
+    const number = section.querySelector(":scope > .rules-section-heading > span");
+    if (number) number.textContent = String(index + 1).padStart(2, "0");
+  });
 }
 
 function handleRulesTabKeydown(event) {
@@ -1127,25 +1362,46 @@ function leaveBattleScreen() {
 }
 
 function setBattleMode(mode) {
-  state.battleMode = mode === "pvp" ? "pvp" : mode === "adventure" ? "adventure" : "pve";
+  const previousMode = state.battleMode;
+  const nextMode = mode === "pvp"
+    ? "pvp"
+    : mode === "adventure"
+      ? "adventure"
+      : mode === "skill-debug"
+        ? "skill-debug"
+        : mode === "tutorial"
+          ? "tutorial"
+        : "pve";
+  if (state.options && previousMode !== nextMode) {
+    if (previousMode === "skill-debug") state.skillDebugCombatantId = els.playerSelect.value;
+    else state.normalPlayerSelection = els.playerSelect.value;
+  }
+  state.battleMode = nextMode;
   const isPvp = state.battleMode === "pvp";
   const isAdventure = state.battleMode === "adventure";
+  const isSkillDebug = state.battleMode === "skill-debug";
+  const isTutorial = state.battleMode === "tutorial";
   if (!isPvp) {
     stopPvpPolling();
     state.pvp = null;
   }
   els.battleScreen.classList.toggle("is-pvp", isPvp);
-  els.battleScreen.classList.toggle("is-pve", !isPvp && !isAdventure);
+  els.battleScreen.classList.toggle("is-pve", state.battleMode === "pve" || isTutorial);
   els.battleScreen.classList.toggle("is-adventure", isAdventure);
-  els.battleScreenTitle.textContent = isAdventure ? "Adventure" : "전투";
+  els.battleScreen.classList.toggle("is-skill-debug", isSkillDebug);
+  els.battleScreen.classList.toggle("is-tutorial", isTutorial);
+  els.battleScreenTitle.textContent = isAdventure ? "Adventure" : isSkillDebug ? "Skill Debug" : isTutorial ? "Tutorial" : "전투";
+  els.playerSetupLabel.textContent = isSkillDebug ? "테스트 대상" : "내 캐릭터";
+  els.inscriptionButton.hidden = isSkillDebug;
   for (const field of els.pveSetupFields) {
-    field.hidden = isPvp || isAdventure;
+    field.hidden = isPvp || isAdventure || isSkillDebug || isTutorial;
   }
   for (const field of els.pvpSetupFields) {
     field.hidden = !isPvp;
   }
   els.startButton.hidden = false;
-  els.startButton.textContent = isAdventure ? "새 여정" : isPvp ? "PvP 입장" : "전투 시작";
+  els.startButton.textContent = isAdventure ? "새 여정" : isPvp ? "PvP 입장" : isSkillDebug ? "디버그 시작" : "전투 시작";
+  syncPlayerCombatantOptions(previousMode === "skill-debug", isSkillDebug);
   syncSetupLock();
   previewSelectedMatch();
 }
@@ -1159,13 +1415,20 @@ async function loadOptions() {
     })));
     data.personalities = data.personalities || data.ai?.personalities || [];
     state.options = data;
+    state.achievements = AdventureAchievements.syncUnlocks(data.adventureAchievements || [], state.achievements);
+    AdventureAchievements.save(window.localStorage, state.achievements);
 
-    fillSelect(els.playerSelect, data.characters, "index", "name", true, "???");
+    els.openSkillDebugButton.hidden = !data.devTools?.skillDebug;
+
+    syncPlayerCombatantOptions(false, state.battleMode === "skill-debug");
     fillSelect(els.aiSelect, data.characters, "index", "name", true, "???");
     fillSelect(els.personalitySelect, data.personalities, "id", "name", true);
 
     for (const select of [els.playerSelect, els.aiSelect, els.personalitySelect]) {
-      select.addEventListener("change", previewSelectedMatch);
+      select.addEventListener("change", () => {
+        previewSelectedMatch();
+        if (select === els.playerSelect) advanceTutorialCharacterStep();
+      });
     }
     enhanceCharacterSelect(els.playerSelect, "player", "내 캐릭터");
     enhanceCharacterSelect(els.aiSelect, "ai", "상대 캐릭터");
@@ -1173,6 +1436,7 @@ async function loadOptions() {
     syncInscriptionPicker();
     previewSelectedMatch();
     renderCodex();
+    renderAchievements();
     await applyStartupHash();
   } catch (error) {
     pushTurnLog("오류", [`옵션 로드 실패: ${error.message}`], false);
@@ -1197,7 +1461,51 @@ async function applyStartupHash() {
     showScreen("rules");
   } else if (hash === "#settings") {
     showScreen("settings");
+  } else if (hash === "#achievements") {
+    showScreen("achievements");
   }
+}
+
+function syncAchievements(battleState) {
+  if (!battleState?.adventure || !state.options?.adventureAchievements) return;
+  state.achievements = AdventureAchievements.recordBattleState(
+    window.localStorage,
+    state.options.adventureAchievements,
+    battleState,
+  );
+}
+
+function achievementProgressText(item) {
+  if (item.unlocked) return "달성";
+  if (item.metric === "best_single_attack_damage" || item.metric === "best_single_fixed_damage") {
+    return `최고 ${item.current} / ${item.target}`;
+  }
+  if (item.metric === "best_final_hp_percent") {
+    return `최고 ${item.current}% / ${item.target}%`;
+  }
+  if (item.metric === "most_relics_at_clear") {
+    return `최고 ${item.current} / ${item.target}`;
+  }
+  return "미달성";
+}
+
+function renderAchievements() {
+  const items = AdventureAchievements.view(state.options?.adventureAchievements || [], state.achievements);
+  const unlockedCount = items.filter((item) => item.unlocked).length;
+  const percent = items.length ? Math.round((unlockedCount / items.length) * 100) : 0;
+  els.achievementsCount.textContent = `${unlockedCount} / ${items.length}`;
+  els.achievementsPercent.textContent = `${percent}% COMPLETE`;
+  els.achievementsTotalFill.style.width = `${percent}%`;
+  els.achievementsList.innerHTML = items.map((item, index) => `
+    <article class="achievement-row${item.unlocked ? " is-unlocked" : ""}">
+      <span class="achievement-index">${String(index + 1).padStart(2, "0")}</span>
+      <div class="achievement-copy">
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.description)}</p>
+      </div>
+      <strong class="achievement-state">${escapeHtml(achievementProgressText(item))}</strong>
+    </article>
+  `).join("");
 }
 
 function sortCharacters(characters) {
@@ -1248,7 +1556,8 @@ function enhanceCharacterSelect(select, side, label) {
 
 function syncCharacterPickerButton(api) {
   const { select, label, button } = api;
-  const character = findCharacterByIndex(select.value);
+  const character = selectableCombatantsForPicker(api)
+    .find((item) => String(combatantPickerValue(item, api)) === String(select.value)) || null;
   const selectedName = selectedText(select);
   button.style.setProperty("--character-color", character ? characterColor(character.id) : RANDOM_CHARACTER_COLOR);
   button.classList.toggle("is-random", !character);
@@ -1264,7 +1573,10 @@ function syncCharacterPickerButton(api) {
 function openCharacterPicker(api) {
   state.activeCharacterPicker = api;
   closeCustomSelects();
-  els.characterPickerTitle.textContent = `${api.label} 선택`;
+  const label = state.battleMode === "skill-debug" && api.select === els.playerSelect
+    ? "테스트 대상"
+    : api.label;
+  els.characterPickerTitle.textContent = `${label} 선택`;
   renderCharacterPickerGrid(api);
   els.characterPickerModal.hidden = false;
   window.requestAnimationFrame(() => {
@@ -1280,11 +1592,12 @@ function closeCharacterPicker() {
 
 function renderCharacterPickerGrid(api) {
   const selectedValue = String(api.select.value);
-  const characters = state.options?.characters || [];
+  const characters = selectableCombatantsForPicker(api);
+  const includeRandom = !(state.battleMode === "skill-debug" && api.select === els.playerSelect);
   const items = [
-    { value: "random", name: "???", title: "무작위", character: null },
+    ...(includeRandom ? [{ value: "random", name: "???", title: "무작위", character: null }] : []),
     ...characters.map((character) => ({
-      value: String(character.index),
+      value: String(combatantPickerValue(character, api)),
       name: character.name,
       title: character.title,
       character,
@@ -1400,20 +1713,25 @@ function closeCustomSelectsOnOutside(event) {
 }
 
 function syncSetupFromBattle(data) {
-  const player = findCharacterByName(data.player?.name);
-  const ai = findCharacterByName(data.ai?.name);
-  if (player) {
-    els.playerSelect.value = String(player.index);
-  }
-  if (ai) {
-    els.aiSelect.value = String(ai.index);
-  }
-  if (data.personality?.id) {
-    els.personalitySelect.value = data.personality.id;
-  }
-  if (data.player?.inscriptionId) {
-    state.selectedInscriptionId = data.player.inscriptionId;
-    syncInscriptionPicker();
+  if (state.battleMode === "skill-debug") {
+    els.playerSelect.value = String(data.player?.id || els.playerSelect.value);
+    state.skillDebugCombatantId = els.playerSelect.value;
+  } else {
+    const player = findCharacterByName(data.player?.name);
+    const ai = findCharacterByName(data.ai?.name);
+    if (player) {
+      els.playerSelect.value = String(player.index);
+    }
+    if (ai) {
+      els.aiSelect.value = String(ai.index);
+    }
+    if (data.personality?.id) {
+      els.personalitySelect.value = data.personality.id;
+    }
+    if (data.player?.inscriptionId) {
+      state.selectedInscriptionId = data.player.inscriptionId;
+      syncInscriptionPicker();
+    }
   }
   syncAllCustomSelects();
 }
@@ -1427,6 +1745,16 @@ function setMatchLabel(player, ai, personality) {
 
 function previewSelectedMatch() {
   const player = selectedText(els.playerSelect);
+  if (state.battleMode === "tutorial") {
+    setMatchLabel(player, "루크", "Tutorial");
+    els.aiModeText.textContent = "GUIDED";
+    return;
+  }
+  if (state.battleMode === "skill-debug") {
+    setMatchLabel(player, "플로테", "공격 → 방어 → 명상 → 화염탄");
+    els.aiModeText.textContent = "SCRIPTED 1 → 2 → 3 → 4";
+    return;
+  }
   if (state.battleMode === "adventure") {
     const stage = state.adventure?.stage || 1;
     const totalStages = state.adventure?.totalStages || 20;
@@ -1462,7 +1790,37 @@ async function startConfiguredBattle() {
     return;
   }
   if (state.battleMode === "adventure") return startAdventure();
+  if (state.battleMode === "skill-debug") return startSkillDebugBattle();
+  if (state.battleMode === "tutorial") return startTutorialBattle();
   return state.battleMode === "pvp" ? startPvpEntry() : startBattle();
+}
+
+async function startTutorialBattle() {
+  if (state.busy || state.tutorial?.setupStep !== 3 || selectedTutorialCharacter()?.id !== TUTORIAL_CHARACTER_ID) return;
+  stopPvpPolling();
+  state.pvp = null;
+  state.tutorial.started = true;
+  primeAudio();
+  playBgm("fight", 300);
+  setBusy(true);
+  clearLogs();
+  try {
+    const data = await api("/api/tutorial/new", {
+      playerInscriptionId: state.selectedInscriptionId,
+      seed: "versus-guided-tutorial",
+    });
+    state.battle = data;
+    syncSetupFromBattle(data);
+    renderBattle(data);
+    await pushTurnLog("튜토리얼 시작", data.log, true);
+  } catch (error) {
+    state.tutorial.started = false;
+    stopBgm(300);
+    pushTurnLog("오류", [`튜토리얼 시작 실패: ${error.message}`], false);
+    renderTutorialGuide();
+  } finally {
+    setBusy(false);
+  }
 }
 
 function openAdventureRestartConfirm() {
@@ -1559,6 +1917,30 @@ async function startBattle() {
   }
 }
 
+async function startSkillDebugBattle() {
+  if (state.busy) return;
+  stopPvpPolling();
+  state.pvp = null;
+  primeAudio();
+  playBgm("fight", 300);
+  setBusy(true);
+  clearLogs();
+  try {
+    const data = await api("/api/dev/skill-debug/new", {
+      combatantId: els.playerSelect.value,
+    });
+    state.battle = data;
+    syncSetupFromBattle(data);
+    renderBattle(data);
+    await pushTurnLog("스킬 디버그 시작", data.log, true);
+  } catch (error) {
+    stopBgm(300);
+    pushTurnLog("오류", [`스킬 디버그 시작 실패: ${error.message}`], false);
+  } finally {
+    setBusy(false);
+  }
+}
+
 async function startAdventure() {
   if (state.busy) return;
   state.adventureRestartRequested = false;
@@ -1601,6 +1983,9 @@ async function chooseAction(actionNumber) {
       ? await adventureActionRequest({ action: actionNumber })
       : await api("/api/action", { action: actionNumber });
     const isGameOver = Boolean(data.is_over || data.gameOver);
+    if (state.battleMode === "tutorial" && data.tutorial?.completed) {
+      setTutorialEnabled(false);
+    }
     if (data.adventure) {
       state.adventure = { ...data.adventure };
     }
@@ -1922,6 +2307,7 @@ function renderEmptyBattle() {
   renderFighter("ai", empty);
   renderPassive(null);
   els.turnChip.textContent = "TURN -";
+  els.playerGold.hidden = true;
   els.enemyInfoButton.disabled = true;
   els.battleRecordButton.hidden = true;
   els.battleRecordButton.disabled = true;
@@ -1929,6 +2315,7 @@ function renderEmptyBattle() {
 }
 
 function renderBattle(data, options = {}) {
+  syncAchievements(data);
   const adventure = data.adventure || (state.battleMode === "adventure" ? state.adventure : null);
   const isPrologue = adventure?.phase === "prologue";
   const isFinalBattleDialogue = adventure?.phase === "final_battle_dialogue";
@@ -1959,7 +2346,9 @@ function renderBattle(data, options = {}) {
   }
   renderPassive(data.player);
   const adventureChoices = (data.is_over || isPrologue) && Array.isArray(adventure?.choices) ? adventure.choices : [];
-  if (adventure?.phase === "complete") {
+  if (data.tutorial?.completed) {
+    renderEmptyActions("튜토리얼 완료");
+  } else if (adventure?.phase === "complete") {
     renderEmptyActions("여정을 마쳤습니다.");
   } else if (adventureChoices.length) {
     renderAdventureChoices(adventureChoices);
@@ -2019,6 +2408,12 @@ function renderBattle(data, options = {}) {
       : adventure.phase === "complete"
       ? "ADVENTURE COMPLETE"
       : `STAGE ${adventure.stage} / ${adventure.totalStages}`;
+  } else if (data.skillDebug || state.battleMode === "skill-debug") {
+    setMatchLabel(data.player.name, data.ai.name, "공격 → 방어 → 명상 → 화염탄");
+    els.aiModeText.textContent = "SCRIPTED 1 → 2 → 3 → 4";
+  } else if (data.tutorial || state.battleMode === "tutorial") {
+    setMatchLabel(data.player.name, data.ai.name, "Tutorial");
+    els.aiModeText.textContent = data.tutorial?.completed ? "FREE BATTLE" : "GUIDED";
   } else if (data.pvp) {
     setMatchLabel(data.player.name, data.started ? data.ai.name : "???", "PvP");
     els.aiModeText.textContent = "PvP";
@@ -2029,6 +2424,7 @@ function renderBattle(data, options = {}) {
   els.enemyInfoButton.disabled = isPrologue;
   els.playerInfoButton.disabled = false;
   renderPvpStatus(data);
+  renderTutorialGuide(data);
   syncSetupLock();
   syncDefeatVisuals(data, options.animateDefeat);
 }
@@ -2052,21 +2448,17 @@ function renderFighter(side, fighter, adventure = null) {
   const ids = fighterIds[side];
   const maxHp = fighter.max_hp ?? fighter.maxHp ?? 0;
   const maxMp = fighter.max_mp ?? fighter.maxMp ?? 0;
-  const defense = fighter.defense ?? fighter.stats?.def ?? "-";
-  const stateText = fighter.status_text || fighter.stateText || "없음";
+  const stateText = fighter.hud_state_text || fighter.hudStateText || compactHudStateText(fighter.status_text || fighter.stateText);
   const avatar = document.querySelector(ids.avatar);
   avatar.classList.remove("is-adventure-scene");
   avatar.classList.toggle("is-adventure-monochrome", side === "ai" && Boolean(adventure));
   avatar.classList.toggle("is-adventure-mirror", side === "ai" && Boolean(adventure?.isMirrorBattle));
-  document.querySelector(ids.sideName).textContent = fighter.name;
-  document.querySelector(ids.sideTitle).textContent = fighter.title || "";
+  avatar.dataset.fighterId = fighter?.id || "";
   avatar.style.setProperty("--character-color", characterColor(fighter.id));
   const battleSpriteSrc = battleSpriteSrcForSubject(fighter, side);
   const fighterVisual = battleSpriteSrc
     ? battleSpriteHtml(fighter, side, battleSpriteSrc)
-    : avatarSvg(fighter.name || fighter.id || "?", side, {
-      monochrome: side === "ai" && Boolean(adventure),
-    });
+    : "";
   avatar.classList.toggle("has-battle-sprite", Boolean(battleSpriteSrc));
   avatar.classList.toggle("is-empty", !fighterVisual);
   avatar.innerHTML = fighterVisual;
@@ -2075,17 +2467,12 @@ function renderFighter(side, fighter, adventure = null) {
   setBar(ids.mpBar, fighter.mp, maxMp);
   document.querySelector(ids.hpText).textContent = `${formatStat(fighter.hp)}/${formatStat(maxHp)}`;
   document.querySelector(ids.mpText).textContent = `${formatStat(fighter.mp)}/${formatStat(maxMp)}`;
-  const statsElement = document.querySelector(ids.stats);
-  statsElement.textContent = `ATK ${formatStat(fighter.atk)} / DEF ${formatStat(defense)} / SPD ${formatStat(fighter.spd)}`;
-  if (side === "player" && Number.isFinite(Number(adventure?.gold))) {
-    statsElement.append(" / ");
-    const gold = document.createElement("span");
-    gold.className = "adventure-gold";
-    gold.textContent = `G ${formatStat(adventure.gold)}`;
-    statsElement.append(gold);
-  }
   document.querySelector(ids.state).textContent = stateText;
-  hideInlineBattleRecord(ids.record);
+  if (side === "player") {
+    const hasAdventureGold = Number.isFinite(Number(adventure?.gold));
+    els.playerGold.hidden = !hasAdventureGold;
+    els.playerGold.textContent = hasAdventureGold ? `G ${formatStat(adventure.gold)}` : "";
+  }
 }
 
 function renderAdventureScene(scene) {
@@ -2098,19 +2485,37 @@ function renderAdventureScene(scene) {
   avatar.innerHTML = `<img class="adventure-scene-illustration" src="${escapeHtml(localAssetUrl(illustration))}" alt="색을 잃어가는 팔레티아 대륙">`;
 }
 
-function hideInlineBattleRecord(selector) {
-  const box = document.querySelector(selector);
-  box.hidden = true;
-  box.innerHTML = "";
+function compactHudStateText(value) {
+  const text = String(value || "").trim();
+  if (!text || text === "없음") return "";
+  const hiddenPrefixes = [
+    "기본 MP 회복",
+    "턴 종료 HP 회복",
+    "유물:",
+    "여정 능력치",
+    "전투 종료 HP 회복 보정",
+    "전투 시작 MP 회복",
+    "마왕군 최대 HP",
+    "전투 보상",
+    "행선지 재추첨",
+    "유물상의 장부",
+    "다음 기습 확률",
+    "다음 전투",
+  ];
+  const parts = text
+    .split(" / ")
+    .map((part) => part.trim())
+    .filter((part) => part && !hiddenPrefixes.some((prefix) => part.startsWith(prefix)))
+    .map((part) => part
+      .replace(/\((\d+)턴\)/g, " $1T")
+      .replace(/\b(ATK(?:·DEF|·SPD)?|DEF(?:·SPD)?|SPD) ×(\d+(?:\.\d+)?)/g, (_match, label, multiplier) => `${label}${Number(multiplier) >= 1 ? "↑" : "↓"}`));
+  return parts.length ? parts.join(" · ") : "";
 }
 
 function renderBattleRecordButton(data = state.battle) {
   const hasRecords = Boolean(data?.player?.battleLog?.length || data?.ai?.battleLog?.length);
-  const adventure = data?.adventure || state.adventure;
-  const isAdventure = state.battleMode === "adventure" && Boolean(adventure);
-  const shouldShow = hasRecords || isAdventure;
-  els.battleRecordButton.hidden = !shouldShow;
-  els.battleRecordButton.disabled = !shouldShow;
+  els.battleRecordButton.hidden = !hasRecords;
+  els.battleRecordButton.disabled = !hasRecords;
 }
 
 function renderPassive(fighter) {
@@ -2293,9 +2698,15 @@ function createPassiveSlot(passive) {
 
 function createActionButton(action) {
   const button = document.createElement("button");
+  const expectedActionNumber = Number(state.battle?.tutorial?.expectedActionNumber || 0);
+  const tutorialLocked = state.battleMode === "tutorial"
+    && !state.battle?.tutorial?.completed
+    && expectedActionNumber > 0
+    && Number(action.number) !== expectedActionNumber;
   button.type = "button";
   button.className = "action-button";
-  button.disabled = !action.available || state.busy;
+  button.classList.toggle("is-tutorial-target", expectedActionNumber > 0 && Number(action.number) === expectedActionNumber);
+  button.disabled = !action.available || state.busy || tutorialLocked;
   button.addEventListener("click", () => chooseAction(action.number));
   button.innerHTML = `
     ${skillIconHtml(action)}
@@ -2581,6 +2992,36 @@ function resolveCharacterBattleEffect(phase, context, details = {}) {
   });
 }
 
+function resolveTargetCharacterBattleEffect(phase, context, details = {}) {
+  const targetSide = details.targetSide || context.lineSide;
+  const targetId = targetSide ? state.battle?.[targetSide]?.id : null;
+  if (!targetId) return undefined;
+  return CHARACTER_BATTLE_EFFECTS?.resolve?.(targetId, phase, {
+    ...details,
+    actionName: context.actionName,
+    actorName: context.actorName,
+    actorSide: context.actorSide,
+    battle: state.battle,
+    logDelayMs: LOG_DELAY_MS,
+    makeLogEffect,
+    makeMissEffect,
+    oppositeSide,
+  });
+}
+
+function withConcurrentBattleEffects(effect, ...extras) {
+  const concurrentEffects = extras.filter((item) => item && typeof item === "object");
+  if (!concurrentEffects.length) return effect;
+  if (!effect || typeof effect !== "object") return concurrentEffects[0];
+  return {
+    ...effect,
+    concurrentEffects: [
+      ...(Array.isArray(effect.concurrentEffects) ? effect.concurrentEffects : []),
+      ...concurrentEffects,
+    ],
+  };
+}
+
 function resolveStatusBattleEffect(statusName, phase, context, details = {}) {
   return CHARACTER_BATTLE_EFFECTS?.resolveStatus?.(statusName, phase, {
     ...details,
@@ -2719,9 +3160,20 @@ function effectFromLogLine(line, context) {
       targetSide: context.lineSide,
       damage,
     });
-    if (characterEffect !== undefined) return characterEffect;
+    const targetCharacterEffect = damage > 0
+      ? resolveTargetCharacterBattleEffect("damageTaken", context, {
+        targetName: match[1],
+        targetSide: context.lineSide,
+        damage,
+      })
+      : undefined;
     const effectType = context.actionName === "일반 공격" ? "normal-attack" : "hit";
-    return damage > 0 ? makeLogEffect(effectType, match[1], context.actorName, damage, context.lineSide, context.actorSide) : null;
+    const primaryEffect = characterEffect !== undefined
+      ? characterEffect
+      : damage > 0
+        ? makeLogEffect(effectType, match[1], context.actorName, damage, context.lineSide, context.actorSide)
+        : null;
+    return withConcurrentBattleEffects(primaryEffect, targetCharacterEffect);
   }
 
   match = line.match(/^(.+?)(?:은|는) (.+?)(?:으)?로 (\d+)의 고정 피해를 입었다\./);
@@ -2737,7 +3189,7 @@ function effectFromLogLine(line, context) {
     return damage > 0 ? makeLogEffect("hit", match[1], context.actorName, damage, context.lineSide, context.actorSide) : null;
   }
 
-  match = line.match(/^(.+?) HP 회복 (\d+)\s*(?:→|->)\s*(\d+)/);
+  match = line.match(/^(.+?) HP 회복 (\d+)\s*(?:→|->)\s*(\d+)(?: \((.+?)\))?$/);
   if (match) {
     const amount = Number(match[3]) - Number(match[2]);
     const targetName = match[1];
@@ -2746,8 +3198,16 @@ function effectFromLogLine(line, context) {
       targetName,
       targetSide,
       amount,
+      reason: match[4] || "",
     });
     if (characterEffect !== undefined) return characterEffect;
+    const targetCharacterEffect = resolveTargetCharacterBattleEffect("heal", context, {
+      targetName,
+      targetSide,
+      amount,
+      reason: match[4] || "",
+    });
+    if (targetCharacterEffect !== undefined) return targetCharacterEffect;
     const effect = amount > 0 ? makeLogEffect("heal", match[1], match[1], amount, context.lineSide, context.lineSide) : null;
     return effect ? { ...effect, valueKind: "hp-gain" } : null;
   }
@@ -3111,6 +3571,12 @@ function playLogEffect(effect) {
     registerEffectTimeout(window.setTimeout(() => playLogEffect(delayedEffect), Number(effect.delayMs)));
     return;
   }
+  if (Array.isArray(effect.concurrentEffects) && effect.concurrentEffects.length) {
+    const concurrentEffects = effect.concurrentEffects;
+    effect = { ...effect };
+    delete effect.concurrentEffects;
+    for (const concurrentEffect of concurrentEffects) playLogEffect(concurrentEffect);
+  }
   if (effect.spriteState && effect.spriteSide) {
     setBattleSpriteState(effect.spriteSide, effect.spriteState, effect.spriteHoldMs);
   }
@@ -3414,11 +3880,14 @@ function openFighterInfo(side) {
   if (!fighter) return;
   const character = findCharacterForFighter(fighter);
   if (!character) return;
+  const adventure = state.battleMode === "adventure"
+    ? state.battle?.adventure || state.adventure
+    : null;
   els.enemyInfoKicker.hidden = false;
   els.enemyInfoKicker.textContent = side === "player" ? "내 정보" : "상대 정보";
   els.enemyInfoTitle.textContent = fighter.label || `${fighter.name} — ${fighter.title}`;
   els.enemyInfoBody.style.setProperty("--character-color", characterColor(fighter.id));
-  els.enemyInfoBody.innerHTML = fighterInfoHtml(character, fighter);
+  els.enemyInfoBody.innerHTML = fighterInfoHtml(character, fighter, { side, adventure });
   els.enemyInfoModal.hidden = false;
 }
 
@@ -3428,57 +3897,16 @@ function closeInfoModal() {
 
 function openBattleRecords() {
   const sections = battleRecordSections();
-  const adventure = state.battleMode === "adventure"
-    ? state.battle?.adventure || state.adventure
-    : null;
-  if (!sections.length && !adventure) return;
+  if (!sections.length) return;
   els.enemyInfoKicker.hidden = false;
   els.enemyInfoKicker.textContent = "캐릭터 기록";
   els.enemyInfoTitle.textContent = "캐릭터 기록";
   els.enemyInfoBody.innerHTML = `
     <div class="record-modal-list">
       ${sections.map(recordSectionHtml).join("")}
-      ${!sections.length ? emptyBattleRecordHtml() : ""}
-      ${adventure ? adventureRelicRecordsHtml(adventure) : ""}
     </div>
   `;
   els.enemyInfoModal.hidden = false;
-}
-
-function emptyBattleRecordHtml() {
-  return `
-    <section class="record-modal-card">
-      <span>캐릭터 기록</span>
-      <strong>현재 기록된 고유 정보가 없습니다.</strong>
-    </section>
-  `;
-}
-
-function adventureRelicRecordsHtml(adventure) {
-  const relics = (adventure.playerRelics || []).filter((relic) => !relic?.destroyed);
-  return `
-    ${relics.length
-      ? relics.map((relic) => `
-        <section class="record-modal-card">
-          <span>${escapeHtml(`유물 정보 · ${relic.pool === "event" ? "이벤트 전용" : "유물 상점"}`)}</span>
-          <strong>${escapeHtml(relic.name)}</strong>
-          <p>${escapeHtml(relic.description)}</p>
-        </section>
-      `).join("")
-      : `
-        <section class="record-modal-card">
-          <span>유물 정보</span>
-          <strong>보유한 유물이 없습니다.</strong>
-        </section>
-      `}
-    ${adventure.hasRelicLedger ? `
-      <section class="record-modal-card">
-        <span>유물 정보 · 소지품</span>
-        <strong>유물상의 장부</strong>
-        <p>다음 유물 상점에서 진열된 상품을 한 번 무료로 다시 뽑을 수 있다.</p>
-      </section>
-    ` : ""}
-  `;
 }
 
 function battleRecordSections() {
@@ -3501,8 +3929,16 @@ function recordSectionHtml(section) {
   `;
 }
 
-function fighterInfoHtml(character, fighter) {
-  const stats = character.stats || {};
+function fighterInfoHtml(character, fighter, { side = "player", adventure = null } = {}) {
+  const initialStats = character.stats || {};
+  const persistentStats = fighter.baseStats || initialStats;
+  const currentStats = fighter.stats || {
+    atk: fighter.atk,
+    def: fighter.defense,
+    spd: fighter.spd,
+  };
+  const maxHp = fighter.max_hp ?? fighter.maxHp ?? persistentStats.hp ?? initialStats.hp;
+  const maxMp = fighter.max_mp ?? fighter.maxMp ?? 0;
   const statuses = (character.uniqueStatuses || character.unique_statuses || [])
     .map((status) => infoTileHtml("고유 상태", status.name, status.description))
     .join("");
@@ -3512,15 +3948,19 @@ function fighterInfoHtml(character, fighter) {
   const skills = (character.skills || []).map((skill) => skillTileHtml(skill)).join("");
   const previewSprite = characterPreviewSpriteHtml(fighter, "fighter-info-sprite");
   const summary = `
-    <div class="modal-summary">
-      <div>
-        <span>현재 상태</span>
-        <strong>${escapeHtml(fighter.status_text || "없음")}</strong>
+    <div class="fighter-battle-summary">
+      <div class="fighter-current-stats" aria-label="현재 능력치">
+        ${currentVitalHtml("HP", fighter.hp, maxHp)}
+        ${currentVitalHtml("MP", fighter.mp, maxMp)}
+        ${currentStatHtml("ATK", currentStats.atk ?? fighter.atk, initialStats.atk)}
+        ${currentStatHtml("DEF", currentStats.def ?? fighter.defense, initialStats.def)}
+        ${currentStatHtml("SPD", currentStats.spd ?? fighter.spd, initialStats.spd)}
       </div>
-      <div>
-        <span>기본 능력치</span>
-        <strong>HP ${formatStat(stats.hp)} / ATK ${formatStat(stats.atk)} / DEF ${formatStat(stats.def)} / SPD ${formatStat(stats.spd)}</strong>
+      <div class="fighter-effect-summary">
+        <span>적용 중인 효과</span>
+        <strong>${escapeHtml(fighter.status_text || fighter.stateText || "없음")}</strong>
       </div>
+      ${side === "player" && adventure ? adventureFighterInfoHtml(adventure, fighter) : ""}
     </div>
   `;
 
@@ -3533,6 +3973,48 @@ function fighterInfoHtml(character, fighter) {
       ${statuses || infoTileHtml("고유 상태", "없음", "")}
       ${skills}
     </div>
+  `;
+}
+
+function currentVitalHtml(label, current, maximum) {
+  return `
+    <div class="fighter-current-stat">
+      <span>${label}</span>
+      <strong>${formatStat(current)}<small> / ${formatStat(maximum)}</small></strong>
+    </div>
+  `;
+}
+
+function currentStatHtml(label, current, initial) {
+  const initialValue = Number(initial);
+  return `
+    <div class="fighter-current-stat">
+      <span>${label}</span>
+      <strong>${formatStat(current)}</strong>
+      ${Number.isFinite(initialValue) ? `<small>초기 ${formatStat(initialValue)}</small>` : ""}
+    </div>
+  `;
+}
+
+function adventureFighterInfoHtml(adventure, fighter) {
+  const relics = (fighter.adventureRelics || adventure.playerRelics || []).filter((relic) => !relic?.destroyed);
+  return `
+    <section class="fighter-adventure-summary">
+      <div class="fighter-adventure-heading">
+        <span>ADVENTURE</span>
+        <strong>G ${formatStat(adventure.gold || 0)}</strong>
+      </div>
+      <div class="fighter-relic-list">
+        ${relics.length
+          ? relics.map((relic) => `
+            <article>
+              <span>${escapeHtml(relic.name)}</span>
+              <p>${escapeHtml(relic.description || "-")}</p>
+            </article>
+          `).join("")
+          : `<p class="fighter-relic-empty">보유한 유물이 없습니다.</p>`}
+      </div>
+    </section>
   `;
 }
 
@@ -3705,7 +4187,9 @@ function setBusy(isBusy) {
       && Array.isArray(state.adventure?.choices)
       ? state.adventure.choices
       : [];
-    if (adventureChoices.length) {
+    if (state.battleMode === "tutorial" && state.battle.tutorial?.completed) {
+      renderEmptyActions("튜토리얼 완료");
+    } else if (adventureChoices.length) {
       renderAdventureChoices(adventureChoices);
     } else if (
       state.battleMode === "adventure"
@@ -3726,25 +4210,31 @@ function setBusy(isBusy) {
 
 function syncSetupLock() {
   const pvpLocked = isPvpSetupLocked();
-  const playerSetupLocked = pvpLocked || (state.battleMode === "adventure" && state.busy);
+  const tutorialSetup = state.battleMode === "tutorial" && state.tutorial && !state.tutorial.started;
+  const tutorialBattleLocked = state.battleMode === "tutorial" && Boolean(state.battle || state.tutorial?.started);
+  const basePlayerSetupLocked = pvpLocked || (state.battleMode === "adventure" && state.busy);
+  const playerSelectLocked = basePlayerSetupLocked || tutorialBattleLocked || (tutorialSetup && state.tutorial.setupStep > 1);
+  const inscriptionLocked = basePlayerSetupLocked || tutorialBattleLocked || (tutorialSetup && state.tutorial.setupStep !== 2);
   const canRestartDuringDialogue = state.battleMode === "adventure"
     && state.busy
     && ["final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
     && !state.adventureRestartRequested;
-  const startLocked = pvpLocked || (state.busy && !canRestartDuringDialogue);
+  const tutorialStartLocked = state.battleMode === "tutorial"
+    && (!tutorialSetup || state.tutorial.setupStep !== 3 || selectedTutorialCharacter()?.id !== TUTORIAL_CHARACTER_ID);
+  const startLocked = pvpLocked || tutorialStartLocked || (state.busy && !canRestartDuringDialogue);
   els.startButton.disabled = startLocked;
   els.inscriptionButton.removeAttribute("title");
-  if (playerSetupLocked && document.activeElement === els.inscriptionButton) {
+  if (inscriptionLocked && document.activeElement === els.inscriptionButton) {
     els.inscriptionButton.blur();
   }
-  els.inscriptionButton.disabled = playerSetupLocked;
-  els.playerSelect.disabled = playerSetupLocked;
+  els.inscriptionButton.disabled = inscriptionLocked;
+  els.playerSelect.disabled = playerSelectLocked;
   els.pvpRoomInput.disabled = pvpLocked;
   for (const picker of state.characterPickers) {
-    picker.select.disabled = picker.select === els.playerSelect ? playerSetupLocked : false;
+    picker.select.disabled = picker.select === els.playerSelect ? playerSelectLocked : false;
     picker.button.disabled = picker.select.disabled;
   }
-  if (playerSetupLocked) {
+  if (playerSelectLocked || inscriptionLocked) {
     closeCustomSelects();
     closeInscriptionPopover();
     closeCharacterPicker();
@@ -3890,10 +4380,6 @@ function selectedText(select) {
   return select.options[select.selectedIndex]?.textContent || "-";
 }
 
-function findCharacterByIndex(index) {
-  return state.options?.characters?.find((character) => String(character.index) === String(index)) || null;
-}
-
 function findCharacterByName(name) {
   return state.options?.characters?.find((character) => character.name === name) || null;
 }
@@ -3902,9 +4388,50 @@ function findCharacterForFighter(fighter) {
   const adventureMonster = state.adventure?.monster;
   const isAi = fighter?.battleSide === "AI" || fighter?.side === "AI" || fighter === state.battle?.ai;
   if (isAi && fighter?.id && adventureMonster?.id === fighter.id) return adventureMonster;
+  const tutorialOpponent = state.options?.tutorial?.opponent;
+  if (isAi && fighter?.id && tutorialOpponent?.id === fighter.id) return tutorialOpponent;
+  const debugCombatant = skillDebugConfig()?.combatants?.find((combatant) => combatant.id === fighter?.id);
+  if (debugCombatant) return debugCombatant;
   return state.options?.characters?.find((character) => (
     (fighter.id && character.id === fighter.id) || character.name === fighter.name
   )) || null;
+}
+
+function skillDebugConfig() {
+  return state.options?.devTools?.skillDebug || null;
+}
+
+function syncPlayerCombatantOptions(wasSkillDebug = false, isSkillDebug = state.battleMode === "skill-debug") {
+  if (!state.options) return;
+  if (wasSkillDebug === isSkillDebug && els.playerSelect.options.length) return;
+  if (isSkillDebug) {
+    const combatants = sortCharacters(skillDebugConfig()?.combatants || []);
+    fillSelect(els.playerSelect, combatants, "id", "name", false);
+    const requested = state.skillDebugCombatantId;
+    els.playerSelect.value = combatants.some((combatant) => combatant.id === requested)
+      ? requested
+      : String(combatants[0]?.id || "");
+  } else {
+    fillSelect(els.playerSelect, state.options.characters || [], "index", "name", true, "???");
+    const requested = state.normalPlayerSelection;
+    els.playerSelect.value = [...els.playerSelect.options].some((option) => option.value === requested)
+      ? requested
+      : "random";
+  }
+  syncAllCustomSelects();
+}
+
+function selectableCombatantsForPicker(api) {
+  if (state.battleMode === "skill-debug" && api.select === els.playerSelect) {
+    return sortCharacters(skillDebugConfig()?.combatants || []);
+  }
+  return state.options?.characters || [];
+}
+
+function combatantPickerValue(combatant, api) {
+  return state.battleMode === "skill-debug" && api.select === els.playerSelect
+    ? combatant.id
+    : combatant.index;
 }
 
 function battleSpriteSrcForSubject(subject, side) {
@@ -3928,21 +4455,25 @@ function characterPickerThumbHtml(character, side, isRandom = false) {
 }
 
 function spriteAssetForSubject(subject) {
-  const id = subject?.id || findCharacterByName(subject?.name)?.id;
+  const id = subject?.activeCharacterId || subject?.id || findCharacterByName(subject?.name)?.id;
   const assetGroup = id ? SPRITE_ASSETS[id] : null;
-  return assetGroup ? { id, assetGroup } : null;
+  if (!assetGroup) return null;
+  const requestedVariant = String(subject?.battleSpriteVariant || "");
+  const variant = BATTLE_SPRITE_VARIANTS[id]?.includes(requestedVariant) ? requestedVariant : null;
+  return { id, assetGroup, variant };
 }
 
 function battleSpriteStateSrcForSubject(subject, spriteState = "idle") {
   const asset = spriteAssetForSubject(subject);
   if (!asset) return "";
-  return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/sprites/${BATTLE_SPRITE_RENDER_STATE}.png`);
+  if (asset.variant) {
+    return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/forms/${encodeURIComponent(asset.variant)}.webp`);
+  }
+  return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/sprites/${BATTLE_SPRITE_RENDER_STATE}.webp`);
 }
 
 function preloadBattleSpriteStates(subject) {
-  const asset = spriteAssetForSubject(subject);
-  if (!asset) return;
-  const src = battleSpriteStateSrcForSubject(subject, "idle");
+  const src = battleSpriteStateSrcForSubject(subject, BATTLE_SPRITE_RENDER_STATE);
   if (!src || state.preloadedSpriteUrls.has(src)) return;
   state.preloadedSpriteUrls.add(src);
   const image = new Image();
@@ -3955,6 +4486,7 @@ function setBattleSpriteState(side, spriteState, holdMs = 0) {
   const image = document.querySelector(fighterIds[side]?.avatar)?.querySelector(".battle-sprite-side");
   if (!src || !image) return false;
   const token = ++state.spriteStateTokens[side];
+  image.onerror = null;
   image.src = src;
   image.dataset.spriteState = BATTLE_SPRITE_RENDER_STATE;
   if (Number(holdMs) > 0) {
@@ -3973,6 +4505,7 @@ function resetBattleSpriteStates() {
     const src = battleSpriteStateSrcForSubject(fighter, "idle");
     const image = document.querySelector(fighterIds[side]?.avatar)?.querySelector(".battle-sprite-side");
     if (!src || !image) continue;
+    image.onerror = null;
     image.src = src;
     image.dataset.spriteState = "idle";
   }

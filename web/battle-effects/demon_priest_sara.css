@@ -1,5 +1,8 @@
 .battle-fx-sara-black-blood-sacrament {
-  inset: 17%;
+  top: calc(var(--fx-body-y, 50%) - 41%);
+  right: 9%;
+  bottom: calc(59% - var(--fx-body-y, 50%));
+  left: 9%;
   background: url("../assets/monsters/demon_priest_sara/effects/black-blood-sacrament.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1) drop-shadow(0 0 2px rgba(210, 210, 210, 0.35));
@@ -7,8 +10,11 @@
 }
 
 .battle-fx-sara-faded-curse {
-  inset: 16% 24%;
-  background: url("../assets/monsters/demon_priest_sara/effects/faded-curse.png") center / contain no-repeat;
+  top: calc(var(--fx-head-y, 12%) - 5%);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: url("../assets/monsters/demon_priest_sara/effects/faded-curse.png") center top / 130% 92% no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);
   animation: sara-faded-curse 540ms steps(6, end) forwards;

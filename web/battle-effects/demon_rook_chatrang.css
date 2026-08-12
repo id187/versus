@@ -1,0 +1,101 @@
+.battle-fx-chatrang-white-iron-barrage-1,
+.battle-fx-chatrang-white-iron-barrage-2 {
+  top: calc(var(--fx-body-y, 50%) - 43%);
+  right: 9%;
+  bottom: calc(57% - var(--fx-body-y, 50%));
+  left: 9%;
+  background: url("../assets/monsters/demon_rook_chatrang/effects/white-iron-barrage-fist.png") center / 165% auto no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1) drop-shadow(0 0 3px rgba(250, 250, 250, 0.72));
+}
+
+.battle-fx-chatrang-white-iron-barrage-1 {
+  animation: chatrang-barrage-left 320ms steps(5, end) forwards;
+}
+
+.battle-fx-chatrang-white-iron-barrage-2 {
+  animation: chatrang-barrage-right 320ms steps(5, end) forwards;
+}
+
+#playerAvatar .battle-fx-chatrang-white-iron-barrage-1,
+#playerAvatar .battle-fx-chatrang-white-iron-barrage-2 {
+  scale: -1 1;
+}
+
+.battle-fx-chatrang-strategic-position-change {
+  top: calc(var(--fx-head-y, 12%) - 22%);
+  right: 5%;
+  bottom: calc(62% - var(--fx-head-y, 12%));
+  left: 5%;
+  background: url("../assets/monsters/demon_rook_chatrang/effects/strategic-swap-emblem.png") center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter: grayscale(1) drop-shadow(0 0 5px rgba(246, 246, 246, 0.72));
+  transform-origin: 50% 50%;
+  animation: chatrang-strategic-swap 760ms steps(10, end) forwards;
+}
+
+#aiAvatar .battle-fx-chatrang-strategic-position-change {
+  scale: -1 1;
+}
+
+.battle-fx-chatrang-colorless-wallbreaker {
+  top: calc(var(--fx-body-y, 50%) - 54%);
+  right: -2%;
+  bottom: calc(46% - var(--fx-body-y, 50%));
+  left: -2%;
+  background: url("../assets/monsters/demon_rook_chatrang/effects/colorless-wallbreaker-rubble.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: grayscale(1) drop-shadow(0 0 5px rgba(242, 242, 242, 0.62));
+  animation: chatrang-wallbreaker-rubble 660ms steps(10, end) forwards;
+}
+
+#playerAvatar .battle-fx-chatrang-colorless-wallbreaker {
+  scale: -1 1;
+}
+
+.battle-fx-value-chatrang-white-iron-barrage-1,
+.battle-fx-value-chatrang-white-iron-barrage-2,
+.battle-fx-value-chatrang-colorless-wallbreaker {
+  color: #f3f3f3;
+  text-shadow: 0 2px 0 #111, 0 0 7px rgba(255, 255, 255, 0.84);
+}
+
+.avatar-stage.is-fx-chatrang-white-iron-barrage-1 .battle-sprite,
+.avatar-stage.is-fx-chatrang-white-iron-barrage-1 svg,
+.avatar-stage.is-fx-chatrang-white-iron-barrage-2 .battle-sprite,
+.avatar-stage.is-fx-chatrang-white-iron-barrage-2 svg {
+  animation: combatant-hit-shake 280ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.avatar-stage.is-fx-chatrang-colorless-wallbreaker .battle-sprite,
+.avatar-stage.is-fx-chatrang-colorless-wallbreaker svg {
+  animation: combatant-hit-shake 560ms cubic-bezier(0.14, 0.96, 0.24, 1);
+}
+
+@keyframes chatrang-barrage-left {
+  0% { opacity: 0; transform: translateX(-10%) scale(0.55); }
+  24%, 58% { opacity: 1; transform: translateX(-7%) scale(1); }
+  100% { opacity: 0; transform: translateX(-4%) scale(1.08); }
+}
+
+@keyframes chatrang-barrage-right {
+  0% { opacity: 0; transform: translateX(10%) scale(0.55); }
+  24%, 58% { opacity: 1; transform: translateX(7%) scale(1); }
+  100% { opacity: 0; transform: translateX(4%) scale(1.08); }
+}
+
+@keyframes chatrang-strategic-swap {
+  0% { opacity: 0; transform: rotate(0deg) scale(0.58); }
+  18% { opacity: 1; transform: rotate(0deg) scale(0.92); }
+  68% { opacity: 1; transform: rotate(180deg) scale(1); }
+  82% { opacity: 1; transform: rotate(180deg) scale(1.04); }
+  100% { opacity: 0; transform: rotate(180deg) scale(0.96); }
+}
+
+@keyframes chatrang-wallbreaker-rubble {
+  0% { opacity: 0; transform: scale(0.28); }
+  14% { opacity: 1; transform: scale(0.68); }
+  38%, 62% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(1.18); }
+}

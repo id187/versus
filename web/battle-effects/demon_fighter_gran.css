@@ -1,5 +1,8 @@
 .battle-fx-gran-black-fist-barrage {
-  inset: 13%;
+  top: calc(var(--fx-body-y, 50%) - 50%);
+  right: 0;
+  bottom: calc(50% - var(--fx-body-y, 50%));
+  left: 0;
   background: url("../assets/monsters/demon_fighter_gran/effects/black-fist-barrage.png") center / contain no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1) drop-shadow(0 0 2px rgba(220, 220, 220, 0.4));
@@ -7,8 +10,11 @@
 }
 
 .battle-fx-gran-colorless-fighting-spirit {
-  inset: 18% 14% 3%;
-  background: url("../assets/monsters/demon_fighter_gran/effects/colorless-fighting-spirit.png") center bottom / contain no-repeat;
+  top: calc(var(--fx-ground-y, 96%) - 84%);
+  right: -7%;
+  bottom: calc(81% - var(--fx-ground-y, 96%));
+  left: -7%;
+  background: url("../assets/monsters/demon_fighter_gran/effects/colorless-fighting-spirit.png") center bottom / 100% 100% no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);
   animation: gran-fighting-spirit 520ms steps(6, end) forwards;

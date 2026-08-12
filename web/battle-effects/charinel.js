@@ -116,6 +116,7 @@
         const arenaRect = arena.getBoundingClientRect();
         const sourceRect = sourceStage.getBoundingClientRect();
         const targetRect = targetStage.getBoundingClientRect();
+        const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
         const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
         const endX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
         const horizontalDirection = endX >= sourceCenterX ? 1 : -1;
@@ -123,7 +124,7 @@
           + sourceRect.width * (horizontalDirection > 0 ? 0.6 : 0.4)
           - arenaRect.left;
         const startY = sourceRect.top + sourceRect.height * 0.49 - arenaRect.top;
-        const endY = targetRect.top + targetRect.height * 0.5 - arenaRect.top;
+        const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
         const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * horizontalDirection;
         const projectile = document.createElement("span");
         projectile.className = "battle-fx-flashing-bullet-projectile";
@@ -163,6 +164,7 @@
         const arenaRect = arena.getBoundingClientRect();
         const sourceRect = sourceStage.getBoundingClientRect();
         const targetRect = targetStage.getBoundingClientRect();
+        const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
         const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
         const endX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
         const horizontalDirection = endX >= sourceCenterX ? 1 : -1;
@@ -170,7 +172,7 @@
           + sourceRect.width * (horizontalDirection > 0 ? 0.58 : 0.42)
           - arenaRect.left;
         const startY = sourceRect.top + sourceRect.height * 0.52 - arenaRect.top;
-        const endY = targetRect.top + targetRect.height * 0.5 - arenaRect.top;
+        const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
         const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * horizontalDirection;
         const projectile = document.createElement("span");
         projectile.className = "battle-fx-light-absorption-orb-projectile";
@@ -211,16 +213,17 @@
       const arenaRect = arena.getBoundingClientRect();
       const targetRect = targetStage.getBoundingClientRect();
       const sourceRect = sourceStage?.getBoundingClientRect?.();
+      const targetGroundY = registry.stagePercent(targetStage, "--fx-ground-y", 0.96);
       const targetCenterX = targetRect.left + targetRect.width / 2 - arenaRect.left;
-      const targetCenterY = targetRect.top + targetRect.height * 0.58 - arenaRect.top;
+      const meteorSize = Math.max(280, Math.min(390, targetRect.width * 1.65));
+      const targetGroundPointY = targetRect.top + targetRect.height * targetGroundY - arenaRect.top;
+      const targetCenterY = targetGroundPointY - meteorSize * 0.46;
       const sourceCenterX = sourceRect
         ? sourceRect.left + sourceRect.width / 2 - arenaRect.left
         : targetCenterX - 1;
       const horizontalDirection = targetCenterX >= sourceCenterX ? 1 : -1;
       const startOffsetX = -horizontalDirection * Math.max(54, targetRect.width * 0.38);
-      const startOffsetY = -Math.max(250, Math.min(360, arenaRect.height * 0.62));
-      const meteorSize = Math.max(230, Math.min(310, targetRect.width * 1.35));
-
+      const startOffsetY = -Math.max(340, Math.min(500, arenaRect.height * 0.82));
       const meteor = document.createElement("span");
       meteor.className = "battle-fx-infinite-radiant-meteor-projectile";
       meteor.dataset.characterBattleEffect = CHARACTER_ID;

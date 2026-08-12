@@ -269,6 +269,7 @@ class Fighter {
     this.adventureCommonDefenseReductionBonus = 0;
     this.adventureMeditationRecoveryBonus = 0;
     this.adventureBattleRhythm = null;
+    this.debugAccuracyOverride = null;
     this.adventureRelics = [];
     this.adventureTurnEndFixedDamage = 0;
     this.adventureSurviveDefeatCount = 0;
@@ -1037,6 +1038,10 @@ class Battle {
     }
     if (hasInscription(choice.actor, "orange")) accuracy += 10;
     if (hasInscription(choice.actor, "violet")) accuracy -= 5;
+    const debugOverride = choice.actor.debugAccuracyOverride == null
+      ? null
+      : Number(choice.actor.debugAccuracyOverride);
+    if (Number.isFinite(debugOverride)) return clamp(debugOverride, 0, 100);
     return clamp(accuracy, 0, 100);
   }
 
@@ -1322,6 +1327,17 @@ class Battle {
     target.hp = Math.max(0, target.hp - value);
     const actual = before - target.hp;
     if (attack) this.record.attackDamageTaken[target.side] = (this.record.attackDamageTaken[target.side] || 0) + actual;
+    if (actual > 0 && this.adventureState && source === this.player && target === this.ai) {
+      this.adventureState.achievementStats = this.adventureState.achievementStats || {
+        bestSingleAttackDamage: 0,
+        bestSingleFixedDamage: 0,
+      };
+      const metric = attack ? "bestSingleAttackDamage" : "bestSingleFixedDamage";
+      this.adventureState.achievementStats[metric] = Math.max(
+        Number(this.adventureState.achievementStats[metric] || 0),
+        actual,
+      );
+    }
     if (actual > 0) {
       characterLogic.onDamageTaken(this, target, actual, attack, source);
       if (attack && source) characterLogic.onAttackDamageDealt(this, source, target, actual);
@@ -1787,6 +1803,7 @@ function fighterState(battle, fighter, sideOverride = null) {
   const activeId = activeData?.id || fighter.characterId;
   const transformed = activeId !== fighter.characterId;
   const stateText = currentStateText(battle, fighter);
+  const hudStateText = currentHudStateText(stateText);
   const battleLog = [];
   if (characterLogic.needsBattleLog(battle, fighter)) characterLogic.renderBattleLog(battle, fighter, battleLog);
   return {
@@ -1798,6 +1815,7 @@ function fighterState(battle, fighter, sideOverride = null) {
     activeCharacterId: activeId,
     activeCharacterName: activeData?.name || fighter.name,
     transformed,
+    battleSpriteVariant: characterLogic.battleSpriteVariant(battle, fighter),
     label: fighter.label,
     hp: fighter.hp,
     max_hp: fighter.maxHp,
@@ -1815,6 +1833,8 @@ function fighterState(battle, fighter, sideOverride = null) {
     baseStats: { hp: fighter.maxHp, atk: fighter.baseAtk, def: fighter.baseDef, spd: fighter.baseSpd },
     status_text: stateText,
     stateText,
+    hud_state_text: hudStateText,
+    hudStateText,
     defenseText: `${defenseReductionPercentForStreak(
       fighter.defenseStreak + 1,
       adventureCommonDefenseBonus(battle, fighter),
@@ -1862,9 +1882,14 @@ function actionStatesForFighter(battle, fighter, forceDisabled = false) {
     const adventureAccuracyModifier = action.isActive
       ? Number(fighter.adventureSkillAccuracyModifiers?.[action.key] ?? 0)
       : 0;
+    const debugAccuracyOverride = fighter.debugAccuracyOverride == null
+      ? null
+      : Number(fighter.debugAccuracyOverride);
     const displayedAccuracy = action.accuracy == null
       ? null
-      : roundStat(clamp(
+      : Number.isFinite(debugAccuracyOverride)
+        ? roundStat(clamp(debugAccuracyOverride, 0, 100))
+        : roundStat(clamp(
         Number(action.accuracy)
         + (Number.isFinite(adventureAccuracyModifier) ? adventureAccuracyModifier : 0)
         + (action.isActive && action.isAttack ? adventureRelicEffectSum(fighter, "active_accuracy_bonus") : 0),
@@ -2019,6 +2044,31 @@ function currentStateText(battle, fighter) {
   return parts.length ? parts.join(" / ") : "없음";
 }
 
+function currentHudStateText(stateText) {
+  const hiddenPrefixes = [
+    "기본 MP 회복",
+    "턴 종료 HP 회복",
+    "유물:",
+    "여정 능력치",
+    "전투 종료 HP 회복 보정",
+    "전투 시작 MP 회복",
+    "마왕군 최대 HP",
+    "전투 보상",
+    "행선지 재추첨",
+    "유물상의 장부",
+    "다음 기습 확률",
+    "다음 전투",
+  ];
+  const parts = String(stateText || "")
+    .split(" / ")
+    .map((part) => part.trim())
+    .filter((part) => part && part !== "없음" && !hiddenPrefixes.some((prefix) => part.startsWith(prefix)))
+    .map((part) => part
+      .replace(/\((\d+)턴\)/g, " $1T")
+      .replace(/\b(ATK(?:·DEF|·SPD)?|DEF(?:·SPD)?|SPD) ×(\d+(?:\.\d+)?)/g, (_match, label, multiplier) => `${label}${Number(multiplier) >= 1 ? "↑" : "↓"}`));
+  return parts.length ? parts.join(" · ") : "";
+}
+
 function adventureRouteStateParts(adventure) {
   if (!adventure) return [];
   const parts = [];
@@ -2118,6 +2168,7 @@ function cloneFighter(source) {
   fighter.adventureBattleRhythm = source.adventureBattleRhythm
     ? { ...source.adventureBattleRhythm }
     : null;
+  fighter.debugAccuracyOverride = source.debugAccuracyOverride;
   fighter.adventureRelics = structuredCloneCompat(source.adventureRelics || []);
   fighter.adventureMeditationRelicReady = Boolean(source.adventureMeditationRelicReady);
   fighter.adventureCounterRelicReady = Boolean(source.adventureCounterRelicReady);

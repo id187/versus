@@ -30,6 +30,8 @@ function modifyAccuracyActorBeforeTarget(_battle, choice, _target, accuracy) {
 }
 
 module.exports = {
+  hiddenCounters: ["거포 강령"],
+
   initUniqueState(fighter, uniqueNames) {
     if (uniqueNames.has("과령")) {
       fighter.counters["과령"] = 0;

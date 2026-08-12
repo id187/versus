@@ -188,6 +188,12 @@ p {
   border-color: var(--gold);
 }
 
+.dev-menu-button {
+  border-color: rgba(88, 224, 255, 0.58);
+  background: linear-gradient(180deg, #17485b, #13242f);
+  color: #c9f7ff;
+}
+
 .secondary-menu-button {
   margin-top: 4px;
   border-color: rgba(146, 164, 194, 0.3);
@@ -216,10 +222,15 @@ p {
 .battle-screen,
 .rules-screen,
 .codex-screen,
+.achievements-screen,
 .settings-screen {
   grid-template-rows: 58px minmax(0, 1fr);
   gap: 10px;
   padding: 10px;
+}
+
+.battle-screen {
+  position: relative;
 }
 
 .app-header {
@@ -286,6 +297,19 @@ p {
 
 .battle-screen.is-adventure .battle-setup .primary-button {
   grid-column: -2 / -1;
+}
+
+.battle-screen.is-skill-debug .battle-setup {
+  grid-template-columns: minmax(220px, 1fr) 132px;
+  justify-content: end;
+}
+
+.battle-screen.is-skill-debug .battle-setup .primary-button {
+  grid-column: 2;
+}
+
+.battle-screen.is-skill-debug .player-select-row {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 label,
@@ -1095,8 +1119,51 @@ button:focus-visible {
   background: transparent;
   --character-color: #aeb4bd;
   --effect-color: #aeb4bd;
+  --fx-head-y: 12%;
+  --fx-body-y: 50%;
+  --fx-ground-y: 96%;
   box-shadow: none;
 }
+
+/* HD idle canvases share a ground line, but their actual heads and visual
+   mass do not. These anchors were measured from the approved final assets;
+   hats, horns, staves, and other ornaments are not mistaken for skulls. */
+.avatar-stage[data-fighter-id="toxiche"] { --fx-head-y: 5%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="cryne"] { --fx-head-y: 4%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="plote"] { --fx-head-y: 4%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="ashend"] { --fx-head-y: 5%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="karossy"] { --fx-head-y: 6%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="nihfle"] { --fx-head-y: 5%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="serpen"] { --fx-head-y: 4%; --fx-body-y: 49%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="melague"] { --fx-head-y: 13%; --fx-body-y: 52%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="balef"] { --fx-head-y: 4%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="revesha"] { --fx-head-y: 8%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="gandrick"] { --fx-head-y: 7%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="charinel"] { --fx-head-y: 5%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="dethus"] { --fx-head-y: 13%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="zeroven"] { --fx-head-y: 12%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="neroko"] { --fx-head-y: 5%; --fx-body-y: 49%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="happyrin"] { --fx-head-y: 4%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="librang"] { --fx-head-y: 5%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="dracle"] { --fx-head-y: 4%; --fx-body-y: 49%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="saqua"] { --fx-head-y: 7%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="queenas"] { --fx-head-y: 4%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="jitrom"] { --fx-head-y: 9%; --fx-body-y: 52%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="fimit"] { --fx-head-y: 8%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="emento"] { --fx-head-y: 6%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="necoulomb"] { --fx-head-y: 4%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="xerox"] { --fx-head-y: 7%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_scout_kain"] { --fx-head-y: 4%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_warrior_luke"] { --fx-head-y: 4%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_mage_zero"] { --fx-head-y: 8%; --fx-body-y: 52%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_archer_robin"] { --fx-head-y: 4%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_priest_sara"] { --fx-head-y: 8%; --fx-body-y: 51%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_fighter_gran"] { --fx-head-y: 4%; --fx-body-y: 48%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_pawn_opawn"] { --fx-head-y: 6%; --fx-body-y: 49%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_rook_chatrang"] { --fx-head-y: 4%; --fx-body-y: 49%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_knight_kaighton"] { --fx-head-y: 7%; --fx-body-y: 52%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_bishop_eveque"] { --fx-head-y: 5%; --fx-body-y: 52%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="demon_king_monochrem"] { --fx-head-y: 5%; --fx-body-y: 50%; --fx-ground-y: 92%; }
 
 .avatar-stage.is-empty::after {
   content: none;
@@ -1125,9 +1192,9 @@ button:focus-visible {
 }
 
 .avatar-stage.has-battle-sprite {
-  width: 100%;
+  width: 86%;
   max-width: none;
-  height: 100%;
+  height: 86%;
   aspect-ratio: auto;
   overflow: visible;
   border-radius: 0;
@@ -1148,13 +1215,13 @@ button:focus-visible {
 }
 
 .avatar-stage .battle-sprite-side {
-  scale: 0.86;
-  image-rendering: pixelated;
+  scale: 1;
+  image-rendering: auto;
   transform-origin: center;
 }
 
 .avatar-stage .battle-sprite-side-ai {
-  scale: -0.86 0.86;
+  scale: -1 1;
 }
 
 .avatar-stage.is-adventure-monochrome .battle-sprite {
@@ -1353,7 +1420,7 @@ button:focus-visible {
 
 .battle-fx-value {
   left: 50%;
-  top: 50%;
+  top: var(--fx-body-y, 50%);
   transform: translate(-50%, -50%);
   font-size: clamp(1.2rem, 2.4vw, 2rem);
   font-weight: 950;
@@ -1435,6 +1502,16 @@ button:focus-visible {
   color: #67d9ff;
   text-shadow: 0 2px 0 rgba(0, 20, 36, 0.9), 0 0 10px rgba(103, 217, 255, 0.8);
   animation: fx-heal-rise 820ms ease-out forwards;
+}
+
+/* Positive/status readouts follow the per-combatant HD head anchor. Damage,
+   miss, defense, and debuff readouts stay centered on the body. */
+.battle-fx-value-heal,
+.battle-fx-value-buff,
+.battle-fx-value-stack-gain,
+.battle-fx-value.battle-fx-value-hp-gain,
+.battle-fx-value.battle-fx-value-mp-gain {
+  top: var(--fx-head-y, 12%);
 }
 
 .avatar-stage.is-fx-hit .battle-sprite,
@@ -3153,13 +3230,13 @@ button:focus-visible {
   box-shadow: 0 0 0 3px rgba(242, 198, 85, 0.24), 0 6px 16px rgba(0, 0, 0, 0.55);
 }
 
-.marker-character { left: 48%; top: 6.5%; }
-.marker-inscription { left: 32.5%; top: 6.5%; }
-.marker-enemy { left: 3.5%; top: 23%; }
-.marker-player { left: 3.5%; top: 70%; }
-.marker-arena { left: 42.5%; top: 54%; }
-.marker-log { left: 59%; top: 21%; }
-.marker-actions { left: 59%; top: 70%; }
+.marker-character { left: 39%; top: 6.5%; }
+.marker-inscription { left: 31%; top: 6.5%; }
+.marker-enemy { left: 56%; top: 58%; }
+.marker-player { left: 20%; top: 58%; }
+.marker-arena { left: 35%; top: 36%; }
+.marker-log { left: 82%; top: 26%; }
+.marker-actions { left: 35%; top: 78%; }
 
 .rules-callout-grid article {
   display: grid;
@@ -4324,6 +4401,13 @@ button:focus-visible {
     height: min(100%, 140px);
   }
 
+  .avatar-stage.has-battle-sprite {
+    width: min(86%, 120px);
+    max-width: 120px;
+    height: min(86%, 120px);
+    aspect-ratio: 1 / 1;
+  }
+
   .right-column {
     grid-column: auto;
     grid-template-columns: 1fr;
@@ -4657,6 +4741,13 @@ button:focus-visible {
     height: min(100%, 220px);
   }
 
+  .avatar-stage.has-battle-sprite {
+    width: min(86%, 189px);
+    max-width: 189px;
+    height: min(86%, 189px);
+    aspect-ratio: 1 / 1;
+  }
+
   .right-column {
     display: contents;
   }
@@ -4830,6 +4921,16 @@ button:focus-visible {
   }
 }
 
+@media (orientation: portrait) and (max-width: 900px) {
+  .avatar-stage.has-battle-sprite {
+    width: min(86%, 154px);
+    max-width: 154px;
+    height: min(86%, 154px);
+    max-height: 86%;
+    aspect-ratio: 1 / 1;
+  }
+}
+
 @media (hover: none), (pointer: coarse) {
   button,
   select,
@@ -4871,5 +4972,1637 @@ button:focus-visible {
   (pointer: coarse) and (min-width: 700px) and (min-height: 600px) {
   .character-picker-grid {
     max-height: 497px;
+  }
+}
+
+/* PvE battle HUD prototype: stage first, decisions second, history third. */
+@media (min-width: 901px) and (min-height: 641px) {
+  .battle-screen.is-pve .battle-grid {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) clamp(220px, 24vw, 280px);
+    grid-template-rows: minmax(330px, 1fr) 208px;
+    grid-template-areas:
+      "arena log"
+      "actions log";
+    gap: 8px;
+  }
+
+  .battle-screen.is-pve .status-column {
+    position: absolute;
+    z-index: 8;
+    top: 14px;
+    right: calc(clamp(220px, 24vw, 280px) + 22px);
+    left: 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 86px;
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  .battle-screen.is-pve .status-column .compact-card {
+    display: none;
+  }
+
+  .battle-screen.is-pve .fighter-card {
+    position: relative;
+    width: clamp(190px, 34%, 250px);
+    max-height: 156px;
+    grid-template-rows: auto auto auto auto auto;
+    gap: 4px;
+    padding: 10px 11px 9px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 3px;
+    background: linear-gradient(110deg, rgba(6, 9, 14, 0.94), rgba(10, 15, 23, 0.76));
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(7px);
+    pointer-events: auto;
+  }
+
+  .battle-screen.is-pve .player-card {
+    order: 1;
+    border-left: 3px solid rgba(242, 198, 85, 0.9);
+  }
+
+  .battle-screen.is-pve .enemy-card {
+    order: 2;
+    border-right: 3px solid rgba(255, 92, 104, 0.88);
+    background: linear-gradient(250deg, rgba(6, 9, 14, 0.94), rgba(10, 15, 23, 0.76));
+    text-align: right;
+  }
+
+  .battle-screen.is-pve .enemy-card .card-head {
+    flex-direction: row-reverse;
+  }
+
+  .battle-screen.is-pve .fighter-card h2 {
+    padding: 0;
+    font-size: clamp(1.25rem, 2vw, 1.65rem);
+    line-height: 1.05;
+  }
+
+  .battle-screen.is-pve .fighter-card > p {
+    display: none;
+  }
+
+  .battle-screen.is-pve .fighter-card .card-kicker {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+  }
+
+  .battle-screen.is-pve .fighter-card .mini-info-button {
+    height: 23px;
+    min-height: 23px;
+    padding: 0 7px;
+    border-color: rgba(180, 192, 212, 0.18);
+    background: transparent;
+    font-size: 0.63rem;
+  }
+
+  .battle-screen.is-pve .fighter-card .meter-list {
+    gap: 3px;
+  }
+
+  .battle-screen.is-pve .fighter-card .meter-row {
+    grid-template-columns: 22px minmax(48px, 1fr) 49px;
+    gap: 5px;
+    font-size: 0.64rem;
+  }
+
+  .battle-screen.is-pve .fighter-card .meter {
+    height: 7px;
+  }
+
+  .battle-screen.is-pve .fighter-card .stat-line {
+    font-size: 0.64rem;
+    line-height: 1.2;
+  }
+
+  .battle-screen.is-pve .fighter-card .state-box {
+    min-height: 28px;
+    height: 28px;
+    max-height: 28px;
+    padding: 5px 6px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.28);
+    font-size: 0.64rem;
+    line-height: 1.35;
+    text-align: left;
+  }
+
+  .battle-screen.is-pve .arena-panel {
+    grid-area: arena;
+    border: 0;
+    border-radius: 2px;
+    background:
+      radial-gradient(ellipse at 50% 88%, rgba(84, 107, 126, 0.2), transparent 47%),
+      linear-gradient(180deg, rgba(22, 34, 43, 0.96), rgba(6, 10, 15, 0.98));
+    box-shadow:
+      inset 0 1px rgba(150, 171, 192, 0.13),
+      inset 0 -1px rgba(150, 171, 192, 0.08);
+  }
+
+  .battle-screen.is-pve .arena-surface::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    right: 10%;
+    bottom: 7%;
+    left: 10%;
+    height: 20%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.48), transparent 68%);
+    transform: scaleY(0.45);
+    pointer-events: none;
+  }
+
+  .battle-screen.is-pve .turn-chip {
+    top: 16px;
+    min-height: 25px;
+    border: 0;
+    border-radius: 2px;
+    background: rgba(4, 7, 11, 0.78);
+    box-shadow: inset 0 -2px rgba(242, 198, 85, 0.7);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+
+  .battle-screen.is-pve .player-slot,
+  .battle-screen.is-pve .enemy-slot {
+    top: 57%;
+    bottom: auto;
+    width: 50%;
+    height: 72%;
+    transform: translateY(-50%);
+  }
+
+  .battle-screen.is-pve .player-slot {
+    left: 0;
+  }
+
+  .battle-screen.is-pve .enemy-slot {
+    right: 0;
+    left: auto;
+  }
+
+  .battle-screen.is-pve .avatar-stage.has-battle-sprite {
+    width: 90%;
+    height: 90%;
+  }
+
+  .battle-screen.is-pve .right-column {
+    display: contents;
+  }
+
+  .battle-screen.is-pve .log-card {
+    grid-area: log;
+    gap: 8px;
+    padding: 12px 10px;
+    border: 0;
+    border-left: 1px solid rgba(146, 164, 194, 0.2);
+    border-radius: 0;
+    background: rgba(7, 10, 15, 0.78);
+    box-shadow: none;
+  }
+
+  .battle-screen.is-pve .log-card .panel-title h2 {
+    color: #d5dce8;
+    font-size: 0.86rem;
+  }
+
+  .battle-screen.is-pve .log-controls button {
+    min-width: 38px;
+    border-color: rgba(146, 164, 194, 0.16);
+    background: transparent;
+    color: #9ba7ba;
+    font-size: 0.66rem;
+  }
+
+  .battle-screen.is-pve #battleLog {
+    padding: 0;
+    color: #b9c3d2;
+    font-size: 0.72rem;
+  }
+
+  .battle-screen.is-pve .turn-log-title {
+    color: #d9bd69;
+  }
+
+  .battle-screen.is-pve .log-line,
+  .battle-screen.is-pve .log-empty {
+    border: 0;
+    border-left: 2px solid rgba(146, 164, 194, 0.18);
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .battle-screen.is-pve .skills-card {
+    grid-area: actions;
+    grid-template-rows: 25px minmax(0, 1fr);
+    gap: 7px;
+    padding: 9px 10px 10px;
+    overflow: visible;
+    border: 0;
+    border-top: 1px solid rgba(242, 198, 85, 0.32);
+    border-radius: 0;
+    background: rgba(8, 12, 18, 0.94);
+    box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.16);
+  }
+
+  .battle-screen.is-pve .skills-card .skills-title {
+    display: flex;
+    min-height: 25px;
+  }
+
+  .battle-screen.is-pve .skills-card .skills-title::before {
+    content: "행동 선택";
+    color: #f4f6fb;
+    font-size: 0.86rem;
+    font-weight: 950;
+    letter-spacing: 0.02em;
+  }
+
+  .battle-screen.is-pve .skills-card .skills-title::after {
+    content: "사용할 행동을 선택하세요";
+    margin-left: auto;
+    color: #7f8ba0;
+    font-size: 0.66rem;
+    font-weight: 800;
+  }
+
+  .battle-screen.is-pve .actions-grid:not(.is-adventure-choices) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(56px, 1fr));
+    gap: 6px;
+  }
+
+  .battle-screen.is-pve .action-button {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 8px;
+    min-height: 56px;
+    padding: 6px 8px;
+    border-color: rgba(164, 180, 203, 0.28);
+    border-radius: 3px;
+    background: rgba(19, 26, 36, 0.92);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+  }
+
+  .battle-screen.is-pve .action-button:hover:not(:disabled):not(.is-disabled),
+  .battle-screen.is-pve .action-button:focus-visible:not(:disabled):not(.is-disabled) {
+    border-color: rgba(242, 198, 85, 0.88);
+    background: rgba(34, 43, 57, 0.98);
+    box-shadow: inset 0 -2px rgba(242, 198, 85, 0.72);
+  }
+
+  .battle-screen.is-pve .action-button:disabled,
+  .battle-screen.is-pve .action-button.is-disabled {
+    border-color: rgba(146, 164, 194, 0.1);
+    background: rgba(11, 15, 21, 0.68);
+  }
+
+  .battle-screen.is-pve .passive-action {
+    border-color: rgba(242, 198, 85, 0.5);
+    background: linear-gradient(100deg, rgba(116, 88, 28, 0.24), rgba(19, 26, 36, 0.92) 58%);
+  }
+
+  .battle-screen.is-pve .skill-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.52);
+  }
+
+  .battle-screen.is-pve .action-name {
+    color: #f3f6fb;
+    font-size: 0.76rem;
+  }
+
+  .battle-screen.is-pve .action-cost {
+    color: #70cfff;
+    font-size: 0.7rem;
+  }
+
+  .battle-screen.is-pve .app-header select,
+  .battle-screen.is-pve .app-header .character-picker-button,
+  .battle-screen.is-pve .app-header .custom-select-button {
+    border-color: rgba(146, 164, 194, 0.22);
+    background: rgba(7, 10, 15, 0.68);
+  }
+
+  .battle-screen.is-pve #startButton:disabled {
+    opacity: 0.42;
+  }
+}
+
+/* Shared battle HUD: compact vitals under combatants, details behind ⓘ. */
+.battle-screen.is-active .battle-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 420px auto minmax(220px, 42dvh);
+  grid-template-areas:
+    "arena"
+    "actions"
+    "log";
+  gap: 8px;
+}
+
+.battle-screen.is-active .status-column {
+  position: relative;
+  z-index: 8;
+  inset: auto;
+  grid-area: arena;
+  align-self: end;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12%;
+  width: min(calc(100% - 28px), clamp(760px, 70%, 960px));
+  min-height: 0;
+  margin: 0 auto 12px;
+  pointer-events: none;
+}
+
+.battle-screen.is-active .status-column > .battle-record-button {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: 54px;
+  min-width: 54px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 7px;
+  transform: translate(-50%, -50%);
+  border-color: rgba(242, 198, 85, 0.34);
+  border-radius: 2px;
+  background: rgba(5, 8, 12, 0.86);
+  color: #d7c175;
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  pointer-events: auto;
+}
+
+.battle-screen.is-active .status-column > .battle-record-button:hover:not(:disabled),
+.battle-screen.is-active .status-column > .battle-record-button:focus-visible:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(22, 27, 36, 0.94);
+  color: var(--gold);
+}
+
+.battle-screen.is-active .status-column .compact-card {
+  display: none;
+}
+
+.battle-screen.is-active .fighter-card {
+  position: relative;
+  width: min(44%, 260px);
+  min-height: 0;
+  max-height: none;
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: end;
+  gap: 4px;
+  padding: 7px 28px 7px 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(90deg, rgba(3, 6, 10, 0.9), rgba(5, 9, 14, 0.72) 76%, transparent);
+  box-shadow: none;
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.battle-screen.is-active .player-card {
+  order: 1;
+  border-left: 2px solid rgba(242, 198, 85, 0.88);
+}
+
+.battle-screen.is-active .enemy-card {
+  order: 2;
+  padding: 7px 8px 7px 28px;
+  border-right: 2px solid rgba(255, 92, 104, 0.86);
+  background: linear-gradient(270deg, rgba(3, 6, 10, 0.9), rgba(5, 9, 14, 0.72) 76%, transparent);
+}
+
+.battle-screen.is-active .fighter-card .card-head {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  right: 4px;
+  display: block;
+}
+
+.battle-screen.is-active .enemy-card .card-head {
+  right: auto;
+  left: 4px;
+}
+
+.battle-screen.is-active .fighter-card .card-kicker {
+  display: none;
+}
+
+.battle-screen.is-active .fighter-card .mini-info-button {
+  display: grid;
+  place-items: center;
+  width: 21px;
+  min-width: 21px;
+  height: 21px;
+  min-height: 21px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #b9c3d2;
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.battle-screen.is-active .fighter-card .mini-info-button:hover:not(:disabled),
+.battle-screen.is-active .fighter-card .mini-info-button:focus-visible:not(:disabled) {
+  background: rgba(242, 198, 85, 0.12);
+  color: var(--gold);
+}
+
+.battle-screen.is-active .fighter-card .meter-list {
+  gap: 3px;
+}
+
+.battle-screen.is-active .fighter-card .meter-row {
+  grid-template-columns: 20px minmax(42px, 1fr) 54px;
+  gap: 5px;
+  font-size: 0.64rem;
+  line-height: 1;
+}
+
+.battle-screen.is-active .fighter-card .meter {
+  height: 7px;
+  border-radius: 1px;
+  background: rgba(93, 106, 126, 0.42);
+  box-shadow: none;
+}
+
+.battle-screen.is-active .fighter-card .meter-row b {
+  font-size: 0.62rem;
+}
+
+.battle-screen.is-active .fighter-status-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 16px;
+  color: #d9e0eb;
+  font-size: 0.64rem;
+  font-weight: 850;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.battle-screen.is-active .fighter-status-line > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.battle-screen.is-active .fighter-status-line .adventure-gold {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--gold);
+}
+
+.battle-screen.is-active .arena-panel {
+  grid-area: arena;
+  min-height: 0;
+  border: 0;
+  border-radius: 2px;
+  background:
+    radial-gradient(ellipse at 50% 86%, rgba(84, 107, 126, 0.2), transparent 47%),
+    linear-gradient(180deg, rgba(22, 34, 43, 0.96), rgba(6, 10, 15, 0.98));
+  box-shadow:
+    inset 0 1px rgba(150, 171, 192, 0.13),
+    inset 0 -1px rgba(150, 171, 192, 0.08);
+}
+
+.battle-screen.is-active .arena-surface::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  right: 10%;
+  bottom: 8%;
+  left: 10%;
+  height: 20%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.48), transparent 68%);
+  transform: scaleY(0.45);
+  pointer-events: none;
+}
+
+.battle-screen.is-active .turn-chip {
+  top: 14px;
+  min-height: 25px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(4, 7, 11, 0.78);
+  box-shadow: inset 0 -2px rgba(242, 198, 85, 0.7);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.battle-screen.is-active .player-slot,
+.battle-screen.is-active .enemy-slot {
+  top: 44px;
+  bottom: 60px;
+  width: min(44%, 260px);
+  height: auto;
+  place-items: end center;
+  transform: none;
+}
+
+.battle-screen.is-active .player-slot {
+  left: max(14px, calc((100% - clamp(760px, 70%, 960px)) / 2));
+}
+
+.battle-screen.is-active .enemy-slot {
+  right: max(14px, calc((100% - clamp(760px, 70%, 960px)) / 2));
+  left: auto;
+}
+
+.battle-screen.is-active .avatar-stage.has-battle-sprite {
+  width: 92%;
+  max-width: none;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.battle-screen.is-active.is-adventure-prologue .enemy-card {
+  visibility: hidden;
+}
+
+.battle-screen.is-active .right-column {
+  display: contents;
+}
+
+.battle-screen.is-active .skills-card {
+  grid-area: actions;
+  min-height: 0;
+  padding: 9px 10px 10px;
+  border: 0;
+  border-top: 1px solid rgba(242, 198, 85, 0.3);
+  border-radius: 0;
+  background: rgba(8, 12, 18, 0.95);
+  box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.16);
+}
+
+.battle-screen.is-active:not(.is-adventure-choice-phase) .skills-card .skills-title {
+  display: flex;
+  min-height: 25px;
+}
+
+.battle-screen.is-active:not(.is-adventure-choice-phase) .skills-card .skills-title::before {
+  content: "행동 선택";
+  color: #f4f6fb;
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.battle-screen.is-active:not(.is-adventure-choice-phase) .skills-card .skills-title::after {
+  content: "사용할 행동을 선택하세요";
+  margin-left: auto;
+  color: #7f8ba0;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.battle-screen.is-active .log-card {
+  grid-area: log;
+  min-height: 0;
+  border: 0;
+  border-left: 1px solid rgba(146, 164, 194, 0.18);
+  border-radius: 0;
+  background: rgba(7, 10, 15, 0.78);
+  box-shadow: none;
+}
+
+.battle-screen.is-active .log-card .panel-title {
+  align-items: start;
+}
+
+.battle-screen.is-active .log-card .panel-title-left {
+  display: grid;
+  gap: 5px;
+}
+
+.fighter-battle-summary {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fighter-current-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.fighter-current-stat {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--character-color, #aeb4bd) 72%, transparent);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.fighter-current-stat > span,
+.fighter-effect-summary > span,
+.fighter-adventure-heading > span {
+  color: #95a2b6;
+  font-size: 0.66rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+}
+
+.fighter-current-stat > strong {
+  color: #f4f6fb;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fighter-current-stat > strong small {
+  color: #9ca8b9;
+  font-size: 0.64rem;
+}
+
+.fighter-current-stat > small {
+  color: #8995a8;
+  font-size: 0.58rem;
+  line-height: 1.25;
+}
+
+.fighter-effect-summary {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.fighter-effect-summary strong {
+  color: #dce4f1;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.fighter-adventure-summary {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border-top: 1px solid rgba(242, 198, 85, 0.24);
+  background: rgba(94, 68, 17, 0.08);
+}
+
+.fighter-adventure-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fighter-adventure-heading > span,
+.fighter-adventure-heading > strong {
+  color: var(--gold);
+}
+
+.fighter-relic-list {
+  display: grid;
+  gap: 5px;
+}
+
+.fighter-relic-list article {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.42fr) minmax(0, 1fr);
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(146, 164, 194, 0.12);
+}
+
+.fighter-relic-list article > span {
+  color: #f2d782;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.fighter-relic-list article > p,
+.fighter-relic-empty {
+  color: #b9c3d2;
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+@media (min-width: 901px) and (min-height: 641px) {
+  .battle-screen.is-active .battle-grid {
+    grid-template-columns: minmax(0, 1fr) clamp(250px, 26vw, 300px);
+    grid-template-rows: minmax(330px, 1fr) 208px;
+    grid-template-areas:
+      "arena log"
+      "actions log";
+  }
+
+  .battle-screen.is-active .actions-grid:not(.is-adventure-choices) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(56px, 1fr));
+  }
+}
+
+@media (orientation: landscape) and (min-width: 620px) and (max-height: 640px) {
+  .battle-screen.is-active .battle-grid {
+    grid-template-columns: minmax(0, 1fr) clamp(230px, 30vw, 320px);
+    grid-template-rows: minmax(0, 1fr) 142px;
+    grid-template-areas:
+      "arena log"
+      "actions log";
+    gap: 6px;
+  }
+
+  .battle-screen.is-active .arena-panel {
+    height: auto;
+    min-height: 0;
+  }
+
+  .battle-screen.is-active .status-column {
+    width: min(calc(100% - 16px), clamp(760px, 70%, 960px));
+    margin: 0 auto 7px;
+  }
+
+  .battle-screen.is-active .fighter-card {
+    width: min(45%, 220px);
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .battle-screen.is-active .player-slot,
+  .battle-screen.is-active .enemy-slot {
+    top: 40px;
+    bottom: 52px;
+    width: min(45%, 220px);
+  }
+
+  .battle-screen.is-active .player-slot {
+    left: max(8px, calc((100% - clamp(760px, 70%, 960px)) / 2));
+  }
+
+  .battle-screen.is-active .enemy-slot {
+    right: max(8px, calc((100% - clamp(760px, 70%, 960px)) / 2));
+  }
+
+  .battle-screen.is-active .avatar-stage.has-battle-sprite {
+    width: 92%;
+    max-width: none;
+    height: auto;
+    max-height: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  .battle-screen.is-active .skills-card {
+    padding: 6px;
+  }
+
+  .battle-screen.is-active .actions-grid:not(.is-adventure-choices) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(48px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .fighter-current-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fighter-relic-list article {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+}
+
+/* Rectilinear UI pass: structure is expressed with lines and spacing, while
+   color is reserved for selection, turn state, resources, and primary actions. */
+:root {
+  --ui-radius-control: 2px;
+  --ui-section-title-size: 0.9rem;
+  --ui-section-title-color: #f4f6fb;
+  --ui-surface: rgba(8, 12, 18, 0.9);
+  --ui-surface-soft: rgba(255, 255, 255, 0.025);
+  --ui-divider: rgba(146, 164, 194, 0.18);
+}
+
+/* Structural surfaces */
+.home-panel,
+.hud-card,
+.arena-panel,
+.character-picker-panel,
+.info-panel,
+.adventure-restart-panel,
+.settings-layout,
+.settings-panel,
+.rules-tabs,
+.rules-content,
+.rules-hero,
+.codex-list,
+.codex-detail,
+.codex-avatar {
+  border-radius: 0;
+}
+
+.home-panel,
+.character-picker-panel,
+.info-panel,
+.adventure-restart-panel,
+.settings-panel,
+.rules-tabs,
+.rules-content,
+.codex-list,
+.codex-detail {
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.25);
+}
+
+/* Controls stay visibly interactive without looking like soft cards. */
+.menu-button,
+.primary-button,
+.ghost-button,
+select,
+input,
+.custom-select-button,
+.custom-select-list,
+.character-picker-button,
+.inscription-button,
+.inscription-popover,
+.inscription-option,
+.character-picker-tile,
+.log-controls button,
+.battle-record-button,
+.action-button,
+.adventure-choice-button,
+.adventure-choice-symbol,
+.adventure-route-reroll,
+.passive-chip,
+.settings-actions button,
+.volume-control output,
+.rules-tab,
+.codex-button {
+  border-radius: var(--ui-radius-control);
+}
+
+.character-picker-tile-visual,
+.skill-icon,
+.codex-skill-tooltip,
+.passive-desc {
+  border-radius: 0;
+}
+
+button:focus-visible,
+select:focus,
+input:focus {
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+/* Main and mode menus */
+.home-panel {
+  width: min(360px, calc(100vw - 24px));
+  gap: 8px;
+  padding: 14px;
+  border-color: rgba(146, 164, 194, 0.24);
+  background: rgba(7, 10, 14, 0.86);
+}
+
+.main-menu {
+  gap: 4px;
+}
+
+.menu-button {
+  border-color: rgba(146, 164, 194, 0.24);
+  border-left: 2px solid rgba(146, 164, 194, 0.45);
+  background: rgba(15, 20, 28, 0.94);
+  color: #e9edf4;
+  box-shadow: none;
+}
+
+.menu-button:hover,
+.menu-button:focus-visible {
+  border-color: rgba(242, 198, 85, 0.58);
+  border-left-color: var(--gold);
+  background: rgba(25, 31, 42, 0.98);
+}
+
+.dev-menu-button {
+  border-color: rgba(88, 224, 255, 0.3);
+  border-left-color: rgba(88, 224, 255, 0.76);
+  background: rgba(12, 27, 34, 0.94);
+}
+
+.secondary-menu-button {
+  margin-top: 4px;
+  border-left-color: rgba(146, 164, 194, 0.26);
+  color: #8f9aad;
+}
+
+/* One title hierarchy across app screens. */
+.header-title strong,
+.panel-title h2,
+.character-picker-panel h2 {
+  color: var(--ui-section-title-color);
+  font-size: var(--ui-section-title-size);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.header-title span,
+.card-kicker,
+.panel-title span,
+.settings-heading > span,
+.rules-kicker,
+.rules-info-card > span,
+.rules-subheading > span {
+  color: #8793a7;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.app-header {
+  border-bottom: 1px solid rgba(146, 164, 194, 0.16);
+}
+
+label,
+.setup-field {
+  color: #8f9bae;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+select,
+input,
+.custom-select-button,
+.character-picker-button,
+.inscription-button {
+  border-color: rgba(146, 164, 194, 0.28);
+  background: rgba(6, 9, 14, 0.92);
+  box-shadow: none;
+}
+
+.character-picker-button {
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--character-color) 82%, transparent);
+}
+
+.primary-button {
+  background: #d8aa3d;
+  color: #161006;
+  box-shadow: inset 0 -2px rgba(71, 43, 8, 0.42);
+}
+
+.ghost-button {
+  background: rgba(8, 11, 16, 0.86);
+}
+
+/* Battle: no nested log cards, one shared heading rhythm. */
+.battle-screen.is-active .log-card,
+.battle-screen.is-active .skills-card {
+  gap: 6px;
+}
+
+.battle-screen.is-active .panel-title h2,
+.battle-screen.is-active:not(.is-adventure-choice-phase) .skills-card .skills-title::before {
+  color: var(--ui-section-title-color);
+  font-size: var(--ui-section-title-size);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.battle-screen.is-active:not(.is-adventure-choice-phase) .skills-card .skills-title::after,
+.battle-screen.is-adventure #actionHint {
+  color: #7f8ba0;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+#battleLog {
+  padding: 0;
+}
+
+.turn-log {
+  gap: 0;
+}
+
+.turn-log-title {
+  padding: 7px 4px 6px;
+  border-bottom: 1px solid rgba(242, 198, 85, 0.34);
+  color: #d9bd68;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+
+.log-line,
+.log-empty,
+.battle-screen.is-pve .log-line,
+.battle-screen.is-pve .log-empty {
+  padding: 7px 4px;
+  border: 0;
+  border-bottom: 1px solid rgba(146, 164, 194, 0.12);
+  border-radius: 0;
+  background: transparent;
+}
+
+.log-empty {
+  border-bottom: 0;
+}
+
+.log-controls {
+  gap: 2px;
+}
+
+.log-controls button {
+  min-width: 42px;
+  border-color: rgba(146, 164, 194, 0.18);
+  background: transparent;
+  color: #aab4c4;
+}
+
+.actions-grid {
+  gap: 4px;
+}
+
+.action-button,
+.battle-screen.is-pve .action-button {
+  border-color: rgba(146, 164, 194, 0.2);
+  border-bottom-color: rgba(146, 164, 194, 0.34);
+  background: rgba(10, 15, 22, 0.9);
+  box-shadow: none;
+}
+
+.action-button:hover:not(:disabled):not(.is-disabled),
+.action-button:focus-visible:not(:disabled):not(.is-disabled),
+.battle-screen.is-pve .action-button:hover:not(:disabled):not(.is-disabled),
+.battle-screen.is-pve .action-button:focus-visible:not(:disabled):not(.is-disabled) {
+  border-color: rgba(242, 198, 85, 0.68);
+  border-bottom-color: var(--gold);
+  background: rgba(22, 28, 38, 0.98);
+}
+
+.passive-action,
+.battle-screen.is-pve .passive-action {
+  border-color: rgba(242, 198, 85, 0.36);
+  border-left: 2px solid rgba(242, 198, 85, 0.7);
+  background: rgba(17, 18, 19, 0.92);
+}
+
+.meter {
+  border-radius: 1px;
+}
+
+/* Settings: rows instead of floating cards. */
+.settings-layout {
+  background: linear-gradient(145deg, rgba(15, 21, 29, 0.96), rgba(7, 10, 15, 0.98));
+}
+
+.settings-panel {
+  gap: 16px;
+  border-color: rgba(146, 164, 194, 0.28);
+  background: rgba(8, 12, 18, 0.94);
+}
+
+.settings-panel::before {
+  width: 48px;
+  height: 2px;
+  background: var(--gold);
+}
+
+.settings-heading h2 {
+  color: var(--ui-section-title-color);
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.volume-control-list {
+  gap: 0;
+  border-top: 1px solid var(--ui-divider);
+}
+
+.volume-control {
+  padding: 16px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--ui-divider);
+  border-radius: 0;
+  background: transparent;
+}
+
+.volume-control output {
+  border-color: rgba(146, 164, 194, 0.22);
+  background: rgba(255, 255, 255, 0.035);
+  color: #e4e8ef;
+}
+
+/* Rules: navigation rows and flat information groups. */
+.rules-tabs {
+  gap: 0;
+  padding: 0;
+  background: rgba(8, 12, 18, 0.9);
+}
+
+.rules-tab {
+  min-height: 66px;
+  padding: 12px 14px 12px 17px;
+  border: 0;
+  border-bottom: 1px solid var(--ui-divider);
+  background: transparent;
+}
+
+.rules-tab::before {
+  inset: 0 auto 0 0;
+  width: 2px;
+  border-radius: 0;
+}
+
+.rules-tab:hover,
+.rules-tab.is-selected {
+  border-color: var(--ui-divider);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.rules-tab.is-selected::before {
+  width: 3px;
+  box-shadow: none;
+}
+
+.rules-content {
+  background: linear-gradient(145deg, rgba(14, 19, 27, 0.96), rgba(7, 10, 15, 0.96));
+}
+
+.rules-hero {
+  padding: clamp(22px, 4vw, 42px);
+  border-color: rgba(146, 164, 194, 0.22);
+  border-left: 3px solid rgba(242, 198, 85, 0.68);
+  background: rgba(8, 12, 18, 0.58);
+}
+
+.rules-hero h2 {
+  color: #f4f6fb;
+  font-size: clamp(1.65rem, 3vw, 2.65rem);
+  letter-spacing: -0.035em;
+}
+
+.rules-section-heading > span,
+.rules-step-card > b,
+.rules-callout-grid article > b,
+.rules-flow-list li::before {
+  border-radius: 0;
+}
+
+.rules-step-card,
+.rules-info-card,
+.rules-term-grid article,
+.rules-callout-grid article,
+.rules-flow-list,
+.rules-timing-grid article,
+.rules-effect-examples article,
+.rules-skill-example,
+.rules-personality-grid article,
+.rules-stat-grid article,
+.rules-keyword-grid article,
+.rules-formula-grid article,
+.rules-table-wrap,
+.rules-note {
+  border-radius: 0;
+  background: var(--ui-surface-soft);
+}
+
+.rules-info-card > span,
+.rules-timing-grid strong,
+.rules-effect-examples span,
+.rules-term-grid article strong,
+.rules-note strong,
+.rules-personality-grid strong,
+.rules-stat-grid strong,
+.rules-keyword-grid strong,
+.rules-formula-grid span,
+.rules-table thead th,
+.rules-table tbody th {
+  color: #dfe5ee;
+}
+
+/* Guided first-play tutorial */
+.tutorial-guide {
+  position: absolute;
+  z-index: 30;
+  top: 78px;
+  left: 50%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  width: min(660px, calc(100% - 48px));
+  min-height: 62px;
+  padding: 10px 12px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(242, 198, 85, 0.5);
+  border-left: 3px solid var(--gold);
+  border-radius: 0;
+  background: rgba(7, 11, 17, 0.96);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38);
+}
+
+.tutorial-guide-step {
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.tutorial-guide-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tutorial-guide-copy strong {
+  color: #f4f6fb;
+  font-size: 0.88rem;
+}
+
+.tutorial-guide-copy p {
+  overflow: visible;
+  color: #a8b2c2;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.tutorial-guide-button,
+.tutorial-skip-button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(146, 164, 194, 0.28);
+  border-radius: 2px;
+  background: transparent;
+  color: #aeb8c7;
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.tutorial-guide-button {
+  border-color: rgba(242, 198, 85, 0.58);
+  background: #d8aa3d;
+  color: #161006;
+}
+
+.tutorial-skip-button:hover,
+.tutorial-skip-button:focus-visible {
+  border-color: rgba(242, 198, 85, 0.58);
+  color: #f1d98e;
+}
+
+.battle-screen.is-tutorial .turn-chip {
+  top: 82px;
+}
+
+.battle-screen.is-tutorial .battle-setup {
+  grid-template-columns: repeat(3, minmax(112px, 1fr)) 104px;
+}
+
+.battle-screen.is-tutorial .player-setup-field {
+  grid-column: 1;
+}
+
+.battle-screen.is-tutorial .battle-setup .primary-button {
+  grid-column: 4;
+}
+
+.battle-screen.tutorial-focus-character .player-setup-field .character-picker-button,
+.battle-screen.tutorial-focus-inscription .inscription-button,
+.battle-screen.tutorial-focus-start #startButton,
+.battle-screen.tutorial-focus-info #playerInfoButton,
+.battle-screen.is-tutorial .action-button.is-tutorial-target {
+  border-color: var(--gold) !important;
+  box-shadow: inset 0 -2px rgba(242, 198, 85, 0.58), 0 0 0 2px rgba(242, 198, 85, 0.18) !important;
+}
+
+.battle-screen.is-tutorial .action-button:disabled:not(.is-tutorial-target) {
+  opacity: 0.28;
+}
+
+.settings-toggle-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 18px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--ui-divider);
+  cursor: pointer;
+}
+
+.settings-toggle-row > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.settings-switch {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 30px;
+  border: 1px solid rgba(146, 164, 194, 0.35);
+  border-radius: 2px;
+  background: rgba(7, 10, 15, 0.9);
+}
+
+.settings-switch::after {
+  content: "OFF";
+  position: static;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  color: #8d98aa;
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  transition: color 140ms ease;
+}
+
+.settings-toggle-row > input:checked + .settings-switch {
+  border-color: rgba(242, 198, 85, 0.62);
+}
+
+.settings-toggle-row > input:checked + .settings-switch::after {
+  content: "ON";
+  transform: none;
+  background: transparent;
+  color: var(--gold);
+}
+
+.settings-toggle-row > input:focus-visible + .settings-switch {
+  box-shadow: 0 0 0 2px rgba(242, 198, 85, 0.2);
+}
+
+.settings-section {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-section + .settings-section {
+  padding-top: 20px;
+  border-top: 1px solid rgba(146, 164, 194, 0.28);
+}
+
+.settings-section .settings-toggle-row {
+  border-top: 1px solid var(--ui-divider);
+}
+
+/* Codex: list rows and information blocks share the same flat grammar. */
+.codex-list {
+  gap: 0;
+  padding: 0;
+  background: rgba(8, 12, 18, 0.9);
+}
+
+.codex-button {
+  min-height: 62px;
+  border: 0;
+  border-bottom: 1px solid var(--ui-divider);
+  background: transparent;
+}
+
+.codex-button::before {
+  inset: 0 auto 0 0;
+  width: 2px;
+  border-radius: 0;
+}
+
+.codex-button.is-selected,
+.codex-button:hover {
+  border-color: var(--ui-divider);
+  background: color-mix(in srgb, var(--character-color) 8%, rgba(255, 255, 255, 0.035));
+}
+
+.codex-button.is-selected::before,
+.codex-button:hover::before {
+  width: 3px;
+  box-shadow: none;
+}
+
+.codex-detail {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--character-color) 5%, rgba(14, 19, 27, 0.96)), rgba(7, 10, 15, 0.96));
+}
+
+.codex-copy h2 {
+  color: #f4f6fb;
+  text-shadow: none;
+}
+
+.stat-tile,
+.info-tile,
+.skill-tile,
+.codex-detail .stat-tile,
+.codex-detail .info-tile,
+.codex-detail .skill-tile,
+.modal-summary > div,
+.modal-record,
+.record-modal-card,
+.record-modal-card p,
+.fighter-info-sprite-frame {
+  border-radius: 0;
+  background: var(--ui-surface-soft);
+}
+
+.stat-tile span,
+.info-tile span,
+.skill-tile span,
+.modal-summary span,
+.record-modal-card span {
+  color: #8f9bae;
+}
+
+/* Modals use the same section hierarchy as full screens. */
+.info-panel header span {
+  color: #8793a7;
+}
+
+.info-panel h2 {
+  color: #f4f6fb;
+  font-size: 1.35rem;
+}
+
+/* Achievements: one flat record ledger, separate from the battle HUD. */
+.achievements-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 0;
+  border: 1px solid rgba(146, 164, 194, 0.22);
+  background: rgba(7, 10, 15, 0.94);
+}
+
+.achievements-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 22px;
+  border-right: 1px solid rgba(146, 164, 194, 0.2);
+  background:
+    linear-gradient(180deg, rgba(242, 198, 85, 0.06), transparent 38%),
+    rgba(12, 16, 22, 0.94);
+}
+
+.achievements-summary > span,
+.achievements-list-heading span {
+  color: #8d98aa;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.achievements-summary > strong {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(242, 198, 85, 0.36);
+  color: var(--gold);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.achievements-summary p {
+  color: #a9b3c2;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.achievements-total-track {
+  height: 4px;
+  margin-top: auto;
+  overflow: hidden;
+  background: rgba(146, 164, 194, 0.16);
+}
+
+.achievements-total-track i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--gold);
+  transition: width 180ms ease;
+}
+
+.achievements-summary small {
+  color: #8d98aa;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.achievements-content {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.achievements-list-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(146, 164, 194, 0.22);
+}
+
+.achievements-list-heading h2 {
+  margin: 3px 0 0;
+  color: #f4f6fb;
+  font-size: 1.3rem;
+}
+
+.achievements-list-heading p {
+  color: #7f8ba0;
+  font-size: 0.72rem;
+}
+
+.achievements-list {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-color: rgba(242, 198, 85, 0.48) rgba(255, 255, 255, 0.04);
+}
+
+.achievement-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(110px, auto);
+  gap: 14px;
+  align-items: center;
+  min-height: 72px;
+  padding: 12px 24px 12px 0;
+  border-bottom: 1px solid rgba(146, 164, 194, 0.14);
+  border-left: 2px solid transparent;
+  background: transparent;
+}
+
+.achievement-row.is-unlocked {
+  border-left-color: var(--gold);
+  background: rgba(242, 198, 85, 0.035);
+}
+
+.achievement-index {
+  color: #5f6a7b;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.achievement-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.achievement-copy h3 {
+  margin: 0;
+  color: #c3cad5;
+  font-size: 0.94rem;
+  line-height: 1.2;
+}
+
+.achievement-row.is-unlocked .achievement-copy h3 {
+  color: #f4f6fb;
+}
+
+.achievement-copy p {
+  color: #778397;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.achievement-state {
+  color: #707c8e;
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.achievement-row.is-unlocked .achievement-state {
+  color: var(--gold);
+}
+
+@media (max-width: 1100px) {
+  .achievements-layout {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .achievements-summary {
+    padding-inline: 18px;
   }
 }

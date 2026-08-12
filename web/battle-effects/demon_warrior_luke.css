@@ -1,14 +1,21 @@
 .battle-fx-luke-black-iron-smash {
-  inset: 7%;
-  background: url("../assets/monsters/demon_warrior_luke/effects/black-iron-smash.png") center / contain no-repeat;
+  top: calc(var(--fx-ground-y, 96%) - 106%);
+  right: -10%;
+  bottom: calc(100% - var(--fx-ground-y, 96%));
+  left: -10%;
+  background: url("../assets/monsters/demon_warrior_luke/effects/black-iron-smash.png") center bottom / contain no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1) drop-shadow(0 0 3px rgba(210, 210, 210, 0.38));
+  transform-origin: 50% 100%;
   animation: luke-smash 450ms steps(6, end) forwards;
 }
 
 .battle-fx-luke-gray-iron-stance {
-  inset: 16% 24%;
-  background: url("../assets/monsters/demon_warrior_luke/effects/gray-iron-stance.png") center / contain no-repeat;
+  top: calc(var(--fx-body-y, 50%) - 65%);
+  right: -15%;
+  bottom: calc(65% - var(--fx-body-y, 50%));
+  left: -15%;
+  background: url("../assets/monsters/demon_warrior_luke/effects/gray-iron-stance.png") center / 100% 100% no-repeat;
   image-rendering: pixelated;
   filter: grayscale(1);
   animation: luke-stance 500ms steps(6, end) forwards;

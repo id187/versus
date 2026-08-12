@@ -36,10 +36,12 @@
     const arenaRect = arena.getBoundingClientRect();
     const sourceRect = sourceStage.getBoundingClientRect();
     const targetRect = targetStage.getBoundingClientRect();
+    const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
+    const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
     const startX = sourceRect.left + sourceRect.width / 2 - arenaRect.left;
-    const startY = sourceRect.top + sourceRect.height * 0.5 - arenaRect.top;
+    const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
     const endX = targetRect.left + targetRect.width / 2 - arenaRect.left;
-    const endY = targetRect.top + targetRect.height * 0.5 - arenaRect.top;
+    const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
     const direction = endX >= startX ? 1 : -1;
     const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * direction;
 

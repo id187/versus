@@ -124,6 +124,7 @@
     const arenaRect = arena.getBoundingClientRect();
     const sourceRect = sourceStage.getBoundingClientRect();
     const targetRect = targetStage.getBoundingClientRect();
+    const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
     const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
     const targetCenterX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
     const horizontalDirection = targetCenterX >= sourceCenterX ? 1 : -1;
@@ -132,7 +133,7 @@
       - arenaRect.left;
     const startY = sourceRect.top + sourceRect.height * 0.48 - arenaRect.top;
     const endX = targetCenterX;
-    const endY = targetRect.top + targetRect.height * 0.5 - arenaRect.top;
+    const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
     const distance = Math.hypot(endX - startX, endY - startY);
     const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * horizontalDirection;
 
@@ -155,6 +156,7 @@
     const arenaRect = arena.getBoundingClientRect();
     const sourceRect = sourceStage.getBoundingClientRect();
     const targetRect = targetStage.getBoundingClientRect();
+    const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
     const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
     const endX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
     const horizontalDirection = endX >= sourceCenterX ? 1 : -1;
@@ -162,7 +164,7 @@
       + sourceRect.width * (horizontalDirection > 0 ? 0.64 : 0.36)
       - arenaRect.left;
     const startY = sourceRect.top + sourceRect.height * 0.44 - arenaRect.top;
-    const endY = targetRect.top + targetRect.height * 0.5 - arenaRect.top;
+    const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
     const midX = (startX + endX) / 2;
     const arcHeight = Math.max(72, Math.min(165, Math.abs(endX - startX) * 0.25));
     const midY = Math.min(startY, endY) - arcHeight;

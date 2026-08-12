@@ -110,13 +110,14 @@
         const arenaRect = arena.getBoundingClientRect();
         const sourceRect = sourceStage.getBoundingClientRect();
         const targetRect = targetStage.getBoundingClientRect();
+        const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
         const sourceCenterX = sourceRect.left + sourceRect.width / 2 - arenaRect.left;
         const targetCenterX = targetRect.left + targetRect.width / 2 - arenaRect.left;
         const horizontalDirection = targetCenterX >= sourceCenterX ? 1 : -1;
         const startX = sourceCenterX + horizontalDirection * sourceRect.width * 0.2;
         const startY = sourceRect.top + sourceRect.height * 0.47 - arenaRect.top;
         const targetX = targetCenterX;
-        const targetY = targetRect.top + targetRect.height * 0.5 - arenaRect.top;
+        const targetY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
         const overshoot = Math.max(30, targetRect.width * 0.28);
         const endX = targetX + horizontalDirection * overshoot;
         const endY = targetY + (targetY - startY) * (overshoot / Math.max(1, Math.abs(targetX - startX)));

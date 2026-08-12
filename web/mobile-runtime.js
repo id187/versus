@@ -90,9 +90,10 @@
         loadJson("/dataset/adventure-events.json"),
         loadJson("/dataset/adventure-relics.json"),
         loadJson("/dataset/adventure-dialogue.json"),
+        loadJson("/dataset/adventure-achievements.json"),
         loadJson("/dataset/inscriptions.json"),
         loadJson("/dataset/firebase.json", true),
-      ]).then(([characters, adventureMonsters, adventureEvents, adventureRelics, adventureDialogue, inscriptions, firebaseConfig]) => {
+      ]).then(([characters, adventureMonsters, adventureEvents, adventureRelics, adventureDialogue, adventureAchievements, inscriptions, firebaseConfig]) => {
         const { MobileGameStore } = loadModule("/battle-engine/mobile-game-store.js");
         const store = new MobileGameStore({
           characters,
@@ -100,6 +101,7 @@
           adventureEvents,
           adventureRelics,
           adventureDialogue,
+          adventureAchievements,
           inscriptions,
           firebaseConfig,
         });
@@ -130,6 +132,7 @@
       if (method === "GET" && path === "/api/options") return jsonResponse(store.options());
       if (method === "GET" && path === "/api/state") return jsonResponse(store.state());
       if (method === "POST" && path === "/api/new") return jsonResponse(store.newBattle(payload));
+      if (method === "POST" && path === "/api/tutorial/new") return jsonResponse(store.newTutorialBattle(payload));
       if (method === "POST" && path === "/api/adventure/new") return jsonResponse(store.newAdventure(payload));
       if (method === "POST" && path === "/api/adventure/restore") return jsonResponse(store.restoreAdventure(payload));
       if (method === "POST" && path === "/api/adventure/choice") return jsonResponse(store.adventureChoice(payload));
