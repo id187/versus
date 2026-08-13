@@ -270,6 +270,7 @@ class Fighter {
     this.adventureMeditationRecoveryBonus = 0;
     this.adventureBattleRhythm = null;
     this.debugAccuracyOverride = null;
+    this.tutorialForcePloteFireballBurn = false;
     this.adventureRelics = [];
     this.adventureTurnEndFixedDamage = 0;
     this.adventureSurviveDefeatCount = 0;
@@ -2193,6 +2194,7 @@ function cloneFighter(source) {
     ? { ...source.adventureBattleRhythm }
     : null;
   fighter.debugAccuracyOverride = source.debugAccuracyOverride;
+  fighter.tutorialForcePloteFireballBurn = Boolean(source.tutorialForcePloteFireballBurn);
   fighter.adventureRelics = structuredCloneCompat(source.adventureRelics || []);
   fighter.adventureMeditationRelicReady = Boolean(source.adventureMeditationRelicReady);
   fighter.adventureCounterRelicReady = Boolean(source.adventureCounterRelicReady);

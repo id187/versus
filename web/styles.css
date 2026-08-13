@@ -842,6 +842,34 @@ select:not(.native-select):disabled {
   height: 100%;
 }
 
+.character-picker-tile:disabled {
+  cursor: not-allowed;
+  opacity: 0.22;
+  filter: grayscale(0.9) brightness(0.55);
+}
+
+.inscription-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: grayscale(0.72) brightness(0.68);
+}
+
+.character-picker-tile:disabled:hover,
+.inscription-option:disabled:hover {
+  border-color: rgba(146, 164, 194, 0.18);
+  background: rgba(7, 10, 14, 0.68);
+}
+
+.character-picker-tile.is-tutorial-target:not(:disabled),
+.inscription-option.is-tutorial-target:not(:disabled) {
+  border-color: var(--gold);
+  opacity: 1;
+  filter: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(242, 198, 85, 0.68),
+    0 0 0 2px rgba(242, 198, 85, 0.2);
+}
+
 select:focus,
 input:focus,
 button:focus-visible {
@@ -2544,7 +2572,8 @@ button:focus-visible {
 }
 
 .action-button:hover:not(:disabled):not(.is-disabled) .action-desc,
-.action-button:focus-visible:not(:disabled):not(.is-disabled) .action-desc {
+.action-button:focus-visible:not(:disabled):not(.is-disabled) .action-desc,
+.action-button.is-unavailable:hover .action-desc {
   display: block;
 }
 
@@ -5852,7 +5881,7 @@ button:focus-visible {
 @media (min-width: 901px) and (min-height: 641px) {
   .battle-screen.is-active .battle-grid {
     grid-template-columns: minmax(0, 1fr) clamp(250px, 26vw, 300px);
-    grid-template-rows: minmax(330px, 1fr) clamp(168px, 21dvh, 208px);
+    grid-template-rows: minmax(300px, 1fr) clamp(208px, 24dvh, 240px);
     grid-template-areas:
       "arena log"
       "actions log";
@@ -6349,84 +6378,6 @@ input,
   color: #dfe5ee;
 }
 
-/* Guided first-play tutorial */
-.tutorial-guide {
-  position: absolute;
-  z-index: 30;
-  top: 78px;
-  left: 50%;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 12px;
-  width: min(660px, calc(100% - 48px));
-  min-height: 62px;
-  padding: 10px 12px;
-  transform: translateX(-50%);
-  border: 1px solid rgba(242, 198, 85, 0.5);
-  border-left: 3px solid var(--gold);
-  border-radius: 0;
-  background: rgba(7, 11, 17, 0.96);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.38);
-}
-
-.tutorial-guide-step {
-  color: var(--gold);
-  font-size: 0.68rem;
-  font-weight: 950;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.tutorial-guide-copy {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.tutorial-guide-copy strong {
-  color: #f4f6fb;
-  font-size: 0.88rem;
-}
-
-.tutorial-guide-copy p {
-  overflow: visible;
-  color: #a8b2c2;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  text-overflow: clip;
-  white-space: normal;
-}
-
-.tutorial-guide-button,
-.tutorial-skip-button {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid rgba(146, 164, 194, 0.28);
-  border-radius: 2px;
-  background: transparent;
-  color: #aeb8c7;
-  font-size: 0.7rem;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.tutorial-guide-button {
-  border-color: rgba(242, 198, 85, 0.58);
-  background: #d8aa3d;
-  color: #161006;
-}
-
-.tutorial-skip-button:hover,
-.tutorial-skip-button:focus-visible {
-  border-color: rgba(242, 198, 85, 0.58);
-  color: #f1d98e;
-}
-
-.battle-screen.is-tutorial .turn-chip {
-  top: 82px;
-}
-
 .battle-screen.is-tutorial .battle-setup {
   grid-template-columns: repeat(3, minmax(112px, 1fr)) 104px;
 }
@@ -6442,7 +6393,6 @@ input,
 .battle-screen.tutorial-focus-character .player-setup-field .character-picker-button,
 .battle-screen.tutorial-focus-inscription .inscription-button,
 .battle-screen.tutorial-focus-start #startButton,
-.battle-screen.tutorial-focus-info #playerInfoButton,
 .battle-screen.is-tutorial .action-button.is-tutorial-target {
   border-color: var(--gold) !important;
   box-shadow: inset 0 -2px rgba(242, 198, 85, 0.58), 0 0 0 2px rgba(242, 198, 85, 0.18) !important;

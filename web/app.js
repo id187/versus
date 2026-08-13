@@ -1,6 +1,9 @@
 const LOG_DELAY_MS = 700;
 const LOG_IMPORTANT_DELAY_MS = 1000;
-const LOG_FIRST_ENTRY_DELAY_MS = 420;
+const LOG_FIRST_ENTRY_DELAY_MS = 500;
+const LOG_FAST_DELAY_MS = 240;
+const LOG_ACTION_ANNOUNCEMENT_DELAY_MS = 500;
+const TUTORIAL_INSTRUCTION_DELAY_MS = 1800;
 const LOG_EFFECT_TAIL_HOLD_MS = 280;
 const LOG_EFFECT_IMPACT_LEAD_MS = 60;
 const DIALOGUE_LOG_DELAY_MS = 1200;
@@ -18,6 +21,8 @@ const DEFAULT_AUDIO_SETTINGS = Object.freeze({ bgm: 0.35, sfx: 0.5, muted: false
 const AdventureSave = window.VersusAdventureSave;
 const AdventureAchievements = window.VersusAdventureAchievements;
 const TUTORIAL_CHARACTER_ID = "plote";
+const TUTORIAL_INSCRIPTION_ID = "gray";
+const TUTORIAL_TOTAL_STEPS = 10;
 
 function localAssetUrl(path) {
   const baseUrl = window.__VERSUS_BASE_URL__ || new URL("./", window.location.href).href;
@@ -63,12 +68,6 @@ const els = {
   rulesContent: document.querySelector("#rulesContent"),
   rulesTabs: [...document.querySelectorAll("[data-rules-tab]")],
   rulesPanels: [...document.querySelectorAll("[data-rules-panel]")],
-  tutorialGuide: document.querySelector("#tutorialGuide"),
-  tutorialGuideStep: document.querySelector("#tutorialGuideStep"),
-  tutorialGuideTitle: document.querySelector("#tutorialGuideTitle"),
-  tutorialGuideText: document.querySelector("#tutorialGuideText"),
-  tutorialGuideButton: document.querySelector("#tutorialGuideButton"),
-  tutorialSkipButton: document.querySelector("#tutorialSkipButton"),
   inscriptionButton: document.querySelector("#inscriptionButton"),
   inscriptionPopover: document.querySelector("#inscriptionPopover"),
   playerSetupLabel: document.querySelector("#playerSetupLabel"),
@@ -698,8 +697,6 @@ function bindEvents() {
   els.openPvpButton.addEventListener("click", () => openBattleMode("pvp"));
   els.openSkillDebugButton.addEventListener("click", () => openBattleMode("skill-debug"));
   els.openRulesButton.addEventListener("click", () => showScreen("rules"));
-  els.tutorialGuideButton.addEventListener("click", handleTutorialGuideButton);
-  els.tutorialSkipButton.addEventListener("click", skipTutorial);
   els.openCodexButton.addEventListener("click", () => showScreen("codex"));
   els.openAchievementsButton.addEventListener("click", () => showScreen("achievements"));
   els.openSettingsButton.addEventListener("click", () => showScreen("settings"));
@@ -777,7 +774,9 @@ function openTutorialMode() {
     inscriptionChosen: false,
     started: false,
   };
-  renderTutorialGuide();
+  state.selectedInscriptionId = TUTORIAL_INSCRIPTION_ID;
+  syncInscriptionPicker();
+  renderTutorialSetupLog();
   previewSelectedMatch();
   syncSetupLock();
   showScreen("battle");
@@ -796,108 +795,51 @@ function advanceTutorialCharacterStep() {
     state.tutorial.setupStep = 1;
     state.tutorial.inscriptionChosen = false;
   }
-  renderTutorialGuide();
+  renderTutorialSetupLog();
   syncSetupLock();
 }
 
-function handleTutorialGuideButton() {
-  if (state.battleMode !== "tutorial") return;
-  if (!state.battle && state.tutorial?.setupStep === 3) {
-    startTutorialBattle();
-    return;
-  }
-  if (state.tutorial?.skipped || state.battle?.tutorial?.completed) {
-    finishTutorialToPlay();
-    return;
-  }
-  if (state.battle?.is_over) openTutorialMode();
-}
+function renderTutorialSetupLog() {
+  els.battleScreen.classList.remove("tutorial-focus-character", "tutorial-focus-inscription", "tutorial-focus-start");
+  const isSetup = state.battleMode === "tutorial" && state.tutorial && !state.tutorial.started && !state.battle;
+  if (!isSetup) return;
 
-function skipTutorial() {
-  if (state.battleMode !== "tutorial") return;
-  setTutorialEnabled(false);
-  state.tutorial.skipped = true;
-  renderTutorialGuide(state.battle);
-}
-
-function finishTutorialToPlay() {
-  resetBattleScreen();
-  setBattleMode("pve");
-  renderTutorialGuide();
-  showScreen("play");
-}
-
-function renderTutorialGuide(data = state.battle) {
-  const isTutorial = state.battleMode === "tutorial" && state.tutorial;
-  els.tutorialGuide.hidden = !isTutorial;
-  els.battleScreen.classList.remove("tutorial-focus-character", "tutorial-focus-inscription", "tutorial-focus-start", "tutorial-focus-actions", "tutorial-focus-info");
-  if (!isTutorial) return;
-
-  els.tutorialGuideButton.hidden = true;
-  els.tutorialSkipButton.hidden = false;
-  if (state.tutorial.skipped) {
-    els.tutorialGuideStep.textContent = "SKIPPED";
-    els.tutorialGuideTitle.textContent = "튜토리얼을 건너뛰었습니다.";
-    els.tutorialGuideText.textContent = "Settings에서 ‘Play 진입 시 튜토리얼’을 ON으로 바꾼 뒤 Play에 들어가면 다시 체험할 수 있습니다.";
-    els.tutorialGuideButton.textContent = "Play로 이동";
-    els.tutorialGuideButton.hidden = false;
-    els.tutorialSkipButton.hidden = true;
-    return;
-  }
-  if (!data) {
-    const step = Number(state.tutorial.setupStep || 1);
-    if (step === 1) {
-      els.tutorialGuideStep.textContent = "STEP 1 / 7";
-      els.tutorialGuideTitle.textContent = "플로테를 선택하세요.";
-      els.tutorialGuideText.textContent = "상단의 내 캐릭터를 열고 플로테를 찾아 선택합니다.";
-      els.battleScreen.classList.add("tutorial-focus-character");
-    } else if (step === 2) {
-      els.tutorialGuideStep.textContent = "STEP 2 / 7";
-      els.tutorialGuideTitle.textContent = "각인을 하나 선택하세요.";
-      els.tutorialGuideText.textContent = "플로테 왼쪽의 보석을 열어 공통 보정의 효과를 읽고 하나를 고릅니다.";
-      els.battleScreen.classList.add("tutorial-focus-inscription");
-    } else {
-      const inscription = findInscriptionOption();
-      els.tutorialGuideStep.textContent = "STEP 3 / 7";
-      els.tutorialGuideTitle.textContent = `${inscription.summary} 각인 선택 완료`;
-      els.tutorialGuideText.textContent = `상대는 루크로 고정됩니다. ${inscription.detail} 오른쪽의 전투 시작을 누르세요.`;
-      els.battleScreen.classList.add("tutorial-focus-start");
-    }
-    return;
-  }
-
-  const tutorial = data.tutorial || {};
-  if (tutorial.completed) {
-    els.tutorialGuideStep.textContent = "COMPLETE";
-    els.tutorialGuideTitle.textContent = "기본 훈련 완료";
-    els.tutorialGuideText.textContent = "Settings에서 ‘Play 진입 시 튜토리얼’을 ON으로 바꾼 뒤 Play에 들어가면 다시 체험할 수 있습니다.";
-    els.tutorialGuideButton.textContent = "Play로 이동";
-    els.tutorialGuideButton.hidden = false;
-    els.tutorialSkipButton.hidden = true;
-    return;
-  }
-  if (data.is_over) {
-    els.tutorialGuideStep.textContent = "RETRY";
-    els.tutorialGuideTitle.textContent = "안내를 마치기 전에 전투가 끝났습니다.";
-    els.tutorialGuideText.textContent = "같은 준비 단계부터 다시 시작할 수 있습니다.";
-    els.tutorialGuideButton.textContent = "다시 시작";
-    els.tutorialGuideButton.hidden = false;
-    return;
-  }
-
+  const step = Number(state.tutorial.setupStep || 1);
   const instructions = {
-    1: ["일반 공격을 선택하세요.", "일반 공격은 MP를 쓰지 않는 기본 공격입니다. 이번 턴 루크는 명상하므로 [방어]되지 않은 기본 피해를 확인할 수 있습니다."],
-    2: ["일반 방어를 선택하세요.", "[방어] 행동은 상대의 공격이 명중할 때 피해를 경감합니다. 연속으로 사용하면 경감률이 낮아지며, 이번 턴에는 루크의 일반 공격으로 효과를 확인합니다."],
-    3: ["명상을 선택하세요.", "명상은 MP를 15 회복하고 턴 종료 기본 회복도 따로 받습니다. 공격 행동이 아니므로 상대의 [방어] 경감이 적용되지 않아, [방어] 행동을 낭비시킬 수 있습니다."],
-    4: ["내 정보를 살펴본 뒤 화염탄을 선택하세요.", "플레이어 캐릭터는 MP를 소모하는 4개의 액티브 스킬을 가집니다. 고유 효과는 ⓘ 내 정보에서, 상대의 스킬은 ⓘ 상대 정보에서 확인할 수 있습니다."],
+    1: {
+      title: "캐릭터 선택",
+      lines: [
+        "먼저 플로테를 선택해 봅시다.",
+        "이번 훈련에서는 플로테만 선택할 수 있지만, 실제 전투에서는 캐릭터마다 서로 다른 스킬과 고유 상태로 심리전을 펼칩니다.",
+        "튜토리얼을 건너뛰려면 왼쪽 위의 ‘뒤로’를 누르세요.",
+      ],
+      focusClass: "tutorial-focus-character",
+    },
+    2: {
+      title: "각인 선택",
+      lines: [
+        "이번에는 아무 보정이 없는 Gray 각인을 골라봅시다.",
+        "다른 각인은 지금 선택할 수 없지만, 각 항목의 설명에서 공격·방어·속도·MP 운용 등이 어떻게 달라지는지 살펴볼 수 있습니다.",
+      ],
+      focusClass: "tutorial-focus-inscription",
+    },
+    3: {
+      title: "전투 준비 완료",
+      lines: [
+        "플로테와 Gray 각인이 준비되었습니다. 상대는 루크로 고정됩니다.",
+        "오른쪽 위의 ‘전투 시작’을 눌러봅시다.",
+      ],
+      focusClass: "tutorial-focus-start",
+    },
   };
-  const step = Number(tutorial.step || 1);
-  const [title, description] = instructions[step] || instructions[1];
-  els.tutorialGuideStep.textContent = `STEP ${Math.min(7, step + 3)} / 7`;
-  els.tutorialGuideTitle.textContent = title;
-  els.tutorialGuideText.textContent = description;
-  els.battleScreen.classList.add("tutorial-focus-actions");
-  if (step === 4) els.battleScreen.classList.add("tutorial-focus-info");
+  const instruction = instructions[step] || instructions[1];
+  els.battleScreen.classList.add(instruction.focusClass);
+  clearLogs();
+  void pushTurnLog(
+    `튜토리얼 · STEP ${Math.min(3, step)} / ${TUTORIAL_TOTAL_STEPS} · ${instruction.title}`,
+    instruction.lines.map((line) => `[튜토리얼] ${line}`),
+    true,
+  );
 }
 
 async function openAdventureMode() {
@@ -1112,11 +1054,16 @@ function syncInscriptionPicker() {
   for (const option of inscriptionOptions()) {
     const item = document.createElement("button");
     const isSelected = option.id === selected.id;
+    const tutorialRestricted = state.battleMode === "tutorial" && state.tutorial && !state.tutorial.started;
+    const isTutorialTarget = tutorialRestricted && option.id === TUTORIAL_INSCRIPTION_ID;
     item.type = "button";
     item.className = `inscription-option${isSelected ? " is-selected" : ""}`;
+    item.classList.toggle("is-tutorial-target", isTutorialTarget);
+    item.disabled = tutorialRestricted && !isTutorialTarget;
     item.style.setProperty("--inscription-color", option.color);
     item.dataset.inscriptionId = option.id;
     item.setAttribute("aria-label", `각인: ${option.summary}. ${option.detail}`);
+    item.setAttribute("aria-disabled", String(item.disabled));
     if (isSelected) {
       item.setAttribute("aria-current", "true");
     }
@@ -1129,14 +1076,17 @@ function syncInscriptionPicker() {
     `;
     item.addEventListener("click", (event) => {
       event.stopPropagation();
-      state.selectedInscriptionId = option.id;
       if (state.battleMode === "tutorial" && state.tutorial && !state.tutorial.started) {
+        if (option.id !== TUTORIAL_INSCRIPTION_ID) return;
+        state.selectedInscriptionId = TUTORIAL_INSCRIPTION_ID;
         state.tutorial.inscriptionChosen = true;
         state.tutorial.setupStep = 3;
+      } else {
+        state.selectedInscriptionId = option.id;
       }
       syncInscriptionPicker();
       closeInscriptionPopover();
-      renderTutorialGuide();
+      renderTutorialSetupLog();
       syncSetupLock();
       els.inscriptionButton.focus();
     });
@@ -1445,7 +1395,6 @@ function leaveBattleScreen() {
     setTutorialEnabled(false);
     resetBattleScreen();
     setBattleMode("pve");
-    renderTutorialGuide();
   }
   showScreen("play");
   if (request) {
@@ -1675,12 +1624,14 @@ function openCharacterPicker(api) {
   const label = state.battleMode === "skill-debug" && api.select === els.playerSelect
     ? "테스트 대상"
     : api.label;
-  els.characterPickerTitle.textContent = `${label} 선택`;
+  const tutorialPlayerPicker = state.battleMode === "tutorial" && api.select === els.playerSelect;
+  els.characterPickerTitle.textContent = tutorialPlayerPicker ? "플로테를 선택해 봅시다" : `${label} 선택`;
   renderCharacterPickerGrid(api);
   els.characterPickerModal.hidden = false;
   window.requestAnimationFrame(() => {
-    const selected = els.characterPickerGrid.querySelector(".character-picker-tile.is-selected");
-    (selected || els.characterPickerCloseButton).focus();
+    const selected = els.characterPickerGrid.querySelector(".character-picker-tile.is-selected:not(:disabled)");
+    const firstAvailable = els.characterPickerGrid.querySelector(".character-picker-tile:not(:disabled)");
+    (selected || firstAvailable || els.characterPickerCloseButton).focus();
   });
 }
 
@@ -1706,14 +1657,22 @@ function renderCharacterPickerGrid(api) {
   els.characterPickerGrid.innerHTML = "";
   for (const item of items) {
     const button = document.createElement("button");
+    const tutorialRestricted = state.battleMode === "tutorial"
+      && state.tutorial
+      && !state.tutorial.started
+      && api.select === els.playerSelect;
+    const isTutorialTarget = tutorialRestricted && item.character?.id === TUTORIAL_CHARACTER_ID;
     button.type = "button";
     button.className = `character-picker-tile${item.value === selectedValue ? " is-selected" : ""}`;
     button.classList.toggle("is-random", !item.character);
+    button.classList.toggle("is-tutorial-target", isTutorialTarget);
+    button.disabled = tutorialRestricted && !isTutorialTarget;
     button.style.setProperty(
       "--character-color",
       item.character ? characterColor(item.character.id) : RANDOM_CHARACTER_COLOR,
     );
     button.setAttribute("aria-label", `${api.label}: ${item.name}`);
+    button.setAttribute("aria-disabled", String(button.disabled));
     if (item.value === selectedValue) {
       button.setAttribute("aria-current", "true");
     }
@@ -1724,6 +1683,7 @@ function renderCharacterPickerGrid(api) {
       <strong>${escapeHtml(item.name)}</strong>
     `;
     button.addEventListener("click", () => {
+      if (button.disabled) return;
       api.select.value = item.value;
       api.select.dispatchEvent(new Event("change", { bubbles: true }));
       closeCharacterPicker();
@@ -1895,7 +1855,12 @@ async function startConfiguredBattle() {
 }
 
 async function startTutorialBattle() {
-  if (state.busy || state.tutorial?.setupStep !== 3 || selectedTutorialCharacter()?.id !== TUTORIAL_CHARACTER_ID) return;
+  if (
+    state.busy
+    || state.tutorial?.setupStep !== 3
+    || selectedTutorialCharacter()?.id !== TUTORIAL_CHARACTER_ID
+    || state.selectedInscriptionId !== TUTORIAL_INSCRIPTION_ID
+  ) return;
   const tutorialSession = state.tutorial;
   stopPvpPolling();
   state.pvp = null;
@@ -1906,7 +1871,7 @@ async function startTutorialBattle() {
   clearLogs();
   try {
     const data = await api("/api/tutorial/new", {
-      playerInscriptionId: state.selectedInscriptionId,
+      playerInscriptionId: TUTORIAL_INSCRIPTION_ID,
       seed: "versus-guided-tutorial",
     });
     if (!isCurrentTutorialSession(tutorialSession)) return;
@@ -1919,7 +1884,6 @@ async function startTutorialBattle() {
     state.tutorial.started = false;
     stopBgm(300);
     pushTurnLog("오류", [`튜토리얼 시작 실패: ${error.message}`], false);
-    renderTutorialGuide();
   } finally {
     if (isCurrentTutorialSession(tutorialSession)) setBusy(false);
   }
@@ -2102,6 +2066,7 @@ async function chooseAction(actionNumber) {
       && data.adventure.dialogue.lines.length > 0;
     if (hasFinalBattleEnding) syncSetupLock();
     await pushTurnLog(`TURN ${previousTurn}`, data.log, true, {
+      fastInfo: true,
       settleEffects: isGameOver,
       syncState: true,
     });
@@ -2283,6 +2248,7 @@ async function handlePvpState(data, options = {}) {
         ? `TURN ${data.logTurn || previousTurn}`
         : "PvP 전투 시작";
     await pushTurnLog(title, data.log, Boolean(options.animateLog), {
+      fastInfo: Boolean(options.animateLog),
       settleEffects: Boolean(data.is_over || data.gameOver),
       syncState: Boolean(options.animateLog),
     });
@@ -2587,7 +2553,6 @@ function renderBattle(data, options = {}) {
   els.enemyInfoButton.disabled = isPrologue;
   els.playerInfoButton.disabled = false;
   renderPvpStatus(data);
-  renderTutorialGuide(data);
   syncSetupLock();
   syncDefeatVisuals(data, options.animateDefeat);
 }
@@ -2868,6 +2833,7 @@ function createPassiveSlot(passive) {
 
 function createActionButton(action) {
   const button = document.createElement("button");
+  const unavailable = !action.available;
   const expectedActionNumber = Number(state.battle?.tutorial?.expectedActionNumber || 0);
   const tutorialLocked = state.battleMode === "tutorial"
     && !state.battle?.tutorial?.completed
@@ -2875,8 +2841,9 @@ function createActionButton(action) {
     && Number(action.number) !== expectedActionNumber;
   button.type = "button";
   button.className = "action-button";
+  button.classList.toggle("is-unavailable", unavailable);
   button.classList.toggle("is-tutorial-target", expectedActionNumber > 0 && Number(action.number) === expectedActionNumber);
-  button.disabled = !action.available || state.busy || tutorialLocked;
+  button.disabled = unavailable || state.busy || tutorialLocked;
   button.addEventListener("click", () => chooseAction(action.number));
   button.innerHTML = `
     ${skillIconHtml(action)}
@@ -3018,7 +2985,7 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
     ? Math.max(0, Number(options.delayMs))
     : LOG_DELAY_MS;
   let playedEffect = false;
-  let nextEntryDelayMs = Math.min(delayMs, LOG_FIRST_ENTRY_DELAY_MS);
+  let nextEntryDelayMs = initialLogEntryDelayMs(packet.entries[0], delayMs, options);
   try {
     for (let index = 1; index <= packet.entries.length; index += 1) {
       const skipped = await waitForLogPlayback(nextEntryDelayMs, token);
@@ -3037,14 +3004,17 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
       }
       const impactDelayMs = Math.max(0, Number(effect?.impactDelayMs) || 0);
       nextEntryDelayMs = Math.max(
-        logEntryHoldMs(entry, delayMs),
+        logEntryHoldMs(entry, delayMs, options),
         impactDelayMs > 0 ? impactDelayMs + LOG_EFFECT_IMPACT_LEAD_MS : 0,
       );
     }
     const finalEffect = packet.entries.at(-1)?.effect;
     if (finalEffect && finalEffect.type !== "sprite-state" && token === state.logToken) {
       const impactDelayMs = Math.max(0, Number(finalEffect.impactDelayMs) || 0);
-      const skipped = await waitForLogPlayback(impactDelayMs + LOG_EFFECT_TAIL_HOLD_MS, token);
+      const tailHoldMs = options.fastInfo && finalEffect.logPacing === "fast"
+        ? LOG_FAST_DELAY_MS
+        : LOG_EFFECT_TAIL_HOLD_MS;
+      const skipped = await waitForLogPlayback(impactDelayMs + tailHoldMs, token);
       if (skipped || state.logSkipRequested) return;
     }
     if (options.settleEffects && playedEffect && token === state.logToken) {
@@ -3061,7 +3031,46 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
   }
 }
 
-function logEntryHoldMs(entry, baseDelayMs) {
+function initialLogEntryDelayMs(entry, baseDelayMs, options = {}) {
+  if (entry?.tutorialInstruction) return TUTORIAL_INSTRUCTION_DELAY_MS;
+  if (options.fastInfo && isFastBattleInfoEntry(entry)) return LOG_FAST_DELAY_MS;
+  return Math.min(baseDelayMs, LOG_FIRST_ENTRY_DELAY_MS);
+}
+
+function isFastBattleInfoEntry(entry) {
+  const effect = entry?.effect;
+  if (effect?.logPacing === "fast") return true;
+  if (effect && effect.type !== "sprite-state") return false;
+  const text = String(entry?.text || "");
+  if (text.includes("GAME OVER")) return false;
+  if (text.includes("“") && text.includes("”")) return false;
+  return true;
+}
+
+function isReadableActionAnnouncementEntry(entry) {
+  const effect = entry?.effect;
+  if (effect && effect.type !== "sprite-state") return false;
+  return /^.+?(?:은|는) .+?(?:을|를) 사용했다\.$/.test(String(entry?.text || ""));
+}
+
+function consumePendingActionMpCost(line, context, fighterName, amount) {
+  const isActionCostLine = context.actionCostPending
+    && fighterName === context.actorName
+    && !line.includes("(");
+  if (isActionCostLine) context.actionCostPending = false;
+  return isActionCostLine && amount < 0;
+}
+
+function logEntryHoldMs(entry, baseDelayMs, options = {}) {
+  const explicitHoldMs = entry?.effect?.logHoldMs;
+  if (explicitHoldMs != null && Number.isFinite(Number(explicitHoldMs))) {
+    return Math.max(0, Number(explicitHoldMs));
+  }
+  if (entry?.tutorialInstruction) return TUTORIAL_INSTRUCTION_DELAY_MS;
+  if (options.fastInfo && isReadableActionAnnouncementEntry(entry)) {
+    return Math.min(baseDelayMs, LOG_ACTION_ANNOUNCEMENT_DELAY_MS);
+  }
+  if (options.fastInfo && isFastBattleInfoEntry(entry)) return LOG_FAST_DELAY_MS;
   const importantEffectTypes = new Set(["hit", "shadow-hit", "miss", "defense", "heal", "buff", "debuff"]);
   const effectType = entry?.effect?.type;
   const textLength = String(entry?.text || "").length;
@@ -3114,6 +3123,8 @@ function compactLogEntries(lines) {
   for (const rawLine of lines || []) {
     let line = String(rawLine).trim();
     if (!line) continue;
+    const tutorialInstruction = line.startsWith("[튜토리얼]");
+    if (tutorialInstruction) line = line.slice("[튜토리얼]".length).trim();
     const sideTag = line.match(/^\[@(PLAYER|AI)\](.*)$/);
     context.lineSide = sideTag ? uiSideForBattleSide(sideTag[1]) : null;
     if (sideTag) line = sideTag[2].trim();
@@ -3138,7 +3149,7 @@ function compactLogEntries(lines) {
     if (line.includes("명중률")) {
       if (line.includes("명중 판정 성공")) {
         const text = "→ 명중 판정 성공.";
-        result.push({ text, effect: effectFromLogLine(text, context), patch: null });
+        result.push({ text, effect: effectFromLogLine(text, context), patch: null, tutorialInstruction });
       }
       continue;
     }
@@ -3146,7 +3157,7 @@ function compactLogEntries(lines) {
     const polished = polishLogLine(line).replaceAll("⇒", "->");
     const effect = effectFromLogLine(polished, context);
     const patch = statePatchFromLogLine(polished, context);
-    result.push({ text: polished, effect, patch });
+    result.push({ text: polished, effect, patch, tutorialInstruction });
   }
   return result;
 }
@@ -3497,11 +3508,7 @@ function effectFromLogLine(line, context) {
     const beforeMp = Number(match[2]);
     const afterMp = Number(match[3]);
     const amount = afterMp - beforeMp;
-    const isActionCost = amount < 0
-      && context.actionCostPending
-      && fighterName === context.actorName
-      && !line.includes("(");
-    context.actionCostPending = false;
+    const isActionCost = consumePendingActionMpCost(line, context, fighterName, amount);
     if (isActionCost) return null;
     if (context.actionName === "명상" && line.endsWith("(명상)")) {
       const effect = makeLogEffect("meditation", fighterName, fighterName, amount > 0 ? amount : null, context.actorSide, context.actorSide);
@@ -3523,7 +3530,11 @@ function effectFromLogLine(line, context) {
       context.lineSide,
       context.lineSide || context.actorSide,
     );
-    return effect ? { ...effect, valueKind: amount > 0 ? "mp-gain" : "mp-loss" } : null;
+    return effect ? {
+      ...effect,
+      valueKind: amount > 0 ? "mp-gain" : "mp-loss",
+      logPacing: "fast",
+    } : null;
   }
 
   match = line.match(/^(.+?)(?:의)? HP (\d+)\s*(?:→|->)\s*(\d+)/);
@@ -4203,7 +4214,11 @@ function renderLog(options = {}) {
 
 function renderCurrentLog() {
   const packet = state.turnLogs.at(-1);
-  if (!packet || !state.battle) {
+  const tutorialSetup = state.battleMode === "tutorial"
+    && state.tutorial
+    && !state.tutorial.started
+    && !state.battle;
+  if (!packet || (!state.battle && !tutorialSetup)) {
     els.currentLogBox.hidden = true;
     return;
   }
@@ -4218,7 +4233,7 @@ function renderCurrentLog() {
   els.currentLogBox.disabled = !state.logAnimating;
   els.currentLogBox.classList.toggle("is-animating", state.logAnimating);
   els.currentLogBox.style.setProperty("--current-log-color", accentColor);
-  els.currentLogText.textContent = entry?.text || "판정 중...";
+  els.currentLogText.textContent = entry?.text || (tutorialSetup ? "안내 중..." : "판정 중...");
   els.currentLogSkipHint.hidden = !state.logAnimating;
 }
 
@@ -4616,7 +4631,12 @@ function syncSetupLock() {
     && ["final_battle_dialogue", "final_battle_ending"].includes(state.adventure?.phase)
     && !state.adventureRestartRequested;
   const tutorialStartLocked = state.battleMode === "tutorial"
-    && (!tutorialSetup || state.tutorial.setupStep !== 3 || selectedTutorialCharacter()?.id !== TUTORIAL_CHARACTER_ID);
+    && (
+      !tutorialSetup
+      || state.tutorial.setupStep !== 3
+      || selectedTutorialCharacter()?.id !== TUTORIAL_CHARACTER_ID
+      || state.selectedInscriptionId !== TUTORIAL_INSCRIPTION_ID
+    );
   const startLocked = pvpLocked || tutorialStartLocked || (state.busy && !canRestartDuringDialogue);
   els.startButton.disabled = startLocked;
   els.inscriptionButton.removeAttribute("title");
@@ -4624,6 +4644,10 @@ function syncSetupLock() {
     els.inscriptionButton.blur();
   }
   els.inscriptionButton.disabled = inscriptionLocked;
+  for (const option of els.playerSelect.options) {
+    const character = state.options?.characters?.find((item) => String(item.index) === String(option.value));
+    option.disabled = Boolean(tutorialSetup && character?.id !== TUTORIAL_CHARACTER_ID);
+  }
   els.playerSelect.disabled = playerSelectLocked;
   els.pvpRoomInput.disabled = pvpLocked;
   for (const picker of state.characterPickers) {

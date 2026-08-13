@@ -14,13 +14,13 @@
 .battle-fx-saqua-flow-ring-outer {
   width: 82%;
   background: url("../assets/characters/saqua/effects/flow-target-ring-outer.png") center / contain no-repeat;
-  animation: saqua-flow-ring-from-left 840ms steps(12, end) forwards;
+  animation: saqua-flow-ring-from-left 420ms steps(12, end) forwards;
 }
 
 .battle-fx-saqua-flow-ring-inner {
   width: 52%;
   background: url("../assets/characters/saqua/effects/flow-target-ring-inner.png") center / contain no-repeat;
-  animation: saqua-flow-ring-from-right 840ms steps(12, end) forwards;
+  animation: saqua-flow-ring-from-right 420ms steps(12, end) forwards;
 }
 
 .avatar-stage:has(.battle-fx-saqua-flow-ring) {

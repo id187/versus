@@ -66,7 +66,9 @@ module.exports = {
     const target = battle.opponent(actor);
     const action = choice.action;
     if (action.isSkill(CHARACTER_ID, 0)) {
-      if (battle.roll("화상 부여") < 60) battle.addStatus(target, "화상", 3, 3, actor.name, true);
+      if (actor.tutorialForcePloteFireballBurn || battle.roll("화상 부여") < 60) {
+        battle.addStatus(target, "화상", 3, 3, actor.name, true);
+      }
     } else if (action.isSkill(CHARACTER_ID, 3)) {
       battle.addStatus(target, "화상", 4, 4, actor.name, true);
       addCostEffect(battle, target, 1.2, 4, action.name);

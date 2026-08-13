@@ -9,7 +9,7 @@
   const FLOWING_BARRIER_ACTION_NAME = "흐르는 수막";
   const SERMON_ARROW_ACTION_NAME = "강연사";
   const RAIN_ARROW_ACTION_NAME = "비의 화살";
-  const FLOW_LOCK_LIFETIME_MS = 840;
+  const FLOW_LOCK_LIFETIME_MS = 420;
   const TORRENT_IMPACT_DELAY_MS = 280;
   const TORRENT_PROJECTILE_LIFETIME_MS = 390;
   const SERMON_IMPACT_DELAY_MS = 470;
@@ -39,7 +39,7 @@
     if (line !== FLOW_LOCK_LOG || !actorSide) return undefined;
     const targetSide = oppositeSide(actorSide);
     const targetName = battle?.[targetSide]?.name || actorName;
-    return makeLogEffect(
+    const effect = makeLogEffect(
       "flow-target-lock",
       targetName,
       actorName,
@@ -47,6 +47,7 @@
       targetSide,
       actorSide,
     );
+    return effect ? { ...effect, logHoldMs: FLOW_LOCK_LIFETIME_MS } : null;
   }
 
   function damage({ actionName, actorName, actorSide, targetName, targetSide, damage: rawDamage, makeLogEffect }) {

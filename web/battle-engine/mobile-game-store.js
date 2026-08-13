@@ -43,8 +43,77 @@ const PVP_DEFAULT_PERSONALITY_ID = "R";
 const PVP_MAX_TURNS = 200;
 const TUTORIAL_PLAYER_ID = "plote";
 const TUTORIAL_OPPONENT_ID = "demon_warrior_luke";
-const TUTORIAL_PLAYER_ACTION_PATTERN = Object.freeze(["normal_attack", "defense", "meditation", "plote:0"]);
-const TUTORIAL_AI_ACTION_PATTERN = Object.freeze(["meditation", "normal_attack", "defense", "meditation"]);
+const TUTORIAL_INSCRIPTION_ID = "gray";
+const TUTORIAL_PLAYER_ACTION_PATTERN = Object.freeze([
+  "normal_attack",
+  "defense",
+  "meditation",
+  "plote:0",
+  "plote:1",
+  "plote:3",
+  "plote:2",
+]);
+const TUTORIAL_AI_ACTION_PATTERN = Object.freeze([
+  "meditation",
+  "normal_attack",
+  "defense",
+  "meditation",
+  "demon_warrior_luke:0",
+  "normal_attack",
+  "demon_warrior_luke:1",
+]);
+
+function tutorialBattleInstructionLines(step) {
+  const instructions = {
+    1: [
+      "STEP 4 / 10 · 일반 공격을 선택해 봅시다.",
+      "일반 공격은 MP를 쓰지 않는 기본 공격입니다. 이번 턴 루크는 명상을 선택합니다.",
+    ],
+    2: [
+      "STEP 5 / 10 · 루크의 일반 공격을 일반 방어로 받아봅시다.",
+      "[방어] 행동은 상대의 공격이 명중할 때 그 턴의 공격 피해를 경감합니다.",
+    ],
+    3: [
+      "STEP 6 / 10 · 루크의 [방어]를 예상하고 명상을 선택해 봅시다.",
+      "명상은 MP를 회복하는 비공격 행동이므로 상대의 [방어]를 낭비시킬 수 있습니다.",
+    ],
+    4: [
+      "STEP 7 / 10 · 이제 화염탄부터 플로테의 네 액티브 스킬을 연계해 봅시다.",
+      "이번 훈련의 화염탄은 반드시 명중해 화상 3중첩을 확정 부여합니다.",
+      "화상은 상대가 공격 행동을 시작할 때 중첩에 비례한 고정 피해를 주므로 공격 선택을 압박합니다.",
+    ],
+    5: [
+      "STEP 8 / 10 · 루크가 공격 스킬 ‘흑철의 파쇄’를 사용합니다. 가로막는 불길을 선택해 봅시다.",
+      "가로막는 불길은 [방어]를 수행하면서, 상대의 공격이 명중하면 화상을 1중첩 더 부여합니다.",
+      "주의: 일반 방어와 가로막는 불길처럼 서로 다른 [방어] 행동을 이어 써도 연속 사용 횟수가 이어져 경감률이 낮아집니다.",
+    ],
+    6: [
+      "STEP 9 / 10 · 연옥의 꽃으로 화상을 4중첩 더 쌓아봅시다.",
+      "여기서 연옥의 꽃을 쓰는 목적은 단순히 화상을 거는 것이 아니라, 화상 중첩을 높여 공격할 때의 대가를 키우는 것입니다.",
+      "연옥의 꽃은 상대 액티브 스킬의 MP 비용도 높여 선택의 부담을 더합니다.",
+    ],
+    7: [
+      "STEP 10 / 10 · 화상 중첩이 높으니 루크가 공격을 피할 가능성이 높다고 예측해 봅시다.",
+      "잔화기폭은 이번 턴 공격 피해를 받으면 실패하지만, 상대의 화상 중첩만큼 위력이 증가합니다.",
+      "루크가 비공격 행동을 고를 것이라 읽고 고위력의 잔화기폭을 선택해 봅시다. 이는 확정 정보가 아니라 상대의 손익을 바탕으로 한 예측입니다.",
+    ],
+  };
+  return (instructions[Number(step)] || []).map((line) => `[튜토리얼] ${line}`);
+}
+
+function applyTutorialBattleOverrides(battle, tutorialState) {
+  if (!battle || !tutorialState) return;
+  if (tutorialState.completed) {
+    battle.player.debugAccuracyOverride = null;
+    battle.ai.debugAccuracyOverride = null;
+    battle.player.tutorialForcePloteFireballBurn = false;
+    return;
+  }
+  const step = Number(tutorialState.step || 1);
+  battle.player.debugAccuracyOverride = [4, 6, 7].includes(step) ? 100 : null;
+  battle.ai.debugAccuracyOverride = step === 5 ? 100 : null;
+  battle.player.tutorialForcePloteFireballBurn = step === 4;
+}
 
 function actionMatchesPattern(action, key) {
   if (!action || !key) return false;
@@ -166,7 +235,7 @@ class MobileGameStore {
     const playerIndex = combatants.findIndex((combatant) => combatant.id === TUTORIAL_PLAYER_ID);
     const aiIndex = combatants.findIndex((combatant) => combatant.id === TUTORIAL_OPPONENT_ID);
     if (playerIndex < 0 || aiIndex < 0) throw new Error("튜토리얼 전투 대상을 찾을 수 없습니다.");
-    const playerInscriptionId = resolveInscriptionId(this.inscriptions, payload.playerInscriptionId, rng);
+    const playerInscriptionId = resolveInscriptionId(this.inscriptions, TUTORIAL_INSCRIPTION_ID, rng);
     this.tutorialState = { step: 1, totalSteps: TUTORIAL_PLAYER_ACTION_PATTERN.length, completed: false };
     this.battle = new Battle({
       characters: combatants,
@@ -179,6 +248,7 @@ class MobileGameStore {
       aiInscriptionId: "gray",
       maxTurns: payload.maxTurns || 200,
     });
+    applyTutorialBattleOverrides(this.battle, this.tutorialState);
     this.battle.startTurn();
     this.lockAiAction();
     const state = this.withTutorialState(stateForBattle(this.battle));
@@ -188,7 +258,8 @@ class MobileGameStore {
       `튜토리얼 시작: ${this.battle.player.name} vs ${this.battle.ai.name}`,
       `${this.battle.player.name} 각인: ${this.battle.player.inscriptionName}`,
       `${this.battle.ai.name} 각인: ${this.battle.ai.inscriptionName}`,
-      "안내된 행동을 선택해 기본 전투 흐름을 익혀 보세요.",
+      "[튜토리얼] 튜토리얼에서는 안내된 행동만 선택할 수 있습니다.",
+      ...tutorialBattleInstructionLines(1),
     ];
     return state;
   }
@@ -265,10 +336,28 @@ class MobileGameStore {
       if (this.tutorialState.step > TUTORIAL_PLAYER_ACTION_PATTERN.length) {
         this.tutorialState.step = TUTORIAL_PLAYER_ACTION_PATTERN.length;
         this.tutorialState.completed = true;
-        battle.logs.push("기본 훈련을 모두 마쳤다. 이제 모든 행동을 자유롭게 선택할 수 있다.");
+        applyTutorialBattleOverrides(battle, this.tutorialState);
+        battle.logs.push(
+          "[튜토리얼] 높은 화상 중첩으로 공격 선택을 압박한 뒤, 루크의 비공격 행동을 읽어 잔화기폭을 성공시켰습니다.",
+          "[튜토리얼] 실전의 상대가 언제나 같은 선택을 하지는 않습니다. 상대가 감수할 대가를 읽고, 그 예측을 다시 역이용하는 것이 VERSUS의 심리전입니다.",
+          "[튜토리얼] 캐릭터마다 다양한 고유 상태와 압박 방식이 있습니다. 자신에게 맞는 캐릭터와 전투 방식을 찾아보세요.",
+          "[튜토리얼] 기본 훈련을 모두 마쳤습니다. 왼쪽 위의 ‘뒤로’를 눌러 Play로 돌아가세요.",
+        );
       }
     }
     if (!battle.gameOver) {
+      if (this.tutorialState && !this.tutorialState.completed) {
+        if (this.tutorialState.step === 4) {
+          battle.logs.push("[튜토리얼] 다음 액티브 스킬 연계를 설명하기 위해 MP를 최대치까지 채워드리겠습니다.");
+          const mpInstructionStart = battle.logs.length;
+          battle.restoreMp(battle.player, battle.player.maxMp, "액티브 연계 실습 준비");
+          for (let index = mpInstructionStart; index < battle.logs.length; index += 1) {
+            battle.logs[index] = `[튜토리얼] ${battle.logs[index]}`;
+          }
+        }
+        applyTutorialBattleOverrides(battle, this.tutorialState);
+        battle.logs.push(...tutorialBattleInstructionLines(this.tutorialState.step));
+      }
       battle.turn += 1;
       battle.startTurn();
       this.lockAiAction();
