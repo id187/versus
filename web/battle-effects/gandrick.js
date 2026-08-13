@@ -9,8 +9,8 @@
   const MAGIC_MARKSMAN_ACTION_NAME = "마탄의 사수";
   const GRAND_FINALE_ACTION_NAME = "화려한 마무리";
   const PRECISE_SHOT_IMPACT_DELAY_MS = 340;
-  const MAGIC_MARKSMAN_IMPACT_DELAY_MS = 105;
-  const MAGIC_MARKSMAN_FLIGHT_MS = 200;
+  const MAGIC_MARKSMAN_IMPACT_DELAY_MS = 260;
+  const MAGIC_MARKSMAN_FLIGHT_MS = 380;
   const GRAND_FINALE_BURST_MS = 620;
 
   function randomBetween(min, max) {

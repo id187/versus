@@ -22,6 +22,9 @@
 
   const nativeFetch = global.fetch.bind(global);
   const moduleCache = new Map();
+  const moduleSources = new Map();
+  const moduleAliases = new Map();
+  const moduleFetches = new Map();
   let storePromise = null;
 
   function resourceUrl(value) {
@@ -46,29 +49,84 @@
     return normalizeModuleId(`${parentDirectory}/${request}`);
   }
 
-  function loadModule(moduleId) {
-    let id = normalizeModuleId(moduleId);
-    if (moduleCache.has(id)) return moduleCache.get(id).exports;
+  async function fetchModuleSource(moduleId) {
+    const requestedId = normalizeModuleId(moduleId);
+    const aliasedId = moduleAliases.get(requestedId);
+    if (aliasedId && moduleSources.has(aliasedId)) {
+      return { id: aliasedId, source: moduleSources.get(aliasedId) };
+    }
+    if (moduleSources.has(requestedId)) {
+      return { id: requestedId, source: moduleSources.get(requestedId) };
+    }
+    if (moduleFetches.has(requestedId)) return moduleFetches.get(requestedId);
 
-    let request = new XMLHttpRequest();
-    request.open("GET", resourceUrl(id), false);
-    request.send(null);
-    if (request.status === 404 && id.endsWith(".js")) {
-      id = `${id.slice(0, -3)}/index.js`;
-      if (moduleCache.has(id)) return moduleCache.get(id).exports;
-      request = new XMLHttpRequest();
-      request.open("GET", resourceUrl(id), false);
-      request.send(null);
+    const fetchPromise = (async () => {
+      let id = requestedId;
+      let response = await nativeFetch(resourceUrl(id));
+      if (response.status === 404 && id.endsWith(".js")) {
+        id = `${id.slice(0, -3)}/index.js`;
+        moduleAliases.set(requestedId, id);
+        if (moduleSources.has(id)) return { id, source: moduleSources.get(id) };
+        if (moduleFetches.has(id)) {
+          const loadedModule = await moduleFetches.get(id);
+          moduleAliases.set(requestedId, loadedModule.id);
+          return loadedModule;
+        }
+        response = await nativeFetch(resourceUrl(id));
+      }
+      if (!response.ok) {
+        throw new Error(`Could not load JavaScript module ${id}: ${response.status}`);
+      }
+
+      const source = await response.text();
+      moduleAliases.set(requestedId, id);
+      moduleSources.set(id, source);
+      return { id, source };
+    })();
+    moduleFetches.set(requestedId, fetchPromise);
+    return fetchPromise;
+  }
+
+  function staticModuleRequests(source) {
+    const requests = [];
+    const pattern = /\brequire\s*\(\s*(["'])(\.{1,2}\/[^"']+)\1\s*\)/g;
+    for (const match of source.matchAll(pattern)) requests.push(match[2]);
+    return requests;
+  }
+
+  async function prefetchModuleTree(entryModuleId) {
+    const visited = new Set();
+    let pending = [normalizeModuleId(entryModuleId)];
+
+    while (pending.length) {
+      const batch = [...new Set(pending)].filter((id) => !visited.has(id));
+      pending = [];
+      if (!batch.length) break;
+      for (const id of batch) visited.add(id);
+
+      const loadedModules = await Promise.all(batch.map((id) => fetchModuleSource(id)));
+      for (const { id, source } of loadedModules) {
+        visited.add(id);
+        for (const request of staticModuleRequests(source)) {
+          const dependencyId = resolveModuleId(id, request);
+          if (!visited.has(dependencyId)) pending.push(dependencyId);
+        }
+      }
     }
-    if (request.status < 200 || request.status >= 300) {
-      throw new Error(`Could not load JavaScript module ${id}: ${request.status}`);
-    }
+  }
+
+  function loadModule(moduleId) {
+    const requestedId = normalizeModuleId(moduleId);
+    const id = moduleAliases.get(requestedId) || requestedId;
+    if (moduleCache.has(id)) return moduleCache.get(id).exports;
+    const source = moduleSources.get(id);
+    if (source == null) throw new Error(`JavaScript module was not prefetched: ${id}`);
 
     const module = { exports: {} };
     moduleCache.set(id, module);
     const localRequire = (value) => loadModule(resolveModuleId(id, value));
     const directory = id.slice(0, id.lastIndexOf("/"));
-    const factory = new Function("require", "module", "exports", "__filename", "__dirname", `${request.responseText}\n//# sourceURL=${id}`);
+    const factory = new Function("require", "module", "exports", "__filename", "__dirname", `${source}\n//# sourceURL=${id}`);
     factory(localRequire, module, module.exports, id, directory);
     return module.exports;
   }
@@ -84,7 +142,7 @@
 
   async function gameStore() {
     if (!storePromise) {
-      storePromise = Promise.all([
+      const dataPromise = Promise.all([
         loadJson("/dataset/characters.json"),
         loadJson("/dataset/adventure-monsters.json"),
         loadJson("/dataset/adventure-events.json"),
@@ -93,7 +151,19 @@
         loadJson("/dataset/adventure-achievements.json"),
         loadJson("/dataset/inscriptions.json"),
         loadJson("/dataset/firebase.json", true),
-      ]).then(([characters, adventureMonsters, adventureEvents, adventureRelics, adventureDialogue, adventureAchievements, inscriptions, firebaseConfig]) => {
+      ]);
+      const modulesPromise = prefetchModuleTree("/battle-engine/mobile-game-store.js");
+      storePromise = Promise.all([dataPromise, modulesPromise]).then(([data]) => {
+        const [
+          characters,
+          adventureMonsters,
+          adventureEvents,
+          adventureRelics,
+          adventureDialogue,
+          adventureAchievements,
+          inscriptions,
+          firebaseConfig,
+        ] = data;
         const { MobileGameStore } = loadModule("/battle-engine/mobile-game-store.js");
         const store = new MobileGameStore({
           characters,

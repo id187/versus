@@ -38,7 +38,7 @@
   filter:
     drop-shadow(0 0 3px rgba(255, 238, 253, 0.98))
     drop-shadow(0 0 8px rgba(255, 27, 201, 0.94));
-  animation: charinel-flashing-bullet-flight 150ms steps(7, end) forwards;
+  animation: charinel-flashing-bullet-flight 320ms steps(7, end) forwards;
 }
 
 .battle-fx-flashing-bullet {
@@ -98,7 +98,7 @@
   filter:
     drop-shadow(0 0 3px rgba(255, 232, 251, 0.98))
     drop-shadow(0 0 9px rgba(255, 29, 190, 0.92));
-  animation: charinel-light-absorption-orb-flight 180ms steps(7, end) forwards;
+  animation: charinel-light-absorption-orb-flight 320ms steps(7, end) forwards;
 }
 
 .battle-fx-light-absorption-orb {

@@ -5867,7 +5867,7 @@ button:focus-visible {
 @media (orientation: landscape) and (min-width: 620px) and (max-height: 640px) {
   .battle-screen.is-active .battle-grid {
     grid-template-columns: minmax(0, 1fr) clamp(230px, 30vw, 320px);
-    grid-template-rows: minmax(0, 1fr) 142px;
+    grid-template-rows: minmax(0, 1fr) 144px;
     grid-template-areas:
       "arena log"
       "actions log";
@@ -6758,5 +6758,291 @@ input,
 
   .achievements-summary {
     padding-inline: 18px;
+  }
+}
+
+/* Active battle layout for landscape phones and compact foldables.
+   Keep the desktop two-column hierarchy without sacrificing the arena to the
+   action rows on very short screens. */
+@media (orientation: landscape) and (min-width: 620px) and (max-width: 900px) and (min-height: 541px) {
+  body,
+  .app-shell {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .battle-screen.is-active {
+    height: 100dvh;
+    min-height: 0;
+    grid-template-rows: 52px minmax(0, 1fr);
+    gap: 6px;
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .battle-screen.is-active .battle-grid {
+    grid-template-columns: minmax(0, 1fr) clamp(196px, 28vw, 280px);
+    grid-template-rows: minmax(0, 1fr) clamp(168px, 24dvh, 208px);
+    grid-template-areas:
+      "arena log"
+      "actions log";
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .battle-screen.is-active .actions-grid:not(.is-adventure-choices) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .battle-screen.is-active .skills-card .passive-action .action-cost {
+    display: none;
+  }
+
+  .battle-screen.is-active .skills-card .passive-action .action-name {
+    font-size: 0.64rem;
+    line-height: 1.1;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 620px) and (max-width: 1280px) and (max-height: 540px) {
+  .battle-screen.is-active .app-header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .battle-screen.is-active .app-header .header-title {
+    display: none;
+  }
+
+  .battle-screen.is-active .battle-grid {
+    --compact-battle-sidebar: clamp(196px, 28vw, 280px);
+    --compact-battle-actions: clamp(216px, 40dvh, 230px);
+    grid-template-columns: minmax(0, 1fr) var(--compact-battle-sidebar);
+    grid-template-rows: minmax(0, 1fr) var(--compact-battle-actions);
+    grid-template-areas:
+      "arena log"
+      "arena actions";
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .battle-screen.is-active .arena-panel {
+    grid-area: arena;
+    min-height: 0;
+  }
+
+  .battle-screen.is-active .status-column {
+    grid-area: arena;
+    align-self: end;
+    width: min(calc(100% - 12px), clamp(760px, 70%, 960px));
+    margin: 0 auto 6px;
+    gap: 8%;
+  }
+
+  .battle-screen.is-active .fighter-card {
+    width: min(44%, 220px);
+  }
+
+  .battle-screen.is-active .player-slot,
+  .battle-screen.is-active .enemy-slot {
+    top: 42px;
+    bottom: 80px;
+    width: min(44%, 220px);
+  }
+
+  .battle-screen.is-active .player-slot {
+    left: max(6px, calc((100% - clamp(760px, 70%, 960px)) / 2));
+  }
+
+  .battle-screen.is-active .enemy-slot {
+    right: max(6px, calc((100% - clamp(760px, 70%, 960px)) / 2));
+    left: auto;
+  }
+
+  .battle-screen.is-active .avatar-stage.has-battle-sprite {
+    width: 92%;
+    max-width: 202px;
+    height: auto;
+    max-height: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  .battle-screen.is-active .right-column {
+    display: contents;
+  }
+
+  .battle-screen.is-active .log-card {
+    grid-area: log;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 4px;
+    padding: 6px;
+    overflow: hidden;
+  }
+
+  .battle-screen.is-active #battleLog {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .battle-screen.is-active .skills-card {
+    grid-area: actions;
+    min-height: 0;
+    padding: 6px;
+    overflow: hidden;
+    border-left: 1px solid rgba(146, 164, 194, 0.18);
+  }
+
+  .battle-screen.is-active:not(.is-adventure-choice-phase) .skills-card {
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .battle-screen.is-active:not(.is-adventure-choice-phase) .skills-card .skills-title {
+    display: none;
+  }
+
+  .battle-screen.is-active .actions-grid:not(.is-adventure-choices) {
+    height: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  .battle-screen.is-active .skills-card .action-button {
+    grid-template-columns: clamp(28px, 6dvh, 32px) minmax(0, 1fr);
+    gap: 4px;
+    min-height: 0;
+    padding: 3px 4px;
+  }
+
+  .battle-screen.is-active .skills-card .skill-icon {
+    width: clamp(28px, 6dvh, 32px);
+    height: clamp(28px, 6dvh, 32px);
+  }
+
+  .battle-screen.is-active .skills-card .action-head {
+    gap: 3px;
+  }
+
+  .battle-screen.is-active .skills-card .action-name {
+    font-size: 0.64rem;
+    line-height: 1.08;
+  }
+
+  .battle-screen.is-active .skills-card .action-cost {
+    font-size: 0.58rem;
+  }
+
+  .battle-screen.is-active .skills-card .passive-action .action-cost {
+    display: none;
+  }
+
+  .battle-screen.is-active .actions-grid > .empty-actions {
+    grid-row: 1 / -1;
+  }
+
+  /* The history pane already follows the newest line. Keep only a compact
+     animation-skip control over the arena instead of covering the fighters. */
+  .battle-screen.is-active .current-log-box {
+    display: none;
+  }
+
+  .battle-screen.is-active .current-log-box.is-animating {
+    top: 8px;
+    right: 8px;
+    left: auto;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 25px;
+    min-height: 25px;
+    padding: 0;
+    transform: none;
+  }
+
+  .battle-screen.is-active .current-log-box.is-animating strong,
+  .battle-screen.is-active .current-log-box.is-animating small {
+    display: none;
+  }
+
+  .battle-screen.is-active .current-log-box.is-animating::after {
+    content: "SKIP";
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+  }
+
+  .battle-screen.is-active #battleLog .log-line:last-child {
+    padding-left: 7px;
+    border-left: 2px solid var(--gold);
+    color: #f0f4fa;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices {
+    height: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-choice-button {
+    grid-template-columns: 30px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    justify-items: stretch;
+    gap: 6px;
+    min-height: 0;
+    padding: 4px 6px;
+    text-align: left;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-choice-button.is-single {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-choice-symbol {
+    justify-self: center;
+    width: 30px;
+    height: 30px;
+    font-size: 0.72rem;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-destination-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-choice-copy {
+    gap: 1px;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-choice-copy strong,
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-choice-button.is-event-choice .adventure-choice-copy strong {
+    font-size: 0.66rem;
+    line-height: 1.1;
+  }
+
+  .battle-screen.is-active .actions-grid.is-adventure-choices .adventure-choice-copy small {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.6rem;
+    line-height: 1.12;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .battle-screen.is-active.is-adventure-choice-phase #actionHint {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

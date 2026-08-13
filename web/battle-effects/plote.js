@@ -8,8 +8,8 @@
   const BLOCKING_FLAMES_ACTION_NAME = "가로막는 불길";
   const EMBER_DETONATION_ACTION_NAME = "잔화기폭";
   const INFERNO_LOTUS_ACTION_NAME = "연옥의 꽃";
-  const PROJECTILE_IMPACT_DELAY_MS = 110;
-  const PROJECTILE_LIFETIME_MS = 200;
+  const PROJECTILE_IMPACT_DELAY_MS = 260;
+  const PROJECTILE_LIFETIME_MS = 380;
   function action({ actionName }) {
     return actionName === BLOCKING_FLAMES_ACTION_NAME ? null : undefined;
   }

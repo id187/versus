@@ -107,7 +107,7 @@
     drop-shadow(0 0 3px rgba(255, 250, 199, 0.98))
     drop-shadow(0 0 8px rgba(255, 191, 31, 0.9));
   transform: translate(-50%, -50%) rotate(var(--magic-marksman-angle)) scaleX(var(--magic-marksman-flip, 1));
-  animation: gandrick-magic-marksman-flight 160ms steps(8, end) forwards;
+  animation: gandrick-magic-marksman-flight 320ms steps(8, end) forwards;
 }
 
 .battle-fx-magic-marksman-impact {
