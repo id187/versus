@@ -111,7 +111,7 @@
       const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
       const targetCenterX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
       const horizontalDirection = targetCenterX >= sourceCenterX ? 1 : -1;
-      const startX = sourceCenterX + horizontalDirection * sourceRect.width * 0.23;
+      const startX = sourceCenterX;
       const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
       const endX = targetCenterX;
       const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;

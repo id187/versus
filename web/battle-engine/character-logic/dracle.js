@@ -55,6 +55,14 @@ module.exports = {
     }
   },
 
+  battleSpriteVariant(_battle, fighter) {
+    const amount = dragon(fighter);
+    if (amount >= 10) return "dragon-stage-10";
+    if (amount >= 7) return "dragon-stage-7";
+    if (amount >= 4) return "dragon-stage-4";
+    return null;
+  },
+
   counterStateText(fighter, name, value) {
     return name === DRAGON ? `${DRAGON} ${Number(value)}/${maxDragon(fighter)}` : null;
   },

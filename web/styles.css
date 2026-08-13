@@ -136,6 +136,54 @@ p {
   text-shadow: 0 0 18px rgba(242, 198, 85, 0.24);
 }
 
+.home-loading {
+  display: grid;
+  gap: 10px;
+  padding: 10px 6px 12px;
+}
+
+.home-loading-track {
+  height: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(242, 198, 85, 0.32);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.home-loading-bar {
+  display: block;
+  width: 36%;
+  height: 100%;
+  transform: translateX(-120%);
+  background: linear-gradient(90deg, #a7792f, #f2c655, #fff0a6);
+  box-shadow: 0 0 12px rgba(242, 198, 85, 0.5);
+  animation: home-loading-slide 1s ease-in-out infinite;
+}
+
+.home-loading.is-error .home-loading-bar {
+  width: 100%;
+  transform: none;
+  background: #e96a61;
+  box-shadow: none;
+  animation: none;
+}
+
+.home-loading-error {
+  color: #e9a09a;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+@keyframes home-loading-slide {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(380%);
+  }
+}
+
 .play-heading {
   display: grid;
   gap: 4px;
@@ -1165,6 +1213,7 @@ button:focus-visible {
 .avatar-stage[data-fighter-id="demon_bishop_eveque"] { --fx-head-y: 5%; --fx-body-y: 52%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="demon_king_monochrem"] { --fx-head-y: 5%; --fx-body-y: 50%; --fx-ground-y: 92%; }
 
+
 .avatar-stage.is-empty::after {
   content: none;
 }
@@ -1287,6 +1336,20 @@ button:focus-visible {
   z-index: 3;
   pointer-events: none;
   filter: grayscale(1);
+}
+
+.battle-fx-fimit-copy-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  filter:
+    grayscale(1)
+    sepia(0.34)
+    saturate(1.55)
+    hue-rotate(158deg)
+    brightness(0.94)
+    drop-shadow(0 0 5px color-mix(in srgb, var(--fimit-copy-color, #7894a8) 78%, transparent));
 }
 
 .battle-fx-effect {
@@ -2338,7 +2401,7 @@ button:focus-visible {
 }
 
 .skill-icon-transformed {
-  border-color: rgba(156, 190, 204, 0.78);
+  border-color: rgba(120, 148, 168, 0.88);
   box-shadow:
     inset 0 0 0 1px rgba(11, 25, 34, 0.62),
     0 0 0 1px rgba(105, 142, 160, 0.18),
@@ -2356,8 +2419,8 @@ button:focus-visible {
   z-index: 2;
   pointer-events: none;
   background:
-    linear-gradient(135deg, rgba(190, 211, 220, 0.56), rgba(72, 99, 114, 0.86)),
-    rgba(126, 154, 168, 0.72);
+    linear-gradient(135deg, rgba(215, 232, 239, 0.46), rgba(66, 88, 104, 0.84)),
+    rgba(120, 148, 168, 0.78);
   mix-blend-mode: color;
 }
 
@@ -5106,20 +5169,6 @@ button:focus-visible {
       inset 0 -1px rgba(150, 171, 192, 0.08);
   }
 
-  .battle-screen.is-pve .arena-surface::after {
-    content: "";
-    position: absolute;
-    z-index: 0;
-    right: 10%;
-    bottom: 7%;
-    left: 10%;
-    height: 20%;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.48), transparent 68%);
-    transform: scaleY(0.45);
-    pointer-events: none;
-  }
-
   .battle-screen.is-pve .turn-chip {
     top: 16px;
     min-height: 25px;
@@ -5309,6 +5358,7 @@ button:focus-visible {
     "actions"
     "log";
   gap: 8px;
+  overflow: hidden;
 }
 
 .battle-screen.is-active .status-column {
@@ -5452,21 +5502,27 @@ button:focus-visible {
 
 .battle-screen.is-active .fighter-status-line {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   min-width: 0;
-  min-height: 16px;
+  min-height: 27px;
   color: #d9e0eb;
   font-size: 0.64rem;
   font-weight: 850;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .battle-screen.is-active .fighter-status-line > span:first-child {
+  display: -webkit-box;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .battle-screen.is-active .fighter-status-line .adventure-gold {
@@ -5480,26 +5536,17 @@ button:focus-visible {
   min-height: 0;
   border: 0;
   border-radius: 2px;
-  background:
-    radial-gradient(ellipse at 50% 86%, rgba(84, 107, 126, 0.2), transparent 47%),
-    linear-gradient(180deg, rgba(22, 34, 43, 0.96), rgba(6, 10, 15, 0.98));
+  background-color: #111820;
+  background-image:
+    linear-gradient(180deg, rgba(5, 8, 11, 0.04), rgba(5, 8, 11, 0.18)),
+    var(--battle-background-image);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
   box-shadow:
     inset 0 1px rgba(150, 171, 192, 0.13),
     inset 0 -1px rgba(150, 171, 192, 0.08);
-}
-
-.battle-screen.is-active .arena-surface::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  right: 10%;
-  bottom: 8%;
-  left: 10%;
-  height: 20%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.48), transparent 68%);
-  transform: scaleY(0.45);
-  pointer-events: none;
 }
 
 .battle-screen.is-active .turn-chip {
@@ -5512,6 +5559,66 @@ button:focus-visible {
   box-shadow: inset 0 -2px rgba(242, 198, 85, 0.7);
   font-size: 0.7rem;
   letter-spacing: 0.08em;
+}
+
+.current-log-box {
+  display: none;
+}
+
+.battle-screen.is-active .current-log-box {
+  position: absolute;
+  top: 49px;
+  left: 50%;
+  z-index: 24;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: min(720px, calc(100% - 24px));
+  min-height: 48px;
+  padding: 8px 16px 9px;
+  transform: translateX(-50%);
+  border: 1px solid color-mix(in srgb, var(--current-log-color, #d9bd68) 58%, transparent);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(4, 7, 11, 0.94), rgba(7, 11, 17, 0.88));
+  box-shadow:
+    inset 0 -2px color-mix(in srgb, var(--current-log-color, #d9bd68) 74%, transparent),
+    0 7px 20px rgba(0, 0, 0, 0.3);
+  color: #edf2f8;
+  text-align: center;
+  pointer-events: none;
+}
+
+.battle-screen.is-active .current-log-box.is-animating {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.battle-screen.is-active .current-log-box:disabled {
+  opacity: 1;
+}
+
+.current-log-box strong {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #f0f4fa;
+  font-size: clamp(0.72rem, 1.3vw, 0.86rem);
+  font-weight: 850;
+  line-height: 1.35;
+  text-wrap: balance;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.current-log-box small {
+  color: #8f9bac;
+  font-size: 0.56rem;
+  font-weight: 750;
+}
+
+.current-log-box.is-animating:hover,
+.current-log-box.is-animating:focus-visible {
+  border-color: var(--current-log-color, #d9bd68);
+  background: linear-gradient(180deg, rgba(10, 15, 22, 0.97), rgba(7, 11, 17, 0.94));
 }
 
 .battle-screen.is-active .player-slot,
@@ -5680,6 +5787,42 @@ button:focus-visible {
   color: var(--gold);
 }
 
+.fighter-adventure-group {
+  display: grid;
+  gap: 5px;
+}
+
+.fighter-adventure-label {
+  color: #c7d0df;
+  font-size: 0.65rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+}
+
+.fighter-adventure-effect-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fighter-adventure-effect-list li {
+  min-width: 0;
+  padding: 7px 8px;
+  border-left: 2px solid rgba(242, 198, 85, 0.56);
+  background: rgba(255, 255, 255, 0.035);
+  color: #dce4f1;
+  font-size: 0.67rem;
+  line-height: 1.35;
+}
+
+.fighter-adventure-empty {
+  color: #9ca8b9;
+  font-size: 0.66rem;
+}
+
 .fighter-relic-list {
   display: grid;
   gap: 5px;
@@ -5709,7 +5852,7 @@ button:focus-visible {
 @media (min-width: 901px) and (min-height: 641px) {
   .battle-screen.is-active .battle-grid {
     grid-template-columns: minmax(0, 1fr) clamp(250px, 26vw, 300px);
-    grid-template-rows: minmax(330px, 1fr) 208px;
+    grid-template-rows: minmax(330px, 1fr) clamp(168px, 21dvh, 208px);
     grid-template-areas:
       "arena log"
       "actions log";
@@ -5717,7 +5860,7 @@ button:focus-visible {
 
   .battle-screen.is-active .actions-grid:not(.is-adventure-choices) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(56px, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -5752,6 +5895,17 @@ button:focus-visible {
     top: 40px;
     bottom: 52px;
     width: min(45%, 220px);
+  }
+
+  .battle-screen.is-active .current-log-box {
+    top: 45px;
+    width: min(640px, calc(100% - 20px));
+    min-height: 48px;
+    padding: 6px 12px 7px;
+  }
+
+  .battle-screen.is-active .current-log-box small {
+    display: none;
   }
 
   .battle-screen.is-active .player-slot {

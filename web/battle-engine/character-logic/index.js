@@ -200,6 +200,13 @@ const hooks = {
     if (Number(fighter.counters["고요한 밤"] || 0) > 0) parts.push("고요한 밤");
     return parts;
   },
+  battleEffectState(battle, fighter) {
+    for (const id of fighterLogicIds(battle, fighter)) {
+      const value = callById(id, "battleEffectState", [fighter], null);
+      if (value && typeof value === "object") return value;
+    }
+    return null;
+  },
   resetTurnFlags(battle, fighter) {
     call("emento", "resetForgetStatus", [battle, fighter]);
     for (const id of fighterLogicIds(battle, fighter)) callById(id, "resetTurnFlags", [battle, fighter]);

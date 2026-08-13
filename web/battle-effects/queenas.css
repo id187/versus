@@ -1,0 +1,258 @@
+.queenas-shadow-army-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+}
+
+.queenas-shadow-soldier {
+  --queenas-soldier-flip: 1;
+  --queenas-soldier-hp: 100%;
+  position: absolute;
+  width: clamp(58px, 8vw, 90px);
+  aspect-ratio: 157 / 360;
+  transform: translate(-50%, -100%) scaleX(var(--queenas-soldier-flip));
+  transform-origin: 50% 100%;
+  transition: left 180ms steps(4, end), top 180ms steps(4, end);
+}
+
+.queenas-shadow-soldier.is-special {
+  width: clamp(92px, 13vw, 142px);
+  aspect-ratio: 1;
+}
+
+.queenas-shadow-soldier-art {
+  position: absolute;
+  inset: 0;
+  background: url("../assets/characters/queenas/effects/shadow-soldier.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 2px rgba(233, 117, 190, 0.84))
+    drop-shadow(0 0 6px rgba(88, 13, 75, 0.9));
+}
+
+.queenas-shadow-soldier.is-special .queenas-shadow-soldier-art {
+  background: linear-gradient(90deg, #160817, #58103f 48%, #b1185a 72%, #250c25);
+  -webkit-mask-position: center bottom;
+  mask-position: center bottom;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 116, 195, 0.92))
+    drop-shadow(0 0 9px rgba(74, 7, 63, 0.98));
+}
+
+.queenas-shadow-soldier-hp {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  z-index: 3;
+  width: 76%;
+  height: 5px;
+  overflow: hidden;
+  border: 1px solid rgba(238, 210, 230, 0.8);
+  background: rgba(15, 4, 17, 0.94);
+  transform: translateX(-50%) scaleX(var(--queenas-soldier-flip));
+  box-shadow: 0 0 4px rgba(177, 24, 90, 0.62);
+}
+
+.queenas-shadow-soldier-hp::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--queenas-soldier-hp);
+  content: "";
+  background: linear-gradient(90deg, #71103f, #e83a91);
+  transition: width 260ms steps(6, end);
+}
+
+.queenas-shadow-soldier-number {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  z-index: 4;
+  color: #f3dbe9;
+  font: 700 9px/1 monospace;
+  text-shadow: 0 1px 0 #12050f, 0 0 4px #b1185a;
+  transform: translateX(-50%) scaleX(var(--queenas-soldier-flip));
+}
+
+.queenas-shadow-soldier.is-materializing {
+  animation: queenas-soldier-materialize 660ms steps(10, end) forwards;
+}
+
+.queenas-shadow-soldier.is-hit {
+  animation: queenas-soldier-hit 420ms steps(7, end);
+}
+
+.queenas-shadow-soldier.is-vanishing,
+.queenas-shadow-soldier.is-charging {
+  animation: queenas-soldier-vanish 480ms steps(8, end) forwards;
+}
+
+.battle-fx-queenas-shadow-spear,
+.battle-fx-queenas-shadow-charge-runner {
+  position: absolute;
+  left: var(--queenas-start-x);
+  top: var(--queenas-start-y);
+  z-index: 12;
+  pointer-events: none;
+  image-rendering: pixelated;
+  transform-origin: 50% 50%;
+}
+
+.battle-fx-queenas-shadow-charge-runner.is-special {
+  width: clamp(98px, 15vw, 154px);
+  aspect-ratio: 1;
+  background: linear-gradient(90deg, #160817, #58103f 48%, #b1185a 72%, #250c25);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.battle-fx-queenas-shadow-spear {
+  width: clamp(160px, 25vw, 260px);
+  aspect-ratio: 384 / 38;
+  background: url("../assets/characters/queenas/effects/shadow-spear.png") center / contain no-repeat;
+  filter: drop-shadow(0 0 4px rgba(177, 24, 90, 0.94));
+  animation: queenas-projectile-flight 400ms steps(12, end) forwards;
+}
+
+.battle-fx-queenas-shadow-charge-runner {
+  width: clamp(72px, 11vw, 112px);
+  aspect-ratio: 157 / 360;
+  background: url("../assets/characters/queenas/effects/shadow-soldier.png") center bottom / contain no-repeat;
+  filter: brightness(0.76) drop-shadow(0 0 7px rgba(177, 24, 90, 0.98));
+  animation: queenas-charge-flight 470ms steps(12, end) forwards;
+}
+
+.battle-fx-queenas-shadow-spear-cast,
+.battle-fx-queenas-shadow-charge,
+.battle-fx-queenas-shadow-summon,
+.battle-fx-queenas-warning-summon,
+.battle-fx-queenas-soldier-damaged,
+.battle-fx-queenas-soldier-vanish,
+.battle-fx-queenas-soldier-charge-start {
+  inset: 0;
+  opacity: 0;
+}
+
+.battle-fx-queenas-shadow-spear-impact,
+.battle-fx-queenas-shadow-stab-impact,
+.battle-fx-queenas-self-stab-impact,
+.battle-fx-queenas-shadow-charge-explosion {
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  transform-origin: 50% 50%;
+}
+
+.battle-fx-queenas-shadow-spear-impact {
+  top: calc(var(--fx-body-y, 50%) - 24%);
+  right: 26%;
+  bottom: calc(76% - var(--fx-body-y, 50%));
+  left: 26%;
+  background: url("../assets/characters/queenas/effects/shadow-spear-impact.png") center / contain no-repeat;
+  filter: drop-shadow(0 0 5px rgba(255, 242, 250, 0.98)) drop-shadow(0 0 9px rgba(177, 24, 90, 0.92));
+  animation: queenas-small-impact 460ms steps(7, end) forwards;
+}
+
+#playerAvatar .battle-fx-queenas-shadow-spear-impact,
+#playerAvatar .battle-fx-queenas-shadow-stab-impact,
+#playerAvatar .battle-fx-queenas-self-stab-impact {
+  scale: -1 1;
+}
+
+.battle-fx-queenas-shadow-stab-impact,
+.battle-fx-queenas-self-stab-impact {
+  top: calc(var(--fx-body-y, 50%) - 21%);
+  right: 29%;
+  bottom: calc(79% - var(--fx-body-y, 50%));
+  left: 29%;
+  filter: drop-shadow(0 0 7px rgba(177, 24, 90, 0.92));
+  animation: queenas-small-impact 440ms steps(7, end) forwards;
+}
+
+.battle-fx-queenas-shadow-stab-impact {
+  background: url("../assets/characters/queenas/effects/shadow-stab-impact.png") center / contain no-repeat;
+}
+
+.battle-fx-queenas-self-stab-impact {
+  background: url("../assets/characters/queenas/effects/self-stab-impact.png") center / contain no-repeat;
+}
+
+.battle-fx-queenas-shadow-charge-explosion {
+  top: calc(var(--fx-body-y, 50%) - 52%);
+  right: -3%;
+  bottom: calc(48% - var(--fx-body-y, 50%));
+  left: -3%;
+  background: url("../assets/characters/queenas/effects/shadow-charge-explosion.png") center / contain no-repeat;
+  filter: drop-shadow(0 0 8px rgba(177, 24, 90, 0.98));
+  animation: queenas-charge-explosion 680ms steps(10, end) forwards;
+}
+
+.battle-fx-value-queenas-shadow-spear-impact,
+.battle-fx-value-queenas-shadow-stab-impact,
+.battle-fx-value-queenas-self-stab-impact,
+.battle-fx-value-queenas-shadow-charge-explosion {
+  color: #ffd8ec;
+  text-shadow: 0 2px 0 #190410, 0 0 8px #f4a1cb, 0 0 13px #b1185a;
+}
+
+.avatar-stage.is-fx-queenas-shadow-spear-impact .battle-sprite,
+.avatar-stage.is-fx-queenas-shadow-stab-impact .battle-sprite,
+.avatar-stage.is-fx-queenas-self-stab-impact .battle-sprite,
+.avatar-stage.is-fx-queenas-shadow-charge-explosion .battle-sprite {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes queenas-soldier-materialize {
+  0% { opacity: 0; clip-path: inset(100% 0 0); transform: translate(-50%, -90%) scaleX(var(--queenas-soldier-flip)) scaleY(0.72); }
+  18% { opacity: 0.9; }
+  72% { opacity: 1; clip-path: inset(18% 0 0); }
+  100% { opacity: 1; clip-path: inset(0); transform: translate(-50%, -100%) scaleX(var(--queenas-soldier-flip)) scaleY(1); }
+}
+
+@keyframes queenas-soldier-hit {
+  0%, 100% { filter: brightness(1); }
+  18% { filter: brightness(1.9); transform: translate(-54%, -100%) scaleX(var(--queenas-soldier-flip)); }
+  36% { filter: brightness(0.65); transform: translate(-47%, -100%) scaleX(var(--queenas-soldier-flip)); }
+  58% { filter: brightness(1.35); transform: translate(-52%, -100%) scaleX(var(--queenas-soldier-flip)); }
+}
+
+@keyframes queenas-soldier-vanish {
+  0% { opacity: 1; filter: brightness(1); }
+  55% { opacity: 0.8; filter: brightness(1.5); transform: translate(-50%, -104%) scaleX(var(--queenas-soldier-flip)) scale(0.82); }
+  100% { opacity: 0; filter: brightness(0.4); transform: translate(-50%, -118%) scaleX(var(--queenas-soldier-flip)) scale(0.28); }
+}
+
+@keyframes queenas-projectile-flight {
+  0% { opacity: 0; left: var(--queenas-start-x); top: var(--queenas-start-y); transform: translate(-50%, -50%) scaleX(var(--queenas-direction)) scale(0.65); }
+  12% { opacity: 1; }
+  88% { opacity: 1; left: var(--queenas-end-x); top: var(--queenas-end-y); transform: translate(-50%, -50%) scaleX(var(--queenas-direction)) scale(1); }
+  100% { opacity: 0; left: var(--queenas-end-x); top: var(--queenas-end-y); transform: translate(-50%, -50%) scaleX(var(--queenas-direction)) scale(1.04); }
+}
+
+@keyframes queenas-charge-flight {
+  0% { opacity: 1; left: var(--queenas-start-x); top: var(--queenas-start-y); transform: translate(-50%, -64%) scaleX(var(--queenas-direction)) scale(0.74) skewX(-6deg); }
+  82% { opacity: 1; left: var(--queenas-end-x); top: var(--queenas-end-y); transform: translate(-50%, -64%) scaleX(var(--queenas-direction)) scale(1) skewX(-12deg); }
+  100% { opacity: 0; left: var(--queenas-end-x); top: var(--queenas-end-y); transform: translate(-50%, -64%) scaleX(var(--queenas-direction)) scale(0.5); }
+}
+
+@keyframes queenas-small-impact {
+  0% { opacity: 0; transform: scale(0.2); }
+  16% { opacity: 1; transform: scale(1.12); }
+  44% { opacity: 1; transform: scale(0.96); }
+  100% { opacity: 0; transform: scale(1.18); }
+}
+
+@keyframes queenas-charge-explosion {
+  0% { opacity: 0; transform: scale(0.18) rotate(-5deg); }
+  14% { opacity: 1; transform: scale(1.08) rotate(1deg); }
+  38% { opacity: 1; transform: scale(0.98); }
+  72% { opacity: 0.94; transform: scale(1.04) rotate(2deg); }
+  100% { opacity: 0; transform: scale(1.22) rotate(5deg); }
+}

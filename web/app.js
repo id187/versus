@@ -1,4 +1,6 @@
-const LOG_DELAY_MS = 280;
+const LOG_DELAY_MS = 700;
+const LOG_IMPORTANT_DELAY_MS = 1000;
+const LOG_FIRST_ENTRY_DELAY_MS = 420;
 const LOG_EFFECT_TAIL_HOLD_MS = 280;
 const LOG_EFFECT_IMPACT_LEAD_MS = 60;
 const DIALOGUE_LOG_DELAY_MS = 1200;
@@ -9,6 +11,7 @@ const BATTLE_SPRITE_HIT_HOLD_MS = 560;
 const BATTLE_SPRITE_RENDER_STATE = "idle";
 const SFX_POOL_SIZE = 3;
 const BGM_FADE_MS = 900;
+const AUDIO_FULLY_READY_STATE = 4;
 const AUDIO_SETTINGS_KEY = "versus.audio-settings.v1";
 const TUTORIAL_ENABLED_KEY = "versus.tutorial-enabled.v1";
 const DEFAULT_AUDIO_SETTINGS = Object.freeze({ bgm: 0.35, sfx: 0.5, muted: false });
@@ -23,6 +26,9 @@ function localAssetUrl(path) {
 
 const els = {
   homeScreen: document.querySelector("#homeScreen"),
+  homeLoading: document.querySelector("#homeLoading"),
+  homeLoadingError: document.querySelector("#homeLoadingError"),
+  homeMenu: document.querySelector("#homeMenu"),
   playScreen: document.querySelector("#playScreen"),
   battleScreen: document.querySelector("#battleScreen"),
   battleScreenTitle: document.querySelector("#battleScreen .header-title strong"),
@@ -75,6 +81,9 @@ const els = {
   startButton: document.querySelector("#startButton"),
   matchLabel: document.querySelector("#matchLabel"),
   turnChip: document.querySelector("#turnChip"),
+  currentLogBox: document.querySelector("#currentLogBox"),
+  currentLogText: document.querySelector("#currentLogText"),
+  currentLogSkipHint: document.querySelector("#currentLogSkipHint"),
   actionsGrid: document.querySelector("#actionsGrid"),
   actionHint: document.querySelector("#actionHint"),
   adventureRouteRerollButton: document.querySelector("#adventureRouteRerollButton"),
@@ -265,6 +274,7 @@ const SPRITE_ASSETS = Object.freeze({
 });
 const BATTLE_SPRITE_VARIANTS = Object.freeze({
   gandrick: Object.freeze(["iron-bullet", "demonic-bullet"]),
+  dracle: Object.freeze(["dragon-stage-4", "dragon-stage-7", "dragon-stage-10"]),
 });
 const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_pawn_opawn", "demon_rook_chatrang", "demon_knight_kaighton", "demon_bishop_eveque", "demon_king_monochrem"]);
 const ADVENTURE_DESTINATION_ICONS = Object.freeze({
@@ -588,6 +598,21 @@ const BGM_TRACKS = {
   defeat: { src: localAssetUrl("/assets/bgm/defeat.wav"), loop: false, gain: 1.2 },
   draw: { src: localAssetUrl("/assets/bgm/draw.wav"), loop: false, gain: 1.1 },
 };
+const BATTLE_BACKGROUNDS = Object.freeze({
+  neutral: "/assets/backgrounds/battle/neutral-arena.webp",
+  forest: "/assets/backgrounds/battle/adventure-forest.webp",
+  village: "/assets/backgrounds/battle/adventure-village.webp",
+  event: "/assets/backgrounds/battle/adventure-event-gravel.webp",
+  relicShop: "/assets/backgrounds/battle/adventure-relic-shop.webp",
+  monochromeForest: "/assets/backgrounds/battle/adventure-monochrome-forest.webp",
+  demonCastle: "/assets/backgrounds/battle/adventure-demon-castle.webp",
+});
+const ADVENTURE_OPPONENT_SPRITE_PHASES = new Set([
+  "battle",
+  "defeat",
+  "final_battle_dialogue",
+  "final_battle_ending",
+]);
 const DEFENSE_ACTION_NAMES = new Set(["일반 방어", "가로막는 불길", "절대영도", "깨져버린 거울", "빠져드는 모래늪"]);
 
 const state = {
@@ -602,6 +627,8 @@ const state = {
   currentLogIndex: -1,
   logToken: 0,
   logAnimating: false,
+  logSkipRequested: false,
+  logSkipResolve: null,
   adventureRestartRequested: false,
   adventureRestartConfirmResolve: null,
   adventureSave: null,
@@ -619,6 +646,7 @@ const state = {
   bgm: new Map(),
   audioPrimed: false,
   bgmFadeTimers: [],
+  bgmRequestToken: 0,
   currentBgm: null,
   currentBgmType: null,
   audioSettings: { ...DEFAULT_AUDIO_SETTINGS },
@@ -633,6 +661,7 @@ async function init() {
     els.exitButton.hidden = true;
   }
   state.audioSettings = loadAudioSettings();
+  const startupBgmReady = preloadAllBgm();
   state.tutorialEnabled = loadTutorialEnabled();
   state.achievements = AdventureAchievements.load(window.localStorage);
   syncAudioSettingsControls();
@@ -644,7 +673,22 @@ async function init() {
   renderEmptyBattle();
   renderEmptyActions();
   renderLog();
-  await loadOptions();
+  const optionsReady = await loadOptions();
+  const bgmReady = optionsReady ? await startupBgmReady : false;
+  const ready = optionsReady && bgmReady;
+  finishInitialLoading(ready);
+  if (ready) await applyStartupHash();
+}
+
+function finishInitialLoading(ready) {
+  if (ready) {
+    els.homeLoading.hidden = true;
+    els.homeMenu.hidden = false;
+    return;
+  }
+  els.homeLoading.classList.add("is-error");
+  els.homeLoading.setAttribute("aria-label", "게임을 불러오지 못했습니다");
+  els.homeLoadingError.hidden = false;
 }
 
 function bindEvents() {
@@ -681,6 +725,7 @@ function bindEvents() {
   els.pvpRoomInput.addEventListener("input", previewSelectedMatch);
   els.prevLogButton.addEventListener("click", () => moveLog(-1));
   els.nextLogButton.addEventListener("click", () => moveLog(1));
+  els.currentLogBox.addEventListener("click", skipLogAnimation);
   els.adventureRouteRerollButton.addEventListener("click", () => chooseAdventureChoice("route_reroll"));
   els.enemyInfoButton.addEventListener("click", () => openFighterInfo("ai"));
   els.battleRecordButton.addEventListener("click", openBattleRecords);
@@ -1121,14 +1166,59 @@ function primeSfx() {
   }
 }
 
-function prepareBgm() {
-  if (state.bgm.size) return;
-  for (const [type, track] of Object.entries(BGM_TRACKS)) {
-    const audio = new Audio(track.src);
+function prepareBgm(types = Object.keys(BGM_TRACKS)) {
+  for (const type of types) {
+    if (state.bgm.has(type)) continue;
+    const track = BGM_TRACKS[type];
+    if (!track) continue;
+    const audio = new Audio();
     audio.preload = track.preload === false ? "none" : "auto";
     audio.loop = Boolean(track.loop);
     audio.volume = effectiveBgmVolume(track);
+    audio.src = track.src;
     state.bgm.set(type, audio);
+  }
+}
+
+function waitForBgmCanPlayThrough(audio) {
+  if (!audio || audio.readyState >= AUDIO_FULLY_READY_STATE) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const settle = (error = null) => {
+      if (settled) return;
+      settled = true;
+      audio.removeEventListener("canplaythrough", finish);
+      audio.removeEventListener("error", fail);
+      if (error) reject(error);
+      else resolve();
+    };
+    const finish = () => settle();
+    const fail = () => settle(new Error("BGM decode failed"));
+    audio.addEventListener("canplaythrough", finish, { once: true });
+    audio.addEventListener("error", fail, { once: true });
+    audio.load();
+  });
+}
+
+async function preloadBgmTrack(type, track) {
+  const response = await fetch(track.src, { cache: "force-cache" });
+  if (!response.ok) throw new Error(`${type} BGM load failed (${response.status})`);
+  const blob = await response.blob();
+  const audio = new Audio();
+  audio.preload = "auto";
+  audio.loop = Boolean(track.loop);
+  audio.volume = effectiveBgmVolume(track);
+  audio.src = URL.createObjectURL(blob);
+  state.bgm.set(type, audio);
+  await waitForBgmCanPlayThrough(audio);
+}
+
+async function preloadAllBgm() {
+  try {
+    await Promise.all(Object.entries(BGM_TRACKS).map(([type, track]) => preloadBgmTrack(type, track)));
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -1137,7 +1227,7 @@ function primeAudio() {
   primeSfx();
   prepareBgm();
   for (const [type, audio] of state.bgm.entries()) {
-    if (BGM_TRACKS[type]?.preload !== false) audio.load();
+    if (BGM_TRACKS[type]?.preload !== false && audio.readyState < AUDIO_FULLY_READY_STATE) audio.load();
   }
   state.audioPrimed = true;
 }
@@ -1398,6 +1488,7 @@ function setBattleMode(mode) {
   els.battleScreen.classList.toggle("is-skill-debug", isSkillDebug);
   els.battleScreen.classList.toggle("is-tutorial", isTutorial);
   els.battleScreenTitle.textContent = isAdventure ? "Adventure" : isSkillDebug ? "Skill Debug" : isTutorial ? "Tutorial" : "전투";
+  syncBattleBackground();
   els.playerSetupLabel.textContent = isSkillDebug ? "테스트 대상" : "내 캐릭터";
   els.inscriptionButton.hidden = isSkillDebug;
   for (const field of els.pveSetupFields) {
@@ -1444,9 +1535,10 @@ async function loadOptions() {
     previewSelectedMatch();
     renderCodex();
     renderAchievements();
-    await applyStartupHash();
+    return true;
   } catch (error) {
     pushTurnLog("오류", [`옵션 로드 실패: ${error.message}`], false);
+    return false;
   }
 }
 
@@ -2332,6 +2424,52 @@ function renderEmptyBattle() {
   els.battleRecordButton.hidden = true;
   els.battleRecordButton.disabled = true;
   els.playerInfoButton.disabled = true;
+  syncBattleBackground();
+}
+
+function battleBackgroundKey(data = state.battle) {
+  if (state.battleMode !== "adventure") return "neutral";
+  const adventure = data?.adventure || state.adventure;
+  if (!adventure) return "forest";
+
+  const phase = String(adventure.phase || "");
+  const stage = Number(adventure.stage || 1);
+  const totalStages = Number(adventure.totalStages || 20);
+  const currentEvent = adventure.currentEvent || {};
+
+  if (
+    adventure.isFinalBattle
+    || ["final_battle_dialogue", "final_battle_ending", "complete"].includes(phase)
+    || (phase === "route" && stage >= totalStages)
+  ) return "demonCastle";
+
+  if (["event", "event_complete"].includes(phase)) {
+    if (currentEvent.relicShop || currentEvent.id === "relic_shop") return "relicShop";
+    return currentEvent.bgm === "village" ? "village" : "event";
+  }
+
+  if (["town", "town_complete"].includes(phase)) return "village";
+  if (stage >= 12 || adventure.isMirrorBattle || adventure.isOfficerBattle) return "monochromeForest";
+  return "forest";
+}
+
+function syncBattleBackground(data = state.battle) {
+  const key = battleBackgroundKey(data);
+  const path = BATTLE_BACKGROUNDS[key] || BATTLE_BACKGROUNDS.neutral;
+  els.battleScreen.dataset.battleBackground = key;
+  els.battleScreen.style.setProperty("--battle-background-image", `url("${localAssetUrl(path)}")`);
+}
+
+function adventureShowsOpponentSprite(adventure) {
+  return !adventure || ADVENTURE_OPPONENT_SPRITE_PHASES.has(String(adventure.phase || ""));
+}
+
+function clearFighterSprite(side) {
+  const avatar = document.querySelector(fighterIds[side]?.avatar);
+  if (!avatar) return;
+  avatar.classList.remove("has-battle-sprite", "is-defeated", "is-defeat-pending");
+  avatar.classList.add("is-empty");
+  avatar.replaceChildren();
 }
 
 function renderBattle(data, options = {}) {
@@ -2340,9 +2478,12 @@ function renderBattle(data, options = {}) {
   const isPrologue = adventure?.phase === "prologue";
   const isFinalBattleDialogue = adventure?.phase === "final_battle_dialogue";
   const isFinalBattleEnding = adventure?.phase === "final_battle_ending";
+  const showsOpponentSprite = adventureShowsOpponentSprite(adventure);
+  syncBattleBackground(data);
   els.battleScreen.classList.toggle("is-adventure-prologue", isPrologue);
   els.battleScreen.classList.toggle("has-sprite-battle", Boolean(
     !isPrologue
+    && showsOpponentSprite
     && battleSpriteSrcForSubject(data.player, "player")
     && battleSpriteSrcForSubject(data.ai, "ai")
   ));
@@ -2363,7 +2504,9 @@ function renderBattle(data, options = {}) {
     renderAdventureScene(adventure.scene);
   } else {
     renderFighter("ai", data.ai, adventure);
+    if (!showsOpponentSprite) clearFighterSprite("ai");
   }
+  renderPersistentCharacterEffects(data);
   renderPassive(data.player);
   const adventureChoices = (data.is_over || isPrologue) && Array.isArray(adventure?.choices) ? adventure.choices : [];
   if (data.tutorial?.completed) {
@@ -2493,6 +2636,13 @@ function renderFighter(side, fighter, adventure = null) {
     els.playerGold.hidden = !hasAdventureGold;
     els.playerGold.textContent = hasAdventureGold ? `G ${formatStat(adventure.gold)}` : "";
   }
+}
+
+function renderPersistentCharacterEffects(data = state.battle) {
+  CHARACTER_BATTLE_EFFECTS?.renderPersistent?.(data, {
+    arena: document.querySelector(".arena-surface"),
+    stageForSide: (side) => side ? document.querySelector(fighterIds[side].avatar) : null,
+  });
 }
 
 function renderAdventureScene(scene) {
@@ -2860,6 +3010,7 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
   state.currentLogIndex = state.turnLogs.length - 1;
   const token = ++state.logToken;
   state.logAnimating = Boolean(animated);
+  state.logSkipRequested = false;
   renderLog({ follow: true });
 
   if (!animated) return;
@@ -2867,11 +3018,12 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
     ? Math.max(0, Number(options.delayMs))
     : LOG_DELAY_MS;
   let playedEffect = false;
-  let nextEntryDelayMs = delayMs;
+  let nextEntryDelayMs = Math.min(delayMs, LOG_FIRST_ENTRY_DELAY_MS);
   try {
     for (let index = 1; index <= packet.entries.length; index += 1) {
-      await sleep(nextEntryDelayMs);
+      const skipped = await waitForLogPlayback(nextEntryDelayMs, token);
       if (token !== state.logToken) return;
+      if (skipped || state.logSkipRequested) return;
       packet.visibleCount = index;
       renderLog({ follow: true });
       const entry = packet.entries[index - 1];
@@ -2885,24 +3037,70 @@ async function pushTurnLog(title, lines = [], animated, options = {}) {
       }
       const impactDelayMs = Math.max(0, Number(effect?.impactDelayMs) || 0);
       nextEntryDelayMs = Math.max(
-        delayMs,
+        logEntryHoldMs(entry, delayMs),
         impactDelayMs > 0 ? impactDelayMs + LOG_EFFECT_IMPACT_LEAD_MS : 0,
       );
     }
     const finalEffect = packet.entries.at(-1)?.effect;
     if (finalEffect && finalEffect.type !== "sprite-state" && token === state.logToken) {
       const impactDelayMs = Math.max(0, Number(finalEffect.impactDelayMs) || 0);
-      await sleep(impactDelayMs + LOG_EFFECT_TAIL_HOLD_MS);
+      const skipped = await waitForLogPlayback(impactDelayMs + LOG_EFFECT_TAIL_HOLD_MS, token);
+      if (skipped || state.logSkipRequested) return;
     }
     if (options.settleEffects && playedEffect && token === state.logToken) {
-      await sleep(EFFECT_SETTLE_MS);
+      const skipped = await waitForLogPlayback(EFFECT_SETTLE_MS, token);
+      if (skipped || state.logSkipRequested) return;
     }
   } finally {
     if (token === state.logToken) {
       state.logAnimating = false;
+      state.logSkipRequested = false;
+      state.logSkipResolve = null;
       renderLog();
     }
   }
+}
+
+function logEntryHoldMs(entry, baseDelayMs) {
+  const importantEffectTypes = new Set(["hit", "shadow-hit", "miss", "defense", "heal", "buff", "debuff"]);
+  const effectType = entry?.effect?.type;
+  const textLength = String(entry?.text || "").length;
+  if (importantEffectTypes.has(effectType)) return Math.max(baseDelayMs, LOG_IMPORTANT_DELAY_MS);
+  if (textLength >= 44) return Math.max(baseDelayMs, 900);
+  return baseDelayMs;
+}
+
+function waitForLogPlayback(delayMs, token) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (skipped = false) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      if (state.logSkipResolve === skip) state.logSkipResolve = null;
+      resolve(Boolean(skipped && token === state.logToken));
+    };
+    const skip = () => finish(true);
+    const timer = window.setTimeout(() => finish(false), Math.max(0, delayMs));
+    state.logSkipResolve = skip;
+  });
+}
+
+function skipLogAnimation() {
+  if (!state.logAnimating) return;
+  const packet = state.turnLogs.at(-1);
+  if (!packet) return;
+  const entries = packet.entries || [];
+  const visibleCount = packet.visibleCount ?? 0;
+  for (const entry of entries.slice(visibleCount)) {
+    applyLogStatePatch(entry.patch);
+  }
+  packet.visibleCount = entries.length;
+  state.logSkipRequested = true;
+  state.logAnimating = false;
+  clearBattleEffects();
+  state.logSkipResolve?.();
+  renderLog({ follow: true });
 }
 
 function pushDialogueLog(title, lines = []) {
@@ -2997,9 +3195,10 @@ function applyLogStatePatch(patch) {
 }
 
 function resolveCharacterBattleEffect(phase, context, details = {}) {
-  const actorId = context.actorSide ? state.battle?.[context.actorSide]?.id : null;
+  const actor = context.actorSide ? state.battle?.[context.actorSide] : null;
+  const actorId = actor?.id;
   if (!actorId) return undefined;
-  return CHARACTER_BATTLE_EFFECTS?.resolve?.(actorId, phase, {
+  const payload = {
     ...details,
     actionName: context.actionName,
     actorName: context.actorName,
@@ -3009,7 +3208,33 @@ function resolveCharacterBattleEffect(phase, context, details = {}) {
     makeLogEffect,
     makeMissEffect,
     oppositeSide,
-  });
+  };
+  const baseEffect = CHARACTER_BATTLE_EFFECTS?.resolve?.(actorId, phase, payload);
+  if (baseEffect !== undefined) return baseEffect;
+
+  const copiedCharacterId = fimitCopiedEffectCharacterId(actor, context.actionName);
+  if (!copiedCharacterId) return undefined;
+  const copiedEffect = CHARACTER_BATTLE_EFFECTS?.resolve?.(copiedCharacterId, phase, payload);
+  return markFimitCopiedBattleEffect(copiedEffect);
+}
+
+const FIMIT_ACTION_NAMES = new Set(["운명 투척", "위작 보호", "간단한 속임수", "진짜보다 진짜같이"]);
+
+function fimitCopiedEffectCharacterId(actor, actionName) {
+  if (actor?.id !== "fimit" || !actionName || FIMIT_ACTION_NAMES.has(actionName)) return null;
+  if (actor.activeCharacterId && actor.activeCharacterId !== "fimit") return actor.activeCharacterId;
+  return state.options?.characters?.find((character) => (
+    character.id !== "fimit" && character.skills?.some((skill) => skill.name === actionName)
+  ))?.id || null;
+}
+
+function markFimitCopiedBattleEffect(effect) {
+  if (!effect || typeof effect !== "object") return effect;
+  return {
+    ...effect,
+    copiedByFimit: true,
+    fimitCopyColor: CHARACTER_COLORS.fimit,
+  };
 }
 
 function resolveTargetCharacterBattleEffect(phase, context, details = {}) {
@@ -3043,7 +3268,7 @@ function withConcurrentBattleEffects(effect, ...extras) {
 }
 
 function resolveStatusBattleEffect(statusName, phase, context, details = {}) {
-  return CHARACTER_BATTLE_EFFECTS?.resolveStatus?.(statusName, phase, {
+  const effect = CHARACTER_BATTLE_EFFECTS?.resolveStatus?.(statusName, phase, {
     ...details,
     actionName: context.actionName,
     actorName: context.actorName,
@@ -3052,6 +3277,10 @@ function resolveStatusBattleEffect(statusName, phase, context, details = {}) {
     makeLogEffect,
     oppositeSide,
   });
+  const actor = context.actorSide ? state.battle?.[context.actorSide] : null;
+  return fimitCopiedEffectCharacterId(actor, context.actionName)
+    ? markFimitCopiedBattleEffect(effect)
+    : effect;
 }
 
 function effectFromLogLine(line, context) {
@@ -3061,6 +3290,16 @@ function effectFromLogLine(line, context) {
     context.actorSide = context.lineSide || sideForFighterName(sectionMatch[1], context.actorSide);
     context.actionName = null;
     context.actionCostPending = false;
+    return null;
+  }
+
+  let match = line.match(/^그림자 병사 (\d+)(?:은|는) (그림자 찌르기|자신 찌르기)(?:을|를) 사용했다\.$/);
+  if (match) {
+    context.actionName = match[2];
+    context.shadowSoldierNumber = Number(match[1]);
+    const owner = context.lineSide ? state.battle?.[context.lineSide] : null;
+    context.actorName = owner?.name || context.actorName;
+    context.actorSide = context.lineSide || context.actorSide;
     return null;
   }
 
@@ -3086,6 +3325,18 @@ function effectFromLogLine(line, context) {
       return attachBattleSpriteActionState(null, context);
     }
     return attachBattleSpriteActionState(null, context);
+  }
+
+  match = line.match(/^광증으로 (.+?) 대신 (.+?)이 결정되었다\.$/);
+  if (match) {
+    context.actionName = match[2];
+    const statusEffect = resolveStatusBattleEffect("광증", "actionReplacement", context, {
+      targetName: context.actorName,
+      targetSide: context.actorSide || context.lineSide,
+      originalActionName: match[1],
+      replacementActionName: match[2],
+    });
+    return statusEffect === undefined ? null : statusEffect;
   }
 
   if (line === "빙결로 비공격 행동에 실패하고 빙결이 해제되었다.") {
@@ -3121,7 +3372,7 @@ function effectFromLogLine(line, context) {
     return makeLogEffect(effectType, context.actorName, context.actorName, null, context.actorSide, context.actorSide);
   }
 
-  let match = line.match(/^(.+?)의 ATK가 잔기를 소모할 때까지 x2가 된다\.$/);
+  match = line.match(/^(.+?)의 ATK가 잔기를 소모할 때까지 x2가 된다\.$/);
   if (match) {
     context.actorName = match[1];
     context.actorSide = context.lineSide || sideForFighterName(match[1], context.actorSide);
@@ -3167,9 +3418,17 @@ function effectFromLogLine(line, context) {
     if (characterEffect !== undefined) return characterEffect;
   }
 
-  match = line.match(/^(.+?)의 그림자 병사 \d+이 공격 피해 (\d+)을 대신 받았다\.$/);
+  match = line.match(/^(.+?)의 그림자 병사 (\d+)이 공격 피해 (\d+)을 대신 받았다\.$/);
   if (match) {
-    return Number(match[2]) > 0 ? makeLogEffect("shadow-hit", match[1], match[1], match[2], context.lineSide, context.actorSide) : null;
+    const targetSide = context.lineSide || sideForFighterName(match[1], context.actorSide);
+    const characterEffect = resolveTargetCharacterBattleEffect("soldierDamaged", context, {
+      targetName: match[1],
+      targetSide,
+      soldierNumber: Number(match[2]),
+      damage: Number(match[3]),
+    });
+    if (characterEffect !== undefined) return characterEffect;
+    return Number(match[3]) > 0 ? makeLogEffect("shadow-hit", match[1], match[1], match[3], targetSide, context.actorSide) : null;
   }
 
   match = line.match(/^(?:\d+타:\s*)?(.+?)에게 (\d+)의 피해\./);
@@ -3284,7 +3543,15 @@ function effectFromLogLine(line, context) {
 
   match = line.match(/^(.+?)에게 (.+?) 상태가/);
   if (match) {
-    return makeLogEffect("debuff", match[1], context.actorName, match[2], context.lineSide, context.actorSide);
+    const targetName = match[1];
+    const statusName = match[2];
+    const targetSide = context.lineSide || sideForFighterName(targetName, oppositeSide(context.actorSide));
+    const statusEffect = resolveStatusBattleEffect(statusName, "statusApplied", context, {
+      targetName,
+      targetSide,
+    });
+    if (statusEffect !== undefined) return statusEffect;
+    return makeLogEffect("debuff", targetName, context.actorName, statusName, targetSide, context.actorSide);
   }
 
   match = line.match(/^(.+?)에게 (.+?) (\d+)중첩이/);
@@ -3386,6 +3653,7 @@ function effectFromLogLine(line, context) {
     context.lastStackOwner = targetName;
     context.lastStackName = stackName;
     const statusEffect = resolveStatusBattleEffect(stackName, "counterChange", context, {
+      line,
       targetName,
       targetSide,
       before,
@@ -3409,12 +3677,39 @@ function effectFromLogLine(line, context) {
     return makeLogEffect("stack-gain", context.actorName, context.actorName, `${stackName}+${amountText}`, context.actorSide, context.actorSide);
   }
 
+  match = line.match(/^(.+?) (\d+)(?:중첩)? 소모:\s*(\d+)(?:\/\d+)?\s*(?:→|->)\s*(\d+)(?:\/\d+)?/);
+  if (match && context.actorName) {
+    const [, stackName, amountText, beforeText, afterText] = match;
+    context.lastStackOwner = context.actorName;
+    context.lastStackName = stackName;
+    const statusEffect = resolveStatusBattleEffect(stackName, "counterChange", context, {
+      targetName: context.actorName,
+      targetSide: context.actorSide,
+      before: Number(beforeText),
+      after: Number(afterText),
+    });
+    if (statusEffect !== undefined) return statusEffect;
+    return makeLogEffect("stack-spend", context.actorName, context.actorName, `${stackName}-${amountText}`, context.actorSide, context.actorSide);
+  }
+
   match = line.match(/^(.+?) (\d+)(?:중첩)? 소모:/);
   if (match && context.actorName) {
     const [, stackName, amountText] = match;
     context.lastStackOwner = context.actorName;
     context.lastStackName = stackName;
     return makeLogEffect("stack-spend", context.actorName, context.actorName, `${stackName}-${amountText}`, context.actorSide, context.actorSide);
+  }
+
+  match = line.match(/^(.+?)의 예보가 (천둥|흐림|맑음)으로 변경되었다\.$/);
+  if (match) {
+    const targetName = match[1];
+    const targetSide = context.lineSide || sideForFighterName(targetName, context.actorSide);
+    const weatherEffect = resolveTargetCharacterBattleEffect("forecastChange", context, {
+      targetName,
+      targetSide,
+      weather: match[2],
+    });
+    return weatherEffect === undefined ? null : weatherEffect;
   }
 
   match = line.match(/^(.+?)의 (.+?) (\d+)중첩을 소모했다\./);
@@ -3442,6 +3737,18 @@ function effectFromLogLine(line, context) {
       context.lastStackName = stackName;
       return makeLogEffect("stack-spend", targetName, targetName, `${stackName} 전부`, context.lineSide, context.lineSide || context.actorSide);
     }
+  }
+
+  match = line.match(/^(?:(.+?)의 )?위상이 (삭월|초승|상현|만월|하현|그믐)으로 변경되었다\.$/);
+  if (match) {
+    const targetName = match[1] || context.actorName;
+    const targetSide = context.lineSide || sideForFighterName(targetName, context.actorSide);
+    const phaseEffect = resolveTargetCharacterBattleEffect("phaseChange", context, {
+      targetName,
+      targetSide,
+      phase: match[2],
+    });
+    return phaseEffect === undefined ? null : phaseEffect;
   }
 
   const characterEffect = resolveCharacterBattleEffect("log", context, { line });
@@ -3572,16 +3879,24 @@ function shouldUseMonochromeBattleEffect(effect) {
 
 function appendBattleEffectElement(parent, element, effect) {
   if (!parent || !element) return element;
-  if (!shouldUseMonochromeBattleEffect(effect)) {
-    parent.append(element);
-    return element;
+  let mountedElement = element;
+  if (effect?.copiedByFimit) {
+    const copyLayer = document.createElement("span");
+    copyLayer.className = "battle-fx-fimit-copy-layer";
+    copyLayer.dataset.sourceSide = effect.sourceSide || "";
+    copyLayer.style.setProperty("--fimit-copy-color", effect.fimitCopyColor || CHARACTER_COLORS.fimit);
+    copyLayer.append(mountedElement);
+    mountedElement = copyLayer;
   }
-  const layer = document.createElement("span");
-  layer.className = "battle-fx-monochrome-layer";
-  layer.dataset.sourceSide = effect.sourceSide;
-  layer.append(element);
-  parent.append(layer);
-  return layer;
+  if (shouldUseMonochromeBattleEffect(effect)) {
+    const monochromeLayer = document.createElement("span");
+    monochromeLayer.className = "battle-fx-monochrome-layer";
+    monochromeLayer.dataset.sourceSide = effect.sourceSide;
+    monochromeLayer.append(mountedElement);
+    mountedElement = monochromeLayer;
+  }
+  parent.append(mountedElement);
+  return mountedElement;
 }
 
 function playLogEffect(effect) {
@@ -3637,9 +3952,10 @@ function playLogEffect(effect) {
   stage.classList.add(className);
 
   const burst = MOTION_ONLY_EFFECT_TYPES.has(effect.type) ? null : document.createElement("span");
+  let mountedBurst = null;
   if (burst) {
     burst.className = `battle-fx-effect battle-fx-${effect.type}`;
-    appendBattleEffectElement(stage, burst, effect);
+    mountedBurst = appendBattleEffectElement(stage, burst, effect);
   }
 
   if (effect.value) {
@@ -3652,9 +3968,6 @@ function playLogEffect(effect) {
   }
 
   if (burst) {
-    const mountedBurst = burst.parentElement?.classList.contains("battle-fx-monochrome-layer")
-      ? burst.parentElement
-      : burst;
     registerEffectTimeout(window.setTimeout(() => mountedBurst.remove(), 760));
   }
   registerEffectTimeout(window.setTimeout(() => stage.classList.remove(className), 520));
@@ -3677,10 +3990,11 @@ function playEffectSound(type) {
 }
 
 function playBgm(type, fadeMs = BGM_FADE_MS) {
-  prepareBgm();
+  prepareBgm([type]);
   const track = BGM_TRACKS[type];
   const next = state.bgm.get(type);
   if (!track || !next) return;
+  const requestToken = ++state.bgmRequestToken;
   const targetVolume = effectiveBgmVolume(track);
   if (state.currentBgm === next && !next.paused) {
     next.volume = targetVolume;
@@ -3689,10 +4003,12 @@ function playBgm(type, fadeMs = BGM_FADE_MS) {
 
   clearBgmFades();
   const previous = state.currentBgm;
+  for (const audio of state.bgm.values()) {
+    if (audio !== next && audio !== previous && !audio.paused) resetBgmTrack(audio);
+  }
   if (previous && previous !== next) {
     fadeAudio(previous, 0, fadeMs, () => {
-      previous.pause();
-      previous.currentTime = 0;
+      resetBgmTrack(previous);
     });
   }
 
@@ -3703,6 +4019,10 @@ function playBgm(type, fadeMs = BGM_FADE_MS) {
   state.currentBgmType = type;
   next.play()
     .then(() => {
+      if (requestToken !== state.bgmRequestToken) {
+        if (state.currentBgm !== next) resetBgmTrack(next);
+        return;
+      }
       if (next.volume !== targetVolume) {
         fadeAudio(next, targetVolume, fadeMs);
       }
@@ -3721,7 +4041,7 @@ function playResultBgm(data, nextType = null) {
 }
 
 function queueBgmAfterTrack(currentType, nextType) {
-  prepareBgm();
+  prepareBgm([currentType, nextType]);
   const current = state.bgm.get(currentType);
   if (!current || !BGM_TRACKS[nextType]) return;
   current.addEventListener("ended", () => {
@@ -3743,15 +4063,26 @@ function resultBgmType(data) {
 }
 
 function stopBgm(fadeMs = BGM_FADE_MS) {
+  state.bgmRequestToken += 1;
   clearBgmFades();
   const previous = state.currentBgm;
   state.currentBgm = null;
   state.currentBgmType = null;
-  if (!previous) return;
+  for (const audio of state.bgm.values()) {
+    if (audio !== previous || fadeMs <= 0 || audio.paused) resetBgmTrack(audio);
+  }
+  if (!previous || previous.paused || fadeMs <= 0) {
+    if (previous) resetBgmTrack(previous);
+    return;
+  }
   fadeAudio(previous, 0, fadeMs, () => {
-    previous.pause();
-    previous.currentTime = 0;
+    resetBgmTrack(previous);
   });
+}
+
+function resetBgmTrack(audio) {
+  audio.pause();
+  audio.currentTime = 0;
 }
 
 function clearBgmFades() {
@@ -3791,7 +4122,7 @@ function clearBattleEffects() {
     for (const type of EFFECT_CLASSES) {
       stage.classList.remove(`is-fx-${type}`);
     }
-    stage.querySelectorAll(".battle-fx-monochrome-layer, .battle-fx-effect, .battle-fx-value")
+    stage.querySelectorAll(".battle-fx-monochrome-layer, .battle-fx-fimit-copy-layer, .battle-fx-effect, .battle-fx-value")
       .forEach((element) => element.remove());
   }
   document.querySelector(".battle-fx-value-layer")?.replaceChildren();
@@ -3849,6 +4180,7 @@ function renderLog(options = {}) {
     els.battleLog.innerHTML = `<div class="log-empty">전투 시작 전</div>`;
     els.prevLogButton.disabled = true;
     els.nextLogButton.disabled = true;
+    renderCurrentLog();
     return;
   }
 
@@ -3863,9 +4195,31 @@ function renderLog(options = {}) {
   `;
   els.prevLogButton.disabled = state.logAnimating || state.currentLogIndex <= 0;
   els.nextLogButton.disabled = state.logAnimating || state.currentLogIndex >= state.turnLogs.length - 1;
+  renderCurrentLog();
   if (options.follow) {
     scrollBattleLogToBottom();
   }
+}
+
+function renderCurrentLog() {
+  const packet = state.turnLogs.at(-1);
+  if (!packet || !state.battle) {
+    els.currentLogBox.hidden = true;
+    return;
+  }
+  const entries = packet.entries || [];
+  const visibleCount = packet.visibleCount ?? entries.length;
+  const entry = visibleCount > 0 ? entries[Math.min(visibleCount, entries.length) - 1] : null;
+  const effect = entry?.effect;
+  const sourceSide = effect?.sourceSide || effect?.side;
+  const sourceId = sourceSide ? state.battle?.[sourceSide]?.id : null;
+  const accentColor = effect?.color || (sourceId ? characterColor(sourceId) : "#d9bd68");
+  els.currentLogBox.hidden = false;
+  els.currentLogBox.disabled = !state.logAnimating;
+  els.currentLogBox.classList.toggle("is-animating", state.logAnimating);
+  els.currentLogBox.style.setProperty("--current-log-color", accentColor);
+  els.currentLogText.textContent = entry?.text || "판정 중...";
+  els.currentLogSkipHint.hidden = !state.logAnimating;
 }
 
 function scrollBattleLogToBottom() {
@@ -3887,8 +4241,11 @@ function moveLog(delta) {
 }
 
 function clearLogs() {
+  state.logSkipResolve?.();
   state.logToken += 1;
   state.logAnimating = false;
+  state.logSkipRequested = false;
+  state.logSkipResolve = null;
   clearBattleEffects();
   state.turnLogs = [];
   state.currentLogIndex = -1;
@@ -3967,6 +4324,10 @@ function fighterInfoHtml(character, fighter, { side = "player", adventure = null
     : infoTileHtml("패시브", "없음", "");
   const skills = (character.skills || []).map((skill) => skillTileHtml(skill)).join("");
   const previewSprite = characterPreviewSpriteHtml(fighter, "fighter-info-sprite");
+  const isAdventurePlayer = side === "player" && Boolean(adventure);
+  const combatStateText = isAdventurePlayer
+    ? fighter.hud_state_text || fighter.hudStateText || "없음"
+    : fighter.status_text || fighter.stateText || "없음";
   const summary = `
     <div class="fighter-battle-summary">
       <div class="fighter-current-stats" aria-label="현재 능력치">
@@ -3977,8 +4338,8 @@ function fighterInfoHtml(character, fighter, { side = "player", adventure = null
         ${currentStatHtml("SPD", currentStats.spd ?? fighter.spd, initialStats.spd)}
       </div>
       <div class="fighter-effect-summary">
-        <span>적용 중인 효과</span>
-        <strong>${escapeHtml(fighter.status_text || fighter.stateText || "없음")}</strong>
+        <span>${isAdventurePlayer ? "현재 전투 상태" : "적용 중인 효과"}</span>
+        <strong>${escapeHtml(combatStateText)}</strong>
       </div>
       ${side === "player" && adventure ? adventureFighterInfoHtml(adventure, fighter) : ""}
     </div>
@@ -4018,12 +4379,26 @@ function currentStatHtml(label, current, initial) {
 
 function adventureFighterInfoHtml(adventure, fighter) {
   const relics = (fighter.adventureRelics || adventure.playerRelics || []).filter((relic) => !relic?.destroyed);
+  const adventureEffects = String(fighter.adventure_state_text || fighter.adventureStateText || "")
+    .split(" / ")
+    .map((effect) => effect.trim())
+    .filter((effect) => effect && effect !== "없음" && !effect.startsWith("유물:"));
   return `
     <section class="fighter-adventure-summary">
       <div class="fighter-adventure-heading">
         <span>ADVENTURE</span>
         <strong>G ${formatStat(adventure.gold || 0)}</strong>
       </div>
+      <div class="fighter-adventure-group">
+        <span class="fighter-adventure-label">여정 강화·효과</span>
+        ${adventureEffects.length
+          ? `<ul class="fighter-adventure-effect-list">${adventureEffects
+            .map((effect) => `<li>${escapeHtml(effect)}</li>`)
+            .join("")}</ul>`
+          : `<p class="fighter-adventure-empty">적용된 여정 강화가 없습니다.</p>`}
+      </div>
+      <div class="fighter-adventure-group">
+        <span class="fighter-adventure-label">보유 유물</span>
       <div class="fighter-relic-list">
         ${relics.length
           ? relics.map((relic) => `
@@ -4033,6 +4408,7 @@ function adventureFighterInfoHtml(adventure, fighter) {
             </article>
           `).join("")
           : `<p class="fighter-relic-empty">보유한 유물이 없습니다.</p>`}
+      </div>
       </div>
     </section>
   `;
@@ -4475,7 +4851,9 @@ function characterPickerThumbHtml(character, side, isRandom = false) {
 }
 
 function spriteAssetForSubject(subject) {
-  const id = subject?.activeCharacterId || subject?.id || findCharacterByName(subject?.name)?.id;
+  const id = subject?.id === "fimit"
+    ? subject.id
+    : subject?.activeCharacterId || subject?.id || findCharacterByName(subject?.name)?.id;
   const assetGroup = id ? SPRITE_ASSETS[id] : null;
   if (!assetGroup) return null;
   const requestedVariant = String(subject?.battleSpriteVariant || "");

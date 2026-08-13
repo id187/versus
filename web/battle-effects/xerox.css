@@ -1,0 +1,212 @@
+.battle-fx-xerox-orbit-meteor-clock,
+.battle-fx-xerox-extended-fate-clock {
+  inset: auto;
+  left: 50%;
+  top: calc(var(--fx-head-y, 7%) - 34px);
+  z-index: 13;
+  width: clamp(66px, 8vw, 92px);
+  aspect-ratio: 185 / 200;
+  background: url("../assets/characters/xerox/effects/orbit-clock-logo.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(247, 244, 255, 1)) drop-shadow(0 0 11px rgba(131, 113, 230, 0.96));
+  transform-origin: 50% 50%;
+}
+
+.battle-fx-xerox-orbit-meteor-clock {
+  animation: xerox-orbit-clock-arrive 820ms steps(11, end) forwards;
+}
+
+.battle-fx-xerox-extended-fate-clock {
+  animation: xerox-extended-clock-counterclockwise 900ms steps(14, end) forwards;
+}
+
+.battle-fx-xerox-meteor-projectile,
+.battle-fx-xerox-attracted-orb {
+  position: absolute;
+  z-index: 13;
+  pointer-events: none;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(250, 248, 255, 1)) drop-shadow(0 0 10px rgba(131, 113, 230, 0.96));
+}
+
+.battle-fx-xerox-meteor-projectile {
+  left: var(--xerox-meteor-x);
+  top: var(--xerox-meteor-start-y);
+  width: clamp(56px, 6vw, 80px);
+  aspect-ratio: 104 / 319;
+  background: url("../assets/characters/xerox/effects/meteor.png") center bottom / contain no-repeat;
+  transform-origin: 50% 100%;
+  animation: xerox-meteor-fall 500ms steps(14, end) forwards;
+}
+
+.battle-fx-xerox-attracted-orb {
+  left: var(--xerox-start-x);
+  top: var(--xerox-start-y);
+  width: clamp(82px, 8.5vw, 112px);
+  aspect-ratio: 176 / 90;
+  background: url("../assets/characters/xerox/effects/attracted-orb.png") center / contain no-repeat;
+  animation: xerox-attracted-orb-curve 520ms steps(14, end) forwards;
+}
+
+.battle-fx-xerox-attracted-orb-2 {
+  animation-delay: 18ms;
+}
+
+.battle-fx-xerox-meteor-impact {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-ground-y, 96%);
+  z-index: 12;
+  width: min(116%, 330px);
+  aspect-ratio: 360 / 218;
+  background: url("../assets/characters/xerox/effects/meteor-impact.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 5px rgba(250, 248, 255, 1)) drop-shadow(0 0 17px rgba(131, 113, 230, 0.96));
+  transform-origin: 50% 100%;
+  animation: xerox-meteor-impact 760ms steps(12, end) forwards;
+}
+
+.battle-fx-xerox-attracted-impact {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  z-index: 12;
+  width: min(92%, 260px);
+  aspect-ratio: 280 / 263;
+  background: url("../assets/characters/xerox/effects/attracted-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 5px rgba(250, 248, 255, 1)) drop-shadow(0 0 15px rgba(131, 113, 230, 0.96));
+  transform-origin: 50% 50%;
+  animation: xerox-attracted-impact 700ms steps(11, end) forwards;
+}
+
+.battle-fx-xerox-fate-preview-light {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-ground-y, 96%);
+  z-index: 11;
+  width: min(58%, 164px);
+  aspect-ratio: 169 / 360;
+  background: url("../assets/characters/xerox/effects/fate-preview-light.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 5px rgba(250, 248, 255, 1)) drop-shadow(0 0 15px rgba(131, 113, 230, 0.94));
+  transform-origin: 50% 100%;
+  animation: xerox-fate-preview-rise 760ms steps(12, end) forwards;
+}
+
+.battle-fx-xerox-unstoppable-clock {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  z-index: 10;
+  width: min(118%, 340px);
+  aspect-ratio: 360 / 357;
+  background: url("../assets/characters/xerox/effects/unstoppable-clock.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 5px rgba(250, 248, 255, 1)) drop-shadow(0 0 20px rgba(131, 113, 230, 0.98));
+  transform-origin: 50% 50%;
+  animation: xerox-unstoppable-clock 1080ms steps(15, end) forwards;
+}
+
+.battle-fx-xerox-meteor-cast,
+.battle-fx-xerox-attracted-fate-cast {
+  opacity: 0;
+}
+
+.battle-fx-value-xerox-meteor-impact,
+.battle-fx-value-xerox-attracted-impact,
+.battle-fx-value-xerox-fate-preview-light {
+  color: #dcd5ff;
+  text-shadow: 0 2px 0 rgba(27, 19, 72, 0.98), 0 0 8px rgba(234, 229, 255, 1), 0 0 15px rgba(131, 113, 230, 0.96);
+}
+
+.avatar-stage.is-fx-xerox-meteor-impact .battle-sprite,
+.avatar-stage.is-fx-xerox-meteor-impact svg,
+.avatar-stage.is-fx-xerox-attracted-impact .battle-sprite,
+.avatar-stage.is-fx-xerox-attracted-impact svg,
+.avatar-stage.is-fx-xerox-fate-preview-light .battle-sprite,
+.avatar-stage.is-fx-xerox-fate-preview-light svg {
+  animation: combatant-hit-shake 460ms cubic-bezier(0.15, 0.94, 0.26, 1);
+}
+
+@keyframes xerox-orbit-clock-arrive {
+  0% { opacity: 0; transform: translate(-50%, -38%) scale(0.45); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(0.94); }
+  58% { opacity: 1; transform: translate(-50%, -50%) scale(1.04); }
+  82% { opacity: 0.96; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -58%) scale(1.08); }
+}
+
+@keyframes xerox-extended-clock-counterclockwise {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(0.56); }
+  18% { opacity: 1; transform: translate(-50%, -50%) rotate(-30deg) scale(0.96); }
+  72% { opacity: 1; transform: translate(-50%, -50%) rotate(-300deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(-420deg) scale(1.08); }
+}
+
+@keyframes xerox-meteor-fall {
+  0% { top: var(--xerox-meteor-start-y); opacity: 0; transform: translate(-50%, -100%) scale(0.68); }
+  12% { opacity: 1; }
+  82% { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  100% { top: var(--xerox-meteor-end-y); opacity: 0; transform: translate(-50%, -100%) scale(1.06); }
+}
+
+@keyframes xerox-attracted-orb-curve {
+  0% {
+    left: var(--xerox-start-x);
+    top: var(--xerox-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--xerox-direction, 1)) scale(0.56);
+  }
+  12% { opacity: 1; }
+  50% {
+    left: var(--xerox-mid-x);
+    top: var(--xerox-mid-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(var(--xerox-direction, 1)) scale(0.9);
+  }
+  84% { opacity: 1; }
+  100% {
+    left: var(--xerox-end-x);
+    top: var(--xerox-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--xerox-direction, 1)) scale(0.54);
+  }
+}
+
+@keyframes xerox-meteor-impact {
+  0% { opacity: 0; transform: translate(-50%, -100%) scale(0.16, 0.08); }
+  20% { opacity: 1; transform: translate(-50%, -100%) scale(0.78, 0.58); }
+  46% { opacity: 1; transform: translate(-50%, -100%) scale(1.05, 1); }
+  72% { opacity: 0.94; transform: translate(-50%, -100%) scale(1, 1.04); }
+  100% { opacity: 0; transform: translate(-50%, -100%) scale(1.14, 1.08); }
+}
+
+@keyframes xerox-attracted-impact {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-18deg) scale(0.18); }
+  20% { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg) scale(0.78); }
+  48% { opacity: 1; transform: translate(-50%, -50%) rotate(3deg) scale(1.05); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(12deg) scale(1.18); }
+}
+
+@keyframes xerox-fate-preview-rise {
+  0% { opacity: 0; transform: translate(-50%, -90%) scale(0.42, 0.12); }
+  18% { opacity: 1; transform: translate(-50%, -100%) scale(0.76, 0.54); }
+  46% { opacity: 1; transform: translate(-50%, -100%) scale(1, 1.02); }
+  76% { opacity: 0.94; transform: translate(-50%, -103%) scale(1.04, 1.08); }
+  100% { opacity: 0; transform: translate(-50%, -110%) scale(1.08, 1.18); }
+}
+
+@keyframes xerox-unstoppable-clock {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-8deg); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(0.86) rotate(-3deg); }
+  44% { opacity: 1; transform: translate(-50%, -50%) scale(1.04) rotate(0deg); }
+  72% { opacity: 0.98; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}

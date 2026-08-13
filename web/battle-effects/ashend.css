@@ -17,6 +17,24 @@
   animation: ashend-ashen-slash 560ms steps(8, end) forwards;
 }
 
+.battle-fx-ash-haze-status {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-head-y, 12%);
+  width: 58%;
+  aspect-ratio: 220 / 299;
+  z-index: 7;
+  background: url("../assets/characters/ashend/effects/ash-haze-status.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter:
+    grayscale(1)
+    contrast(1.08)
+    drop-shadow(0 0 6px rgba(44, 44, 42, 0.82));
+  transform-origin: 50% 18%;
+  animation: ashend-ash-haze-status 820ms steps(10, end) forwards;
+}
+
 #aiAvatar .battle-fx-ashen-slash {
   --ashend-slash-direction: 1;
   --ashend-slash-flip: 1;
@@ -148,6 +166,25 @@
     opacity: 0;
     transform: translateX(calc(18px * var(--ashend-slash-direction)))
       scaleX(var(--ashend-slash-flip)) scale(1.12);
+  }
+}
+
+@keyframes ashend-ash-haze-status {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -30%) scale(0.68, 0.56);
+  }
+  20% {
+    opacity: 0.96;
+    transform: translate(-50%, -12%) scale(0.9, 0.82);
+  }
+  62% {
+    opacity: 1;
+    transform: translate(-50%, 24%) scale(1, 1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 42%) scale(1.08, 0.92);
   }
 }
 

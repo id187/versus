@@ -83,12 +83,10 @@
       const arenaRect = arena.getBoundingClientRect();
       const sourceRect = sourceStage.getBoundingClientRect();
       const targetRect = targetStage.getBoundingClientRect();
-      const weaponX = registry.stagePercent(sourceStage, "--fx-weapon-x", 0.83);
-      const weaponY = registry.stagePercent(sourceStage, "--fx-weapon-y", 0.37);
+      const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
       const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
-      const mirroredWeaponX = effect.sourceSide === "ai" ? 1 - weaponX : weaponX;
-      const startX = sourceRect.left + sourceRect.width * mirroredWeaponX - arenaRect.left;
-      const startY = sourceRect.top + sourceRect.height * weaponY - arenaRect.top;
+      const startX = sourceRect.left + sourceRect.width / 2 - arenaRect.left;
+      const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
       const endX = targetRect.left + targetRect.width / 2 - arenaRect.left;
       const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
       const direction = endX >= startX ? 1 : -1;

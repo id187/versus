@@ -58,6 +58,13 @@
       const profile = profiles.get(effect?.characterEffectId);
       return Boolean(profile?.playEffect?.(effect, helpers));
     },
+
+    renderPersistent(battle, helpers) {
+      for (const [characterId, profile] of profiles.entries()) {
+        if (typeof profile.renderPersistent !== "function") continue;
+        profile.renderPersistent(battle, helpers, characterId);
+      }
+    },
   };
 
   global.VersusCharacterBattleEffects = Object.freeze(registry);

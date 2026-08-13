@@ -1,8 +1,3 @@
-.avatar-stage[data-fighter-id="demon_pawn_opawn"] {
-  --fx-weapon-x: 83%;
-  --fx-weapon-y: 37%;
-}
-
 .battle-fx-opawn-gray-lance-march-pierce {
   position: absolute;
   left: var(--opawn-pierce-x);

@@ -1,0 +1,130 @@
+.battle-fx-balance-sigil {
+  inset: auto;
+  left: 50%;
+  top: calc(var(--fx-head-y, 12%) - 3%);
+  width: 34%;
+  aspect-ratio: 1;
+  z-index: 8;
+  background: url("../assets/characters/librang/effects/balance-sigil.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 3px rgba(222, 241, 255, 0.98)) drop-shadow(0 0 9px rgba(93, 139, 176, 0.92));
+  transform-origin: 50% 90%;
+  animation: librang-balance-sigil 820ms steps(9, end) forwards;
+}
+
+.avatar-stage:has(.battle-fx-balance-sigil) {
+  overflow: visible;
+}
+
+.battle-fx-lightness-rising-slash {
+  --librang-lightness-flip: 1;
+  top: calc(var(--fx-body-y, 50%) - 55%);
+  right: -7%;
+  bottom: calc(45% - var(--fx-body-y, 50%));
+  left: -7%;
+  z-index: 10;
+  background: url("../assets/characters/librang/effects/lightness-slash.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(235, 247, 255, 0.98)) drop-shadow(0 0 12px rgba(83, 132, 172, 0.95));
+  transform-origin: 50% 60%;
+  animation: librang-lightness-rising-slash 640ms steps(10, end) forwards;
+}
+
+#playerAvatar .battle-fx-lightness-rising-slash {
+  --librang-lightness-flip: -1;
+}
+
+.battle-fx-weight-glyph-drop {
+  top: calc(var(--fx-body-y, 50%) - 55%);
+  right: 12%;
+  bottom: calc(45% - var(--fx-body-y, 50%));
+  left: 12%;
+  z-index: 9;
+  background: url("../assets/characters/librang/effects/weight-glyph.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(226, 242, 255, 0.96)) drop-shadow(0 8px 13px rgba(59, 102, 138, 0.92));
+  transform-origin: 50% 88%;
+  animation: librang-weight-glyph-drop 720ms steps(10, end) forwards;
+}
+
+.battle-fx-prayer-wings {
+  top: calc(var(--fx-body-y, 50%) - 58%);
+  right: -22%;
+  bottom: calc(58% - var(--fx-body-y, 50%));
+  left: -22%;
+  z-index: 7;
+  background: url("../assets/characters/librang/effects/prayer-wings.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 5px rgba(236, 248, 255, 0.98)) drop-shadow(0 0 16px rgba(87, 135, 174, 0.94));
+  transform-origin: 50% 50%;
+  animation: librang-prayer-wings 940ms steps(12, end) forwards;
+}
+
+.battle-fx-constellation-judgment-cast,
+.battle-fx-constellation-judgment-impact {
+  opacity: 0;
+}
+
+.battle-fx-constellation-judgment-screen {
+  position: absolute;
+  left: var(--librang-judgment-x, 50%);
+  top: var(--librang-judgment-y, 50%);
+  width: var(--librang-judgment-width, 240px);
+  height: var(--librang-judgment-height, 640px);
+  z-index: 12;
+  pointer-events: none;
+  background: url("../assets/characters/librang/effects/constellation-judgment.png") center / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: brightness(1.08) drop-shadow(0 0 5px rgba(241, 250, 255, 1)) drop-shadow(0 0 18px rgba(76, 125, 168, 0.98));
+  transform-origin: 50% 50%;
+  animation: librang-constellation-judgment 880ms steps(12, end) forwards;
+}
+
+.avatar-stage.is-fx-lightness-rising-slash .battle-sprite,
+.avatar-stage.is-fx-lightness-rising-slash svg,
+.avatar-stage.is-fx-constellation-judgment-impact .battle-sprite,
+.avatar-stage.is-fx-constellation-judgment-impact svg {
+  animation: combatant-hit-shake 450ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes librang-balance-sigil {
+  0% { opacity: 0; transform: translate(-50%, -100%) scale(0.38); }
+  20% { opacity: 1; transform: translate(-50%, -100%) scale(1.08); }
+  66% { opacity: 1; transform: translate(-50%, -105%) scale(0.98); }
+  100% { opacity: 0; transform: translate(-50%, -116%) scale(1.08); }
+}
+
+@keyframes librang-lightness-rising-slash {
+  0% { opacity: 0; transform: scaleX(var(--librang-lightness-flip)) translate(-12%, 20%) scale(0.42) rotate(-8deg); }
+  18% { opacity: 1; transform: scaleX(var(--librang-lightness-flip)) translate(-5%, 10%) scale(0.78) rotate(-4deg); }
+  55% { opacity: 1; transform: scaleX(var(--librang-lightness-flip)) translate(2%, -3%) scale(1.05) rotate(2deg); }
+  100% { opacity: 0; transform: scaleX(var(--librang-lightness-flip)) translate(9%, -18%) scale(1.18) rotate(7deg); }
+}
+
+@keyframes librang-weight-glyph-drop {
+  0% { opacity: 0; transform: translateY(-85%) scale(0.74); }
+  28% { opacity: 1; transform: translateY(2%) scale(1.08, 0.94); }
+  42% { opacity: 1; transform: translateY(-4%) scale(0.98, 1.04); }
+  72% { opacity: 0.94; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(7%) scale(1.1, 0.9); }
+}
+
+@keyframes librang-prayer-wings {
+  0% { opacity: 0; transform: scaleX(0.12) scaleY(0.58); }
+  24% { opacity: 1; transform: scaleX(0.72) scaleY(0.94); }
+  48% { opacity: 1; transform: scaleX(1.05) scaleY(1.02); }
+  78% { opacity: 0.92; transform: scale(1); }
+  100% { opacity: 0; transform: scaleX(1.14) scaleY(1.08) translateY(-5%); }
+}
+
+@keyframes librang-constellation-judgment {
+  0% { opacity: 0; transform: translate(-50%, -160%) scaleX(0.72) scaleY(0.88); }
+  12% { opacity: 1; transform: translate(-50%, -126%) scaleX(0.84) scaleY(0.94); }
+  30% { opacity: 1; transform: translate(-50%, -50%) scaleX(1) scaleY(1.02); }
+  58% { opacity: 0.98; transform: translate(-50%, -34%) scaleX(0.94) scaleY(1.04); }
+  100% { opacity: 0; transform: translate(-50%, 26%) scaleX(0.78) scaleY(1.08); }
+}

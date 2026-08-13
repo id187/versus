@@ -1,0 +1,242 @@
+.battle-fx-happyrin-madness-swirl {
+  position: absolute;
+  top: calc(var(--fx-head-y, 4%) - 9%);
+  left: 50%;
+  z-index: 13;
+  width: clamp(88px, 38%, 150px);
+  aspect-ratio: 360 / 213;
+  pointer-events: none;
+  background: url("../assets/characters/happyrin/effects/madness-swirl.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 238, 247, 1))
+    drop-shadow(0 0 10px rgba(255, 91, 157, 0.96));
+  transform-origin: 50% 50%;
+  animation: happyrin-madness-swirl 800ms steps(12, end) forwards;
+}
+
+.battle-fx-happyrin-reaction-flask {
+  --happyrin-flask-direction: 1;
+  position: absolute;
+  left: var(--happyrin-flask-start-x);
+  top: var(--happyrin-flask-start-y);
+  z-index: 12;
+  width: clamp(58px, 8.25vw, 88px);
+  aspect-ratio: 146 / 78;
+  pointer-events: none;
+  background: url("../assets/characters/happyrin/effects/reaction-flask.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 235, 246, 0.98))
+    drop-shadow(0 0 10px rgba(255, 73, 145, 0.94));
+  transform-origin: 50% 50%;
+  animation: happyrin-reaction-flask-arc 660ms steps(15, end) forwards;
+}
+
+.battle-fx-happyrin-reaction-flask-cast {
+  inset: 0;
+  opacity: 0;
+}
+
+.battle-fx-happyrin-reaction-flask-impact {
+  top: calc(var(--fx-ground-y, 96%) - 76%);
+  right: 4%;
+  bottom: calc(100% - var(--fx-ground-y, 96%));
+  left: 4%;
+  background: url("../assets/characters/happyrin/effects/reaction-smoke.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 235, 248, 1))
+    drop-shadow(0 0 13px rgba(255, 82, 151, 0.96));
+  transform-origin: 50% 100%;
+  animation: happyrin-reaction-smoke 620ms steps(10, end) forwards;
+}
+
+.battle-fx-happyrin-madness-smile-burst {
+  top: calc(var(--fx-body-y, 50%) - 47%);
+  right: 3%;
+  bottom: calc(53% - var(--fx-body-y, 50%));
+  left: 3%;
+  background: url("../assets/characters/happyrin/effects/madness-smile-burst.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 239, 249, 1))
+    drop-shadow(0 0 14px rgba(255, 70, 149, 0.98));
+  transform-origin: 50% 50%;
+  animation: happyrin-madness-smile-burst 600ms steps(10, end) forwards;
+}
+
+.battle-fx-happyrin-random-hit-burst {
+  --happyrin-hit-flip: 1;
+  position: absolute;
+  left: var(--happyrin-hit-x);
+  top: var(--happyrin-hit-y);
+  z-index: 12;
+  width: clamp(140px, 64%, 250px);
+  aspect-ratio: 353 / 226;
+  pointer-events: none;
+  background: url("../assets/characters/happyrin/effects/random-hit.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 241, 249, 1))
+    drop-shadow(0 0 11px rgba(255, 69, 145, 0.96));
+  transform-origin: 50% 50%;
+  animation: happyrin-random-hit 500ms steps(8, end) forwards;
+}
+
+.battle-fx-happyrin-random-hit-impact {
+  inset: 0;
+  opacity: 0;
+}
+
+.battle-fx-happyrin-overdose-syringe {
+  --happyrin-syringe-x: 64%;
+  --happyrin-syringe-flip: 1;
+  --happyrin-syringe-start-x: 18%;
+  --happyrin-syringe-approach-x: 14%;
+  --happyrin-syringe-impact-x: -13%;
+  --happyrin-syringe-settle-x: -15%;
+  position: absolute;
+  left: var(--happyrin-syringe-x);
+  top: calc(var(--fx-body-y, 50%) - 25%);
+  z-index: 12;
+  width: clamp(92px, 36%, 144px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: url("../assets/characters/happyrin/effects/overdose-syringe.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 236, 247, 0.98))
+    drop-shadow(0 0 9px rgba(255, 73, 144, 0.92));
+  transform-origin: 48% 52%;
+  animation: happyrin-overdose-syringe 720ms steps(11, end) forwards;
+}
+
+.battle-fx-value-happyrin-reaction-flask-impact,
+.battle-fx-value-happyrin-madness-smile-burst,
+.battle-fx-value-happyrin-random-hit-impact {
+  color: #ffd4e2;
+  text-shadow:
+    0 2px 0 rgba(45, 5, 27, 0.98),
+    0 0 8px rgba(255, 230, 244, 0.98),
+    0 0 13px rgba(255, 75, 144, 0.94);
+}
+
+.avatar-stage.is-fx-happyrin-reaction-flask-impact .battle-sprite,
+.avatar-stage.is-fx-happyrin-reaction-flask-impact svg,
+.avatar-stage.is-fx-happyrin-madness-smile-burst .battle-sprite,
+.avatar-stage.is-fx-happyrin-madness-smile-burst svg,
+.avatar-stage.is-fx-happyrin-random-hit-impact .battle-sprite,
+.avatar-stage.is-fx-happyrin-random-hit-impact svg {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes happyrin-madness-swirl {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(55deg) scale(1.05);
+  }
+  74% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(650deg) scale(0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(810deg) scale(0.48);
+  }
+}
+
+@keyframes happyrin-reaction-flask-arc {
+  0% {
+    left: var(--happyrin-flask-start-x);
+    top: var(--happyrin-flask-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--happyrin-flask-start-angle)) scaleX(var(--happyrin-flask-direction)) scale(0.54);
+  }
+  10% { opacity: 1; }
+  48% {
+    left: var(--happyrin-flask-mid-x);
+    top: var(--happyrin-flask-mid-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--happyrin-flask-mid-angle)) scaleX(var(--happyrin-flask-direction)) scale(0.92);
+  }
+  90% {
+    left: var(--happyrin-flask-end-x);
+    top: var(--happyrin-flask-end-y);
+    opacity: 1;
+    transform: translate(-50%, -78%) rotate(var(--happyrin-flask-end-angle)) scaleX(var(--happyrin-flask-direction)) scale(0.9);
+  }
+  100% {
+    left: var(--happyrin-flask-end-x);
+    top: var(--happyrin-flask-end-y);
+    opacity: 0;
+    transform: translate(-50%, -72%) rotate(var(--happyrin-flask-end-angle)) scaleX(var(--happyrin-flask-direction)) scale(0.72);
+  }
+}
+
+@keyframes happyrin-reaction-smoke {
+  0% { opacity: 0; transform: translateY(8%) scale(0.28, 0.12); }
+  16% { opacity: 1; transform: translateY(2%) scale(0.9, 0.74); }
+  44% { opacity: 1; transform: translateY(-1%) scale(1.04, 1.02); }
+  76% { opacity: 0.9; transform: translateY(-7%) scale(0.98, 1.1); }
+  100% { opacity: 0; transform: translateY(-15%) scale(1.12, 1.22); }
+}
+
+@keyframes happyrin-madness-smile-burst {
+  0% { opacity: 0; transform: rotate(-8deg) scale(0.24); }
+  14% { opacity: 1; transform: rotate(2deg) scale(1.12); }
+  38% { opacity: 1; transform: rotate(-2deg) scale(0.96); }
+  72% { opacity: 0.94; transform: rotate(5deg) scale(1.04); }
+  100% { opacity: 0; transform: rotate(12deg) scale(1.22); }
+}
+
+@keyframes happyrin-random-hit {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--happyrin-hit-angle)) scaleX(var(--happyrin-hit-flip)) scale(var(--happyrin-hit-scale-start));
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--happyrin-hit-angle)) scaleX(var(--happyrin-hit-flip)) scale(var(--happyrin-hit-scale-pop));
+  }
+  42% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--happyrin-hit-angle)) scaleX(var(--happyrin-hit-flip)) scale(var(--happyrin-hit-scale));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--happyrin-hit-angle)) scaleX(var(--happyrin-hit-flip)) scale(var(--happyrin-hit-scale-end));
+  }
+}
+
+@keyframes happyrin-overdose-syringe {
+  0% {
+    opacity: 0;
+    transform: translate(var(--happyrin-syringe-start-x), -18%) scaleX(var(--happyrin-syringe-flip)) scale(0.76);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(var(--happyrin-syringe-approach-x), -14%) scaleX(var(--happyrin-syringe-flip)) scale(0.96);
+  }
+  36%, 68% {
+    opacity: 1;
+    transform: translate(var(--happyrin-syringe-impact-x), 13%) scaleX(var(--happyrin-syringe-flip)) scale(1);
+  }
+  78% {
+    opacity: 1;
+    filter: brightness(1.45) drop-shadow(0 0 10px rgba(255, 104, 164, 0.98));
+    transform: translate(var(--happyrin-syringe-settle-x), 15%) scaleX(var(--happyrin-syringe-flip)) scale(0.96);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--happyrin-syringe-settle-x), 15%) scaleX(var(--happyrin-syringe-flip)) scale(0.88);
+  }
+}

@@ -117,13 +117,12 @@
         const sourceRect = sourceStage.getBoundingClientRect();
         const targetRect = targetStage.getBoundingClientRect();
         const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
+        const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
         const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
         const endX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
         const horizontalDirection = endX >= sourceCenterX ? 1 : -1;
-        const startX = sourceRect.left
-          + sourceRect.width * (horizontalDirection > 0 ? 0.6 : 0.4)
-          - arenaRect.left;
-        const startY = sourceRect.top + sourceRect.height * 0.49 - arenaRect.top;
+        const startX = sourceCenterX;
+        const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
         const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
         const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * horizontalDirection;
         const projectile = document.createElement("span");
@@ -165,13 +164,12 @@
         const sourceRect = sourceStage.getBoundingClientRect();
         const targetRect = targetStage.getBoundingClientRect();
         const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
+        const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
         const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
         const endX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
         const horizontalDirection = endX >= sourceCenterX ? 1 : -1;
-        const startX = sourceRect.left
-          + sourceRect.width * (horizontalDirection > 0 ? 0.58 : 0.42)
-          - arenaRect.left;
-        const startY = sourceRect.top + sourceRect.height * 0.52 - arenaRect.top;
+        const startX = sourceCenterX;
+        const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
         const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
         const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * horizontalDirection;
         const projectile = document.createElement("span");

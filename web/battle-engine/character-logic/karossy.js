@@ -103,7 +103,7 @@ module.exports = {
     if (mapping[chosen] && mapping[chosen] !== current) {
       fighter.counters["예보"] = mapping[chosen];
       battle.restoreMp(fighter, 3, "내일의 날씨");
-      log(battle, `예보가 ${fighter.counters["예보"]}으로 변경되었다.`);
+      log(battle, `${fighter.name}의 예보가 ${fighter.counters["예보"]}으로 변경되었다.`);
       return;
     }
     fighter.counters["예보"] = battle.rng.choice(WEATHERS.filter((weather) => weather !== current));

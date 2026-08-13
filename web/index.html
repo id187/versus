@@ -9,14 +9,27 @@
   <link rel="stylesheet" href="./battle-effects/plote.css">
   <link rel="stylesheet" href="./battle-effects/nihfle.css">
   <link rel="stylesheet" href="./battle-effects/neroko.css">
+  <link rel="stylesheet" href="./battle-effects/happyrin.css">
   <link rel="stylesheet" href="./battle-effects/cryne.css">
   <link rel="stylesheet" href="./battle-effects/gandrick.css">
   <link rel="stylesheet" href="./battle-effects/charinel.css">
   <link rel="stylesheet" href="./battle-effects/revesha.css">
   <link rel="stylesheet" href="./battle-effects/ashend.css">
   <link rel="stylesheet" href="./battle-effects/karossy.css">
+  <link rel="stylesheet" href="./battle-effects/melague.css">
   <link rel="stylesheet" href="./battle-effects/balef.css">
   <link rel="stylesheet" href="./battle-effects/zeroven.css">
+  <link rel="stylesheet" href="./battle-effects/fimit.css">
+  <link rel="stylesheet" href="./battle-effects/emento.css">
+  <link rel="stylesheet" href="./battle-effects/librang.css">
+  <link rel="stylesheet" href="./battle-effects/saqua.css">
+  <link rel="stylesheet" href="./battle-effects/queenas.css">
+  <link rel="stylesheet" href="./battle-effects/necoulomb.css">
+  <link rel="stylesheet" href="./battle-effects/serpen.css">
+  <link rel="stylesheet" href="./battle-effects/dracle.css">
+  <link rel="stylesheet" href="./battle-effects/dethus.css">
+  <link rel="stylesheet" href="./battle-effects/jitrom.css">
+  <link rel="stylesheet" href="./battle-effects/xerox.css">
   <link rel="stylesheet" href="./battle-effects/demon_scout_kain.css">
   <link rel="stylesheet" href="./battle-effects/demon_warrior_luke.css">
   <link rel="stylesheet" href="./battle-effects/demon_mage_zero.css">
@@ -37,7 +50,13 @@
         <div class="home-heading">
           <h1>VERSUS</h1>
         </div>
-        <nav class="main-menu" aria-label="메인 메뉴">
+        <div class="home-loading" id="homeLoading" role="status" aria-live="polite" aria-label="게임 불러오는 중">
+          <div class="home-loading-track" aria-hidden="true">
+            <span class="home-loading-bar"></span>
+          </div>
+          <p class="home-loading-error" id="homeLoadingError" hidden>불러오지 못했습니다. 새로고침해주세요.</p>
+        </div>
+        <nav class="main-menu" id="homeMenu" aria-label="메인 메뉴" hidden>
           <button class="menu-button" id="openPlayButton" type="button">Play</button>
           <button class="menu-button" id="openRulesButton" type="button">Rules</button>
           <button class="menu-button" id="openCodexButton" type="button">Characters</button>
@@ -165,6 +184,18 @@
         <section class="arena-panel" aria-label="전장">
           <div class="arena-surface">
             <div class="turn-chip" id="turnChip">TURN -</div>
+            <button
+              class="current-log-box"
+              id="currentLogBox"
+              type="button"
+              aria-label="현재 전투 로그"
+              aria-live="polite"
+              aria-atomic="true"
+              hidden
+            >
+              <strong id="currentLogText">판정 중...</strong>
+              <small id="currentLogSkipHint" hidden>클릭하여 빠르게 보기</small>
+            </button>
             <div class="fighter-slot enemy-slot">
               <div class="avatar-stage" id="aiAvatar" aria-hidden="true"></div>
             </div>
@@ -846,14 +877,27 @@
   <script src="./battle-effects/plote.js"></script>
   <script src="./battle-effects/nihfle.js"></script>
   <script src="./battle-effects/neroko.js"></script>
+  <script src="./battle-effects/happyrin.js"></script>
   <script src="./battle-effects/cryne.js"></script>
   <script src="./battle-effects/gandrick.js"></script>
   <script src="./battle-effects/charinel.js"></script>
   <script src="./battle-effects/revesha.js"></script>
   <script src="./battle-effects/ashend.js"></script>
   <script src="./battle-effects/karossy.js"></script>
+  <script src="./battle-effects/melague.js"></script>
   <script src="./battle-effects/balef.js"></script>
   <script src="./battle-effects/zeroven.js"></script>
+  <script src="./battle-effects/fimit.js"></script>
+  <script src="./battle-effects/emento.js"></script>
+  <script src="./battle-effects/librang.js"></script>
+  <script src="./battle-effects/saqua.js"></script>
+  <script src="./battle-effects/queenas.js"></script>
+  <script src="./battle-effects/necoulomb.js"></script>
+  <script src="./battle-effects/serpen.js"></script>
+  <script src="./battle-effects/dracle.js"></script>
+  <script src="./battle-effects/dethus.js"></script>
+  <script src="./battle-effects/jitrom.js"></script>
+  <script src="./battle-effects/xerox.js"></script>
   <script src="./battle-effects/demon_scout_kain.js"></script>
   <script src="./battle-effects/demon_warrior_luke.js"></script>
   <script src="./battle-effects/demon_mage_zero.js"></script>

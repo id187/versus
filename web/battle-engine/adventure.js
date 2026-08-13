@@ -547,7 +547,9 @@ function adventureRouteChoices(adventure, { rng = null } = {}) {
     const shop = destinations.find((destination) => destination.id === ADVENTURE_RELIC_SHOP_ID)
       || destinationFromAdventureState(adventure, ADVENTURE_RELIC_SHOP_ID);
     if (shop) {
-      const deferred = destinations.find((destination) => destination.id === deferredDestinationId);
+      const deferred = deferredDestinationId === ADVENTURE_RELIC_SHOP_ID
+        ? null
+        : destinations.find((destination) => destination.id === deferredDestinationId);
       const sides = deferred
         ? [
             deferred,

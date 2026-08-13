@@ -1,0 +1,187 @@
+.battle-fx-dethus-thirst-sandstorm {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  width: min(88%, 268px);
+  aspect-ratio: 268 / 360;
+  background: url("../assets/characters/dethus/effects/thirst-sandstorm.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(242, 205, 133, 0.92))
+    drop-shadow(0 0 11px rgba(151, 77, 24, 0.78));
+  transform-origin: 50% 80%;
+  animation: dethus-thirst-sandstorm 680ms steps(9, end) forwards;
+}
+
+.battle-fx-dethus-harvest-soul {
+  opacity: 0;
+}
+
+.battle-fx-dethus-harvest-soul-flight {
+  position: absolute;
+  left: var(--dethus-harvest-start-x);
+  top: var(--dethus-harvest-start-y);
+  z-index: 9;
+  width: clamp(250px, 32vw, 340px);
+  aspect-ratio: 360 / 233;
+  pointer-events: none;
+  background: url("../assets/characters/dethus/effects/sand-soul-silhouette.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 4px rgba(244, 209, 143, 0.96))
+    drop-shadow(0 0 12px rgba(154, 79, 25, 0.84));
+  animation: dethus-harvest-soul-flight 720ms cubic-bezier(0.2, 0.72, 0.24, 1) forwards;
+}
+
+.battle-fx-dethus-quicksand-guard {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-ground-y, 96%);
+  z-index: 2;
+  width: min(116%, 360px);
+  aspect-ratio: 360 / 170;
+  background: url("../assets/characters/dethus/effects/quicksand-pool.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: normal;
+  filter: drop-shadow(0 0 8px rgba(184, 104, 37, 0.8));
+  transform-origin: 50% 50%;
+  animation: dethus-quicksand-guard 760ms steps(10, end) forwards;
+}
+
+.battle-fx-dethus-mirage-curse {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  width: min(88%, 318px);
+  aspect-ratio: 318 / 320;
+  background: url("../assets/characters/dethus/effects/mirage-curse-sigil.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 220, 148, 0.98))
+    drop-shadow(0 0 12px rgba(181, 76, 18, 0.92));
+  transform-origin: 50% 50%;
+  animation: dethus-mirage-curse 720ms steps(10, end) forwards;
+}
+
+.battle-fx-dethus-parched-earth-crack {
+  opacity: 0;
+}
+
+.battle-fx-dethus-parched-earth-crack-stage {
+  inset: auto;
+  left: 50%;
+  top: var(--fx-ground-y, 96%);
+  z-index: 2;
+  width: min(122%, 360px);
+  aspect-ratio: 360 / 235;
+  background: url("../assets/characters/dethus/effects/parched-earth-crack.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 3px rgba(255, 187, 78, 0.92))
+    drop-shadow(0 0 9px rgba(158, 50, 13, 0.9));
+  transform-origin: 50% 52%;
+  animation: dethus-parched-earth-crack 720ms steps(10, end) forwards;
+}
+
+.battle-fx-dethus-parched-earth-eruption {
+  top: calc(var(--fx-ground-y, 96%) - 118%);
+  right: 8%;
+  bottom: calc(98% - var(--fx-ground-y, 96%));
+  left: 8%;
+  z-index: 4;
+  background: url("../assets/characters/dethus/effects/parched-earth-eruption.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 228, 156, 0.98))
+    drop-shadow(0 0 13px rgba(202, 73, 14, 0.94));
+  transform-origin: 50% 98%;
+  animation: dethus-parched-earth-eruption 760ms steps(10, end) forwards;
+}
+
+.battle-fx-value-dethus-thirst-sandstorm,
+.battle-fx-value-dethus-harvest-soul,
+.battle-fx-value-dethus-mirage-curse,
+.battle-fx-value-dethus-parched-earth-eruption {
+  color: #e3b664;
+  text-shadow:
+    0 2px 0 rgba(35, 14, 5, 0.98),
+    0 0 8px rgba(242, 192, 94, 0.94),
+    0 0 13px rgba(150, 54, 14, 0.9);
+}
+
+.avatar-stage.is-fx-dethus-thirst-sandstorm .battle-sprite,
+.avatar-stage.is-fx-dethus-thirst-sandstorm svg,
+.avatar-stage.is-fx-dethus-harvest-soul .battle-sprite,
+.avatar-stage.is-fx-dethus-harvest-soul svg,
+.avatar-stage.is-fx-dethus-mirage-curse .battle-sprite,
+.avatar-stage.is-fx-dethus-mirage-curse svg {
+  animation: combatant-hit-shake 410ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+.avatar-stage.is-fx-dethus-parched-earth-eruption .battle-sprite,
+.avatar-stage.is-fx-dethus-parched-earth-eruption svg {
+  animation: combatant-hit-shake 470ms cubic-bezier(0.14, 0.96, 0.26, 1);
+}
+
+@keyframes dethus-thirst-sandstorm {
+  0% { opacity: 0; transform: translate(-50%, -42%) scale(0.46, 0.22); }
+  18% { opacity: 1; transform: translate(-50%, -48%) scale(0.84, 0.72); }
+  48% { opacity: 1; transform: translate(-50%, -52%) scale(1.02); }
+  100% { opacity: 0; transform: translate(-50%, -66%) scale(1.08, 1.18); }
+}
+
+@keyframes dethus-harvest-soul-flight {
+  0% {
+    left: var(--dethus-harvest-start-x);
+    top: var(--dethus-harvest-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--dethus-harvest-flip, 1)) scale(0.72);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(var(--dethus-harvest-flip, 1)) scale(1);
+  }
+  58% {
+    opacity: 0.94;
+    transform: translate(-50%, -50%) scaleX(var(--dethus-harvest-flip, 1)) scale(0.92);
+  }
+  100% {
+    left: var(--dethus-harvest-end-x);
+    top: var(--dethus-harvest-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--dethus-harvest-flip, 1)) scale(0.24);
+  }
+}
+
+@keyframes dethus-quicksand-guard {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.24, 0.12); }
+  22% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  82% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes dethus-mirage-curse {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-22deg) scale(0.3); }
+  18% { opacity: 1; transform: translate(-50%, -50%) rotate(0) scale(1.06); }
+  48% { opacity: 0.98; transform: translate(-50%, -50%) rotate(8deg) scale(0.96); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(24deg) scale(1.14); }
+}
+
+@keyframes dethus-parched-earth-crack {
+  0% { opacity: 0; transform: translate(-50%, -54%) scale(0.1); }
+  28% { opacity: 1; transform: translate(-50%, -54%) scale(0.72); }
+  58% { opacity: 1; transform: translate(-50%, -54%) scale(1.02); }
+  100% { opacity: 0; transform: translate(-50%, -54%) scale(1.08); }
+}
+
+@keyframes dethus-parched-earth-eruption {
+  0% { opacity: 0; transform: scale(0.26, 0.08); }
+  16% { opacity: 1; transform: scale(0.78, 0.68); }
+  38% { opacity: 1; transform: scale(1.04, 1.08); }
+  70% { opacity: 0.94; transform: scale(0.98, 1.04); }
+  100% { opacity: 0; transform: translateY(-8%) scale(1.1, 1.18); }
+}

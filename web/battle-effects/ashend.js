@@ -14,6 +14,18 @@
   const GRAY_SWORD_LIFETIME_MS = 500;
   const ASH_BODY_LIFETIME_MS = 1120;
 
+  function statusApplied({ statusName, actorName, actorSide, targetName, targetSide, makeLogEffect }) {
+    if (statusName !== "회진") return undefined;
+    return makeLogEffect(
+      "ash-haze-status",
+      targetName,
+      actorName,
+      null,
+      targetSide,
+      actorSide,
+    );
+  }
+
   function damage({ actionName, actorName, actorSide, targetName, targetSide, damage, makeLogEffect }) {
     if (!(damage > 0)) return null;
 
@@ -111,8 +123,10 @@
   }
 
   registry.register(CHARACTER_ID, {
+    statusEffects: ["회진"],
     effectTypes: [
       "ashen-slash",
+      "ash-haze-status",
       "gray-mist",
       "gray-sword-drop",
       "gray-sword-impact",
@@ -120,11 +134,13 @@
     ],
     sfx: {
       "ashen-slash": "/assets/sfx/hit.wav",
+      "ash-haze-status": "/assets/sfx/debuff.wav",
       "gray-mist": "/assets/sfx/defense.wav",
       "gray-sword-impact": "/assets/sfx/hit.wav",
       "ash-body-disperse": "/assets/sfx/buff.wav",
     },
     damage,
+    statusApplied,
     log,
     playEffect,
   });

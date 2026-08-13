@@ -855,8 +855,9 @@ class Battle {
 
   resolveTurn(playerChoice, aiChoice) {
     const order = this.actionOrder(playerChoice, aiChoice);
-    this.logs.push(`${playerChoice.actor.name} 선택: ${playerChoice.action.name}`);
-    this.logs.push(`${aiChoice.actor.name} 선택: ${aiChoice.action.name}`);
+    for (const choice of order) {
+      this.logs.push(`${choice.actor.name} 선택: ${choice.action.name}`);
+    }
     for (const [index, choice] of order.entries()) {
       if (this.gameOver) break;
       this.turnOrder[choice.actor.side] = index;
@@ -1803,7 +1804,8 @@ function fighterState(battle, fighter, sideOverride = null) {
   const activeId = activeData?.id || fighter.characterId;
   const transformed = activeId !== fighter.characterId;
   const stateText = currentStateText(battle, fighter);
-  const hudStateText = currentHudStateText(stateText);
+  const adventureStateText = currentAdventureStateText(battle, fighter);
+  const hudStateText = currentHudStateText(stateText, adventureStateText);
   const battleLog = [];
   if (characterLogic.needsBattleLog(battle, fighter)) characterLogic.renderBattleLog(battle, fighter, battleLog);
   return {
@@ -1833,8 +1835,11 @@ function fighterState(battle, fighter, sideOverride = null) {
     baseStats: { hp: fighter.maxHp, atk: fighter.baseAtk, def: fighter.baseDef, spd: fighter.baseSpd },
     status_text: stateText,
     stateText,
+    adventure_state_text: adventureStateText,
+    adventureStateText,
     hud_state_text: hudStateText,
     hudStateText,
+    characterEffectState: characterLogic.battleEffectState(battle, fighter),
     defenseText: `${defenseReductionPercentForStreak(
       fighter.defenseStreak + 1,
       adventureCommonDefenseBonus(battle, fighter),
@@ -1982,6 +1987,18 @@ function currentStateText(battle, fighter) {
     if (!Number.isFinite(multiplier) || remaining <= 0) continue;
     parts.push(`액티브 MP ×${roundStat(multiplier)}(${remaining}턴)`);
   }
+  parts.push(...adventureFighterStateParts(battle, fighter));
+  const sealedActions = Object.entries(fighter.forbiddenActionKeys || {})
+    .filter(([, remaining]) => Number(remaining) > 0)
+    .map(([actionKey, remaining]) => `${battle.displayActionName(fighter, actionKey)}(${remaining}턴)`);
+  if (sealedActions.length) parts.push(`선택 봉인: ${sealedActions.join("·")}`);
+  parts.push(...characterLogic.extraStateParts(battle, fighter));
+  return parts.length ? parts.join(" / ") : "없음";
+}
+
+function adventureFighterStateParts(battle, fighter) {
+  if (!battle?.adventureState || fighter.side !== battle.player?.side) return [];
+  const parts = [];
   const adventureMpRecoveryBonus = Number(fighter.adventureMpRecoveryBonus || 0);
   if (adventureMpRecoveryBonus) parts.push(`기본 MP 회복 +${roundStat(adventureMpRecoveryBonus)}`);
   const adventureTurnEndHpRecovery = Number(fighter.adventureTurnEndHpRecovery || 0);
@@ -2020,10 +2037,6 @@ function currentStateText(battle, fighter) {
   const meditationBonus = Number(fighter.adventureMeditationRecoveryBonus || 0)
     + adventureRelicEffectSum(fighter, "meditation_bonus");
   if (meditationBonus) parts.push(`명상 회복 +${roundStat(meditationBonus)}`);
-  const sealedActions = Object.entries(fighter.forbiddenActionKeys || {})
-    .filter(([, remaining]) => Number(remaining) > 0)
-    .map(([actionKey, remaining]) => `${battle.displayActionName(fighter, actionKey)}(${remaining}턴)`);
-  if (sealedActions.length) parts.push(`선택 봉인: ${sealedActions.join("·")}`);
   const rhythmKind = String(fighter.adventureBattleRhythm?.kind || "");
   if (ADVENTURE_RHYTHM_LABELS[rhythmKind]) {
     const direction = rhythmKind === "wall" ? "incoming" : "outgoing";
@@ -2039,12 +2052,20 @@ function currentStateText(battle, fighter) {
   if (fighter.adventureSkipNextAction) {
     parts.push(`다음 행동 불가: ${fighter.adventureSkipNextActionLabel || "행동 봉쇄"}`);
   }
-  if (fighter.side === battle.player?.side) parts.push(...adventureRouteStateParts(battle.adventureState));
-  parts.push(...characterLogic.extraStateParts(battle, fighter));
+  parts.push(...adventureRouteStateParts(battle.adventureState));
+  return parts;
+}
+
+function currentAdventureStateText(battle, fighter) {
+  const parts = adventureFighterStateParts(battle, fighter);
   return parts.length ? parts.join(" / ") : "없음";
 }
 
-function currentHudStateText(stateText) {
+function currentHudStateText(stateText, adventureStateText = "없음") {
+  const adventureParts = new Set(String(adventureStateText || "")
+    .split(" / ")
+    .map((part) => part.trim())
+    .filter((part) => part && part !== "없음"));
   const hiddenPrefixes = [
     "기본 MP 회복",
     "턴 종료 HP 회복",
@@ -2062,7 +2083,10 @@ function currentHudStateText(stateText) {
   const parts = String(stateText || "")
     .split(" / ")
     .map((part) => part.trim())
-    .filter((part) => part && part !== "없음" && !hiddenPrefixes.some((prefix) => part.startsWith(prefix)))
+    .filter((part) => part
+      && part !== "없음"
+      && !adventureParts.has(part)
+      && !hiddenPrefixes.some((prefix) => part.startsWith(prefix)))
     .map((part) => part
       .replace(/\((\d+)턴\)/g, " $1T")
       .replace(/\b(ATK(?:·DEF|·SPD)?|DEF(?:·SPD)?|SPD) ×(\d+(?:\.\d+)?)/g, (_match, label, multiplier) => `${label}${Number(multiplier) >= 1 ? "↑" : "↓"}`));

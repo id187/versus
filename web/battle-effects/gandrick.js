@@ -49,7 +49,19 @@
   }
 
   function counterChange({ statusName, actionName, targetName, targetSide, before, after, makeLogEffect }) {
-    if (statusName !== "탄환" || actionName !== RELOAD_ACTION_NAME) return undefined;
+    if (statusName !== "탄환") return undefined;
+    if (after < before) {
+      const effect = makeLogEffect(
+        "bullet-spend-cylinder",
+        targetName,
+        targetName,
+        `탄환-${before - after}`,
+        targetSide,
+        targetSide,
+      );
+      return effect ? { ...effect, valueKind: "stack-spend" } : null;
+    }
+    if (actionName !== RELOAD_ACTION_NAME) return undefined;
     const effect = makeLogEffect(
       "reload-cylinder",
       targetName,
@@ -111,11 +123,12 @@
         const sourceRect = sourceStage.getBoundingClientRect();
         const targetRect = targetStage.getBoundingClientRect();
         const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
+        const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
         const sourceCenterX = sourceRect.left + sourceRect.width / 2 - arenaRect.left;
         const targetCenterX = targetRect.left + targetRect.width / 2 - arenaRect.left;
         const horizontalDirection = targetCenterX >= sourceCenterX ? 1 : -1;
-        const startX = sourceCenterX + horizontalDirection * sourceRect.width * 0.2;
-        const startY = sourceRect.top + sourceRect.height * 0.47 - arenaRect.top;
+        const startX = sourceCenterX;
+        const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
         const targetX = targetCenterX;
         const targetY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
         const overshoot = Math.max(30, targetRect.width * 0.28);
@@ -168,6 +181,7 @@
       "precise-shot",
       "precise-shot-reticle",
       "precise-shot-burst",
+      "bullet-spend-cylinder",
       "reload-cylinder",
       "magic-marksman-shot",
       "magic-marksman-impact",
@@ -175,6 +189,7 @@
     ],
     sfx: {
       "precise-shot-burst": "/assets/sfx/hit.wav",
+      "bullet-spend-cylinder": "/assets/sfx/stack-spend.wav",
       "reload-cylinder": "/assets/sfx/buff.wav",
       "magic-marksman-impact": "/assets/sfx/hit.wav",
       "grand-finale-impact": "/assets/sfx/hit.wav",

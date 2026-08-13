@@ -93,6 +93,18 @@ module.exports = {
     return name === MINION ? `${MINION} ${count(fighter)}/${MAX_SOLDIERS}` : null;
   },
 
+  battleEffectState(fighter) {
+    return {
+      shadowSoldiers: soldiers(fighter).map((soldier) => ({
+        number: Number(soldier.number),
+        hp: Math.max(0, Number(soldier.hp || 0)),
+        maxHp: Math.max(1, Number(soldier.maxHp || 1)),
+        actionName: String(soldier.actionName || "그림자 찌르기"),
+        special: String(soldier.actionName || "") === "자신 찌르기",
+      })),
+    };
+  },
+
   counterResourceValue(_fighter, name, raw) {
     if (name === MINION || name === NEXT_NUMBER) return 0;
     if (name !== SOLDIERS || !Array.isArray(raw)) return null;

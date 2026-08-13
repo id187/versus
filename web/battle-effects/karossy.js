@@ -26,6 +26,19 @@
     return "sunny";
   }
 
+  function forecastChange({ weather, targetName, targetSide, makeLogEffect }) {
+    const slug = WEATHER_SLUGS[weather];
+    if (!slug) return undefined;
+    return makeLogEffect(
+      `forecast-${slug}-mark`,
+      targetName,
+      targetName,
+      null,
+      targetSide,
+      targetSide,
+    );
+  }
+
   function damage({
     actionName,
     actorName,
@@ -125,13 +138,12 @@
     const sourceRect = sourceStage.getBoundingClientRect();
     const targetRect = targetStage.getBoundingClientRect();
     const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
+    const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
     const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
     const targetCenterX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
     const horizontalDirection = targetCenterX >= sourceCenterX ? 1 : -1;
-    const startX = sourceRect.left
-      + sourceRect.width * (horizontalDirection > 0 ? 0.64 : 0.36)
-      - arenaRect.left;
-    const startY = sourceRect.top + sourceRect.height * 0.48 - arenaRect.top;
+    const startX = sourceCenterX;
+    const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
     const endX = targetCenterX;
     const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
     const distance = Math.hypot(endX - startX, endY - startY);
@@ -157,13 +169,12 @@
     const sourceRect = sourceStage.getBoundingClientRect();
     const targetRect = targetStage.getBoundingClientRect();
     const targetBodyY = registry.stagePercent(targetStage, "--fx-body-y", 0.5);
+    const sourceBodyY = registry.stagePercent(sourceStage, "--fx-body-y", 0.5);
     const sourceCenterX = sourceRect.left + sourceRect.width * 0.5 - arenaRect.left;
     const endX = targetRect.left + targetRect.width * 0.5 - arenaRect.left;
     const horizontalDirection = endX >= sourceCenterX ? 1 : -1;
-    const startX = sourceRect.left
-      + sourceRect.width * (horizontalDirection > 0 ? 0.64 : 0.36)
-      - arenaRect.left;
-    const startY = sourceRect.top + sourceRect.height * 0.44 - arenaRect.top;
+    const startX = sourceCenterX;
+    const startY = sourceRect.top + sourceRect.height * sourceBodyY - arenaRect.top;
     const endY = targetRect.top + targetRect.height * targetBodyY - arenaRect.top;
     const midX = (startX + endX) / 2;
     const arcHeight = Math.max(72, Math.min(165, Math.abs(endX - startX) * 0.25));
@@ -256,6 +267,9 @@
       "weather-bomb-thunder-impact",
       "weather-bomb-cloudy-impact",
       "weather-bomb-sunny-impact",
+      "forecast-thunder-mark",
+      "forecast-cloudy-mark",
+      "forecast-sunny-mark",
     ],
     sfx: {
       "thunder-crash-impact": "/assets/sfx/hit.wav",
@@ -264,7 +278,11 @@
       "weather-bomb-thunder-impact": "/assets/sfx/hit.wav",
       "weather-bomb-cloudy-impact": "/assets/sfx/hit.wav",
       "weather-bomb-sunny-impact": "/assets/sfx/hit.wav",
+      "forecast-thunder-mark": "/assets/sfx/buff.wav",
+      "forecast-cloudy-mark": "/assets/sfx/buff.wav",
+      "forecast-sunny-mark": "/assets/sfx/buff.wav",
     },
+    forecastChange,
     damage,
     statEffect,
     heal,

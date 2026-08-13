@@ -1,0 +1,179 @@
+.battle-fx-negative-charge-gain {
+  top: calc(var(--fx-head-y, 10%) - 27%);
+  right: 25%;
+  bottom: calc(75% - var(--fx-head-y, 10%));
+  left: 25%;
+  z-index: 10;
+  background: url("../assets/characters/necoulomb/effects/negative-charge-glyph.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 3px rgba(255, 249, 174, 1)) drop-shadow(0 0 10px rgba(244, 197, 18, 0.96));
+  transform-origin: 50% 50%;
+  animation: necoulomb-negative-charge-gain 760ms steps(10, end) forwards;
+}
+
+.battle-fx-reverse-current-power {
+  top: calc(var(--fx-body-y, 50%) - 57%);
+  right: -8%;
+  bottom: calc(43% - var(--fx-body-y, 50%));
+  left: -8%;
+  z-index: 8;
+  background: url("../assets/characters/necoulomb/effects/reverse-current-power.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(255, 248, 174, 0.98)) drop-shadow(0 0 13px rgba(232, 178, 0, 0.94));
+  transform-origin: 50% 50%;
+  animation: necoulomb-reverse-current-power 1080ms steps(14, end) forwards;
+}
+
+.battle-fx-necoulomb-charge-release-projectile,
+.battle-fx-necoulomb-negative-beam {
+  position: absolute;
+  z-index: 12;
+  pointer-events: none;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 4px rgba(255, 250, 187, 1)) drop-shadow(0 0 11px rgba(237, 184, 8, 0.96));
+}
+
+.battle-fx-necoulomb-charge-release-projectile {
+  left: var(--necoulomb-start-x);
+  top: var(--necoulomb-start-y);
+  width: clamp(138px, 20vw, 230px);
+  aspect-ratio: 384 / 114;
+  background: url("../assets/characters/necoulomb/effects/charge-release.png") center / contain no-repeat;
+  animation: necoulomb-charge-release-flight 320ms steps(12, end) forwards;
+}
+
+.battle-fx-charge-release-impact {
+  top: calc(var(--fx-body-y, 50%) - 40%);
+  right: 10%;
+  bottom: calc(60% - var(--fx-body-y, 50%));
+  left: 10%;
+  z-index: 12;
+  background: url("../assets/characters/necoulomb/effects/charge-release-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(255, 251, 191, 1)) drop-shadow(0 0 13px rgba(240, 185, 0, 0.98));
+  transform-origin: 50% 50%;
+  animation: necoulomb-charge-release-impact 650ms steps(10, end) forwards;
+}
+
+#playerAvatar .battle-fx-charge-release-impact {
+  scale: -1 1;
+}
+
+.battle-fx-necoulomb-negative-beam {
+  left: var(--necoulomb-beam-x);
+  top: var(--necoulomb-beam-y);
+  width: var(--necoulomb-beam-width);
+  height: clamp(64px, 9vw, 108px);
+  background: url("../assets/characters/necoulomb/effects/nothing-to-negative.png") center / 100% 100% no-repeat;
+  transform-origin: 50% 50%;
+  animation: necoulomb-negative-beam 500ms steps(12, end) forwards;
+}
+
+.battle-fx-necoulomb-full-discharge-wave {
+  position: absolute;
+  left: var(--necoulomb-discharge-x);
+  top: var(--necoulomb-discharge-y);
+  width: var(--necoulomb-discharge-size);
+  aspect-ratio: 1;
+  z-index: 11;
+  pointer-events: none;
+  background: url("../assets/characters/necoulomb/effects/full-discharge.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 5px rgba(255, 250, 188, 1)) drop-shadow(0 0 16px rgba(237, 181, 0, 0.98));
+  transform-origin: 50% 50%;
+  animation: necoulomb-full-discharge-wave 900ms steps(15, end) forwards;
+}
+
+.battle-fx-charge-release-flight,
+.battle-fx-nothing-to-negative-beam,
+.battle-fx-nothing-to-negative-impact,
+.battle-fx-full-discharge-cast,
+.battle-fx-full-discharge-impact {
+  opacity: 0;
+}
+
+.avatar-stage.is-fx-charge-release-impact .battle-sprite,
+.avatar-stage.is-fx-charge-release-impact svg,
+.avatar-stage.is-fx-nothing-to-negative-impact .battle-sprite,
+.avatar-stage.is-fx-nothing-to-negative-impact svg,
+.avatar-stage.is-fx-full-discharge-impact .battle-sprite,
+.avatar-stage.is-fx-full-discharge-impact svg {
+  animation: combatant-hit-shake 460ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes necoulomb-negative-charge-gain {
+  0% { opacity: 0; transform: translateY(20%) scale(0.32) rotate(-5deg); }
+  16% { opacity: 1; transform: translateY(0) scale(1.08) rotate(2deg); }
+  34% { opacity: 0.42; transform: translateY(-2%) scale(0.94) rotate(-2deg); }
+  48% { opacity: 1; transform: translateY(-4%) scale(1.03) rotate(1deg); }
+  72% { opacity: 0.88; transform: translateY(-8%) scale(1) rotate(-1deg); }
+  100% { opacity: 0; transform: translateY(-24%) scale(0.68) rotate(4deg); }
+}
+
+@keyframes necoulomb-reverse-current-power {
+  0% { opacity: 0; transform: rotate(0deg) scale(1.18); }
+  18% { opacity: 1; transform: rotate(58deg) scale(1.02); }
+  62% { opacity: 0.98; transform: rotate(238deg) scale(0.76); }
+  82% { opacity: 1; transform: rotate(322deg) scale(0.62); }
+  100% { opacity: 0; transform: rotate(420deg) scale(0.4); }
+}
+
+@keyframes necoulomb-charge-release-flight {
+  0% {
+    left: var(--necoulomb-start-x);
+    top: var(--necoulomb-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--necoulomb-projectile-angle)) scaleX(var(--necoulomb-projectile-flip)) scale(0.48);
+  }
+  12% { opacity: 1; }
+  82% { opacity: 1; }
+  100% {
+    left: var(--necoulomb-end-x);
+    top: var(--necoulomb-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--necoulomb-projectile-angle)) scaleX(var(--necoulomb-projectile-flip)) scale(1.04);
+  }
+}
+
+@keyframes necoulomb-charge-release-impact {
+  0% { opacity: 0; transform: scale(0.16) rotate(-9deg); }
+  16% { opacity: 1; transform: scale(0.72) rotate(-2deg); }
+  38% { opacity: 1; transform: scale(1.04) rotate(4deg); }
+  64% { opacity: 0.92; transform: scale(0.96) rotate(-3deg); }
+  100% { opacity: 0; transform: scale(1.14) rotate(8deg); }
+}
+
+@keyframes necoulomb-negative-beam {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--necoulomb-beam-angle)) scaleX(var(--necoulomb-beam-flip)) scale(0.05, 0.46);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--necoulomb-beam-angle)) scaleX(var(--necoulomb-beam-flip)) scale(0.96, 0.72);
+  }
+  34% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--necoulomb-beam-angle)) scaleX(var(--necoulomb-beam-flip)) scale(1.02, 1.04);
+  }
+  70% {
+    opacity: 0.92;
+    transform: translate(-50%, -50%) rotate(var(--necoulomb-beam-angle)) scaleX(var(--necoulomb-beam-flip)) scale(1, 0.94);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--necoulomb-beam-angle)) scaleX(var(--necoulomb-beam-flip)) scale(1.03, 0.38);
+  }
+}
+
+@keyframes necoulomb-full-discharge-wave {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.04) rotate(-6deg); }
+  10% { opacity: 1; transform: translate(-50%, -50%) scale(0.12) rotate(-3deg); }
+  42% { opacity: 1; transform: translate(-50%, -50%) scale(0.58) rotate(2deg); }
+  66% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(6deg); }
+  82% { opacity: 0.86; transform: translate(-50%, -50%) scale(1.02) rotate(8deg); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.04) rotate(10deg); }
+}

@@ -1,0 +1,247 @@
+.battle-fx-fimit-imitation-mask {
+  top: calc(var(--fx-head-y, 4%) - 5%);
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  z-index: 13;
+  width: clamp(54px, 22%, 86px);
+  aspect-ratio: 192 / 173;
+  background: url("../assets/characters/fimit/effects/imitation-mask.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 2px rgba(234, 244, 255, 0.96))
+    drop-shadow(0 0 7px rgba(67, 96, 137, 0.9));
+  transform-origin: 50% 50%;
+  animation: fimit-imitation-mask 720ms steps(9, end) forwards;
+}
+
+.battle-fx-fimit-fate-cards {
+  --fimit-fate-direction: 1;
+  position: absolute;
+  left: var(--fimit-fate-start-x);
+  top: var(--fimit-fate-start-y);
+  z-index: 12;
+  width: clamp(140px, 22vw, 245px);
+  aspect-ratio: 384 / 155;
+  pointer-events: none;
+  background: url("../assets/characters/fimit/effects/fate-cards.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  filter:
+    drop-shadow(0 0 3px rgba(232, 246, 255, 0.98))
+    drop-shadow(0 0 10px rgba(82, 148, 202, 0.94));
+  transform-origin: 50% 50%;
+  animation: fimit-fate-cards-flight 660ms steps(15, end) forwards;
+}
+
+.battle-fx-fimit-fate-cards-cast {
+  inset: 0;
+  opacity: 0;
+}
+
+.battle-fx-fimit-fate-card-impact {
+  top: calc(var(--fx-body-y, 50%) - 29%);
+  right: 21%;
+  bottom: calc(71% - var(--fx-body-y, 50%));
+  left: 21%;
+  background: url("../assets/characters/fimit/effects/fate-card-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(239, 249, 255, 1))
+    drop-shadow(0 0 13px rgba(72, 135, 188, 0.98));
+  animation: fimit-fate-card-impact 520ms steps(8, end) forwards;
+}
+
+.battle-fx-fimit-fate-card-burst {
+  --fimit-fate-burst-scale-pop: 0.9;
+  --fimit-fate-burst-scale-end: 1;
+  position: absolute;
+  left: var(--fimit-fate-burst-x);
+  top: var(--fimit-fate-burst-y);
+  z-index: 13;
+  width: clamp(70px, 29%, 112px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: url("../assets/characters/fimit/effects/fate-card-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 3px rgba(239, 249, 255, 1))
+    drop-shadow(0 0 10px rgba(72, 135, 188, 0.96));
+  animation: fimit-fate-card-burst 520ms steps(8, end) forwards;
+}
+
+.battle-fx-fimit-counterfeit-ward {
+  top: calc(var(--fx-body-y, 50%) - 49%);
+  right: -1%;
+  bottom: calc(51% - var(--fx-body-y, 50%));
+  left: -1%;
+  background: url("../assets/characters/fimit/effects/counterfeit-ward.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(239, 249, 255, 1))
+    drop-shadow(0 0 15px rgba(75, 142, 196, 0.98));
+  transform-origin: 50% 50%;
+  animation: fimit-counterfeit-ward 740ms steps(10, end) forwards;
+}
+
+.battle-fx-fimit-simple-trick-uppercut {
+  top: calc(var(--fx-ground-y, 96%) - 108%);
+  right: -4%;
+  bottom: calc(100% - var(--fx-ground-y, 96%));
+  left: -4%;
+  background: url("../assets/characters/fimit/effects/simple-trick-uppercut.png") center bottom / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(239, 249, 255, 1))
+    drop-shadow(0 0 13px rgba(69, 132, 184, 0.98));
+  transform-origin: 50% 100%;
+  animation: fimit-simple-trick-uppercut 690ms steps(10, end) forwards;
+}
+
+#playerAvatar .battle-fx-fimit-simple-trick-uppercut {
+  scale: -1 1;
+}
+
+.battle-fx-fimit-true-copy-silhouette {
+  position: absolute;
+  z-index: 14;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(73, 101, 120, 0.68), #d7edf7 48%, #7894a8 76%, rgba(51, 76, 94, 0.72));
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 4px rgba(225, 243, 252, 0.98))
+    drop-shadow(0 0 13px rgba(120, 148, 168, 0.98));
+  transform-origin: 50% 50%;
+  animation: fimit-true-copy-pull 880ms steps(14, end) forwards;
+}
+
+.battle-fx-fimit-true-copy-absorb {
+  position: absolute;
+  top: calc(var(--fx-body-y, 50%) - 21%);
+  left: 50%;
+  z-index: 15;
+  width: 44%;
+  aspect-ratio: 1;
+  pointer-events: none;
+  border: 4px solid rgba(215, 237, 247, 0.9);
+  box-shadow:
+    inset 0 0 18px rgba(120, 148, 168, 0.86),
+    0 0 18px rgba(120, 148, 168, 0.98);
+  transform: translate(-50%, -50%) rotate(45deg);
+  animation: fimit-true-copy-absorb 380ms steps(7, end) forwards;
+}
+
+.battle-fx-value-fimit-fate-card-impact,
+.battle-fx-value-fimit-simple-trick-uppercut {
+  color: #d8edf7;
+  text-shadow:
+    0 2px 0 rgba(14, 27, 38, 0.98),
+    0 0 8px rgba(229, 245, 252, 0.98),
+    0 0 13px rgba(86, 142, 183, 0.96);
+}
+
+.avatar-stage.is-fx-fimit-fate-card-impact .battle-sprite,
+.avatar-stage.is-fx-fimit-fate-card-impact svg,
+.avatar-stage.is-fx-fimit-simple-trick-uppercut .battle-sprite,
+.avatar-stage.is-fx-fimit-simple-trick-uppercut svg {
+  animation: combatant-hit-shake 430ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes fimit-fate-cards-flight {
+  0% {
+    left: var(--fimit-fate-start-x);
+    top: var(--fimit-fate-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--fimit-fate-direction)) scale(0.58);
+  }
+  12% { opacity: 1; }
+  86% {
+    left: var(--fimit-fate-end-x);
+    top: var(--fimit-fate-end-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(var(--fimit-fate-direction)) scale(1);
+  }
+  100% {
+    left: var(--fimit-fate-end-x);
+    top: var(--fimit-fate-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(var(--fimit-fate-direction)) scale(1.04);
+  }
+}
+
+@keyframes fimit-imitation-mask {
+  0% { opacity: 0; transform: translate(-50%, -36%) scale(0.56); }
+  18% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+  38%, 72% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -8%) scale(0.92); }
+}
+
+@keyframes fimit-fate-card-impact {
+  0% { opacity: 0; transform: rotate(-7deg) scale(0.2); }
+  16% { opacity: 1; transform: rotate(2deg) scale(1.08); }
+  44% { opacity: 1; transform: rotate(-1deg) scale(0.96); }
+  100% { opacity: 0; transform: rotate(7deg) scale(1.2); }
+}
+
+@keyframes fimit-fate-card-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--fimit-fate-burst-angle)) scale(0.18); }
+  18% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--fimit-fate-burst-angle)) scale(var(--fimit-fate-burst-scale-pop)); }
+  48% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--fimit-fate-burst-angle)) scale(var(--fimit-fate-burst-scale)); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--fimit-fate-burst-angle)) scale(var(--fimit-fate-burst-scale-end)); }
+}
+
+@keyframes fimit-counterfeit-ward {
+  0% { opacity: 0; transform: perspective(360px) rotateY(74deg) scale(0.52); }
+  18% { opacity: 1; transform: perspective(360px) rotateY(19deg) scale(1.06); }
+  38%, 72% { opacity: 1; transform: perspective(360px) rotateY(0deg) scale(0.98); }
+  100% { opacity: 0; transform: perspective(360px) rotateY(-18deg) scale(1.08); }
+}
+
+@keyframes fimit-simple-trick-uppercut {
+  0% { opacity: 0; clip-path: inset(100% 0 0); transform: translateY(10%) scale(0.84); }
+  18% { opacity: 1; clip-path: inset(58% 0 0); transform: translateY(5%) scale(0.92); }
+  45% { opacity: 1; clip-path: inset(0); transform: translateY(0) scale(1); }
+  74% { opacity: 0.94; clip-path: inset(0); transform: translateY(-2%) scale(1.03); }
+  100% { opacity: 0; clip-path: inset(0); transform: translateY(-8%) scale(1.1); }
+}
+
+@keyframes fimit-true-copy-pull {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scaleX(var(--fimit-copy-flip)) scale(0.9);
+  }
+  16% {
+    opacity: 0.86;
+    transform: translate(0, 0) scaleX(var(--fimit-copy-flip)) scale(0.94);
+  }
+  44% {
+    opacity: 0.82;
+    transform: translate(calc(var(--fimit-copy-dx) * 0.36), calc(var(--fimit-copy-dy) * 0.36)) scaleX(var(--fimit-copy-flip)) scale(0.82);
+  }
+  78% {
+    opacity: 0.92;
+    transform: translate(calc(var(--fimit-copy-dx) * 0.86), calc(var(--fimit-copy-dy) * 0.86)) scaleX(var(--fimit-copy-flip)) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fimit-copy-dx), var(--fimit-copy-dy)) scaleX(var(--fimit-copy-flip)) scale(0.16);
+  }
+}
+
+@keyframes fimit-true-copy-absorb {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(45deg) scale(1.25); }
+  24% { opacity: 1; transform: translate(-50%, -50%) rotate(135deg) scale(0.82); }
+  64% { opacity: 0.9; transform: translate(-50%, -50%) rotate(225deg) scale(0.42); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(315deg) scale(0.12); }
+}

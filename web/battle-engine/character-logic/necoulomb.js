@@ -136,7 +136,10 @@ module.exports = {
       const before = negativeStacks(actor);
       const gained = MAX_NEGATIVE - before;
       choice.necoulombPreFullDischargeNegative = before;
-      if (gained > 0) battle.addCounter(actor, NEGATIVE, gained, MAX_NEGATIVE);
+      if (gained > 0) {
+        actor.counters[NEGATIVE] = MAX_NEGATIVE;
+        battle.logs.push(`[@${actor.side}]${actor.name}의 ${NEGATIVE} ${before}/${MAX_NEGATIVE} -> ${MAX_NEGATIVE}/${MAX_NEGATIVE} (완전 방전)`);
+      }
       choice.power = Number(choice.power || 0) + gained;
       battle.logs.push(`완전 방전으로 ${NEGATIVE} ${gained}중첩만큼 위력이 증가했다.`);
     }

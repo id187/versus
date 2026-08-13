@@ -1,0 +1,296 @@
+.battle-fx-saqua-flow-ring {
+  position: absolute;
+  left: 50%;
+  top: var(--fx-body-y, 50%);
+  z-index: 13;
+  aspect-ratio: 1;
+  pointer-events: none;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(229, 253, 255, 1)) drop-shadow(0 0 13px rgba(36, 191, 238, 0.98));
+  transform-origin: 50% 50%;
+}
+
+.battle-fx-saqua-flow-ring-outer {
+  width: 82%;
+  background: url("../assets/characters/saqua/effects/flow-target-ring-outer.png") center / contain no-repeat;
+  animation: saqua-flow-ring-from-left 840ms steps(12, end) forwards;
+}
+
+.battle-fx-saqua-flow-ring-inner {
+  width: 52%;
+  background: url("../assets/characters/saqua/effects/flow-target-ring-inner.png") center / contain no-repeat;
+  animation: saqua-flow-ring-from-right 840ms steps(12, end) forwards;
+}
+
+.avatar-stage:has(.battle-fx-saqua-flow-ring) {
+  overflow: visible;
+}
+
+.battle-fx-flowing-water-barrier {
+  top: calc(var(--fx-head-y, 7%) - 5%);
+  right: -3%;
+  bottom: calc(98% - var(--fx-ground-y, 96%));
+  left: -3%;
+  z-index: 11;
+  background: url("../assets/characters/saqua/effects/flowing-water-barrier.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 5px rgba(235, 254, 255, 0.98)) drop-shadow(0 0 17px rgba(29, 180, 231, 0.94));
+  transform-origin: 50% 50%;
+  animation: saqua-flowing-water-barrier 1120ms steps(14, end) forwards;
+}
+
+.battle-fx-saqua-torrent-arrow-projectile,
+.battle-fx-saqua-sermon-arrow-projectile,
+.battle-fx-saqua-rain-arrow-ascent,
+.battle-fx-saqua-rain-arrow-fall {
+  position: absolute;
+  z-index: 12;
+  pointer-events: none;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 4px rgba(226, 251, 255, 0.98)) drop-shadow(0 0 10px rgba(23, 183, 235, 0.92));
+}
+
+.battle-fx-saqua-torrent-arrow-projectile {
+  left: var(--saqua-start-x);
+  top: var(--saqua-start-y);
+  width: clamp(128px, 18vw, 218px);
+  aspect-ratio: 384 / 114;
+  background: url("../assets/characters/saqua/effects/torrent-arrow.png") center / contain no-repeat;
+  animation: saqua-torrent-arrow-flight 300ms steps(11, end) forwards;
+}
+
+.battle-fx-torrent-arrow-impact {
+  top: calc(var(--fx-body-y, 50%) - 40%);
+  right: 10%;
+  bottom: calc(60% - var(--fx-body-y, 50%));
+  left: 10%;
+  z-index: 12;
+  background: url("../assets/characters/saqua/effects/torrent-arrow-impact.png") center / contain no-repeat;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 6px rgba(235, 254, 255, 1)) drop-shadow(0 0 18px rgba(19, 171, 232, 0.98));
+  animation: saqua-torrent-arrow-impact 760ms steps(11, end) forwards;
+}
+
+.battle-fx-saqua-sermon-arrow-projectile {
+  left: var(--saqua-start-x);
+  top: var(--saqua-start-y);
+  width: clamp(118px, 16vw, 196px);
+  aspect-ratio: 384 / 148;
+  background: url("../assets/characters/saqua/effects/sermon-arrow.png") center / contain no-repeat;
+  animation: saqua-sermon-arrow-arc 500ms steps(14, end) forwards;
+}
+
+.battle-fx-saqua-rain-arrow-ascent,
+.battle-fx-saqua-rain-arrow-fall {
+  width: clamp(62px, 8vw, 104px);
+  aspect-ratio: 360 / 113;
+  background: url("../assets/characters/saqua/effects/rain-arrow.png") center / contain no-repeat;
+}
+
+.battle-fx-saqua-rain-arrow-ascent {
+  left: var(--saqua-start-x);
+  top: var(--saqua-start-y);
+  animation: saqua-rain-arrow-ascent 300ms steps(10, end) forwards;
+}
+
+.battle-fx-saqua-rain-arrow-fall {
+  left: var(--saqua-rain-start-x);
+  top: var(--saqua-rain-start-y);
+  opacity: 0;
+  animation: saqua-rain-arrow-fall 440ms var(--saqua-rain-delay, 0ms) steps(12, end) forwards;
+}
+
+.battle-fx-sermon-arrow-impact,
+.battle-fx-rain-arrow-impact,
+.battle-fx-flow-target-lock,
+.battle-fx-torrent-arrow-flight,
+.battle-fx-sermon-arrow-flight,
+.battle-fx-rain-arrow-cast {
+  opacity: 0;
+}
+
+.battle-fx-value-torrent-arrow-impact,
+.battle-fx-value-sermon-arrow-impact,
+.battle-fx-value-rain-arrow-impact {
+  color: #8ff7ff;
+  text-shadow: 0 0 8px rgba(31, 193, 239, 0.98);
+  animation: fx-damage-drop 900ms ease-in forwards;
+}
+
+.avatar-stage.is-fx-torrent-arrow-impact .battle-sprite,
+.avatar-stage.is-fx-torrent-arrow-impact svg,
+.avatar-stage.is-fx-sermon-arrow-impact .battle-sprite,
+.avatar-stage.is-fx-sermon-arrow-impact svg,
+.avatar-stage.is-fx-rain-arrow-impact .battle-sprite,
+.avatar-stage.is-fx-rain-arrow-impact svg {
+  animation: combatant-hit-shake 480ms cubic-bezier(0.16, 0.94, 0.28, 1);
+}
+
+@keyframes saqua-flow-ring-from-left {
+  0% {
+    opacity: 0;
+    transform: translate(-190%, -50%) scale(0.56) rotate(-24deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-150%, -50%) scale(0.74) rotate(-18deg);
+  }
+  48% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08) rotate(3deg);
+  }
+  68% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  84% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.02) rotate(2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.12) rotate(7deg);
+  }
+}
+
+@keyframes saqua-flow-ring-from-right {
+  0% {
+    opacity: 0;
+    transform: translate(110%, -50%) scale(0.52) rotate(26deg);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(78%, -50%) scale(0.72) rotate(18deg);
+  }
+  48% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(-3deg);
+  }
+  68% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  84% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.02) rotate(-2deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.12) rotate(-7deg);
+  }
+}
+
+@keyframes saqua-flowing-water-barrier {
+  0% {
+    opacity: 0;
+    transform: scale(0.22) rotate(-18deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(0.8) rotate(-10deg);
+  }
+  38% {
+    opacity: 0.96;
+    transform: scale(1.05) rotate(2deg);
+  }
+  62% {
+    opacity: 0.92;
+    transform: scale(1) rotate(12deg);
+  }
+  82% {
+    opacity: 0.84;
+    transform: scale(1.03) rotate(20deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12) rotate(32deg);
+  }
+}
+
+@keyframes saqua-torrent-arrow-flight {
+  0% {
+    left: var(--saqua-start-x);
+    top: var(--saqua-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-projectile-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(0.5);
+  }
+  12% { opacity: 1; }
+  82% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--saqua-projectile-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(1);
+  }
+  100% {
+    left: var(--saqua-end-x);
+    top: var(--saqua-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-projectile-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(1.08);
+  }
+}
+
+@keyframes saqua-torrent-arrow-impact {
+  0% { opacity: 0; transform: scale(0.18, 0.12); }
+  16% { opacity: 1; transform: scale(0.62, 0.48); }
+  42% { opacity: 1; transform: scale(1.08, 1); }
+  68% { opacity: 0.92; transform: scale(1, 1.06); }
+  100% { opacity: 0; transform: scale(1.18, 1.16) translateY(-4%); }
+}
+
+@keyframes saqua-sermon-arrow-arc {
+  0% {
+    left: var(--saqua-start-x);
+    top: var(--saqua-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-sermon-start-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(0.54);
+  }
+  12% { opacity: 1; }
+  50% {
+    left: var(--saqua-mid-x);
+    top: var(--saqua-mid-y);
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--saqua-sermon-mid-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(0.92);
+  }
+  86% { opacity: 1; }
+  100% {
+    left: var(--saqua-end-x);
+    top: var(--saqua-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-sermon-end-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(1.04);
+  }
+}
+
+@keyframes saqua-rain-arrow-ascent {
+  0% {
+    left: var(--saqua-start-x);
+    top: var(--saqua-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-projectile-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(0.5);
+  }
+  14% { opacity: 1; }
+  82% { opacity: 1; }
+  100% {
+    left: var(--saqua-end-x);
+    top: var(--saqua-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-projectile-angle)) scaleX(var(--saqua-projectile-flip, 1)) scale(0.86);
+  }
+}
+
+@keyframes saqua-rain-arrow-fall {
+  0% {
+    left: var(--saqua-rain-start-x);
+    top: var(--saqua-rain-start-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-rain-angle)) scale(0.5);
+  }
+  12% { opacity: 1; }
+  82% { opacity: 1; }
+  100% {
+    left: var(--saqua-rain-end-x);
+    top: var(--saqua-rain-end-y);
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--saqua-rain-angle)) scale(0.92);
+  }
+}
