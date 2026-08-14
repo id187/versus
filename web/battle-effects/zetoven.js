@@ -1,9 +1,9 @@
 "use strict";
 
-(function registerZerovenBattleEffects(registry) {
-  if (!registry) throw new Error("VersusCharacterBattleEffects must load before zeroven effects.");
+(function registerZetovenBattleEffects(registry) {
+  if (!registry) throw new Error("VersusCharacterBattleEffects must load before zetoven effects.");
 
-  const CHARACTER_ID = "zeroven";
+  const CHARACTER_ID = "zetoven";
   const CURSE_CANNON_ACTION_NAME = "저주포";
   const REQUIEM_ACTION_NAME = "포열 진혼";
   const SOUL_BARRAGE_ACTION_NAME = "원혼 연살";
@@ -19,7 +19,7 @@
     if (!(damage > 0)) return null;
     if (actionName === SOUL_BARRAGE_ACTION_NAME) {
       const effect = makeLogEffect(
-        "zeroven-soul-barrage-impact",
+        "zetoven-soul-barrage-impact",
         targetName,
         actorName,
         damage,
@@ -29,7 +29,7 @@
       return effect ? { ...effect, damageValue: true } : null;
     }
     const effect = makeLogEffect(
-      "zeroven-curse-cannon-flight",
+      "zetoven-curse-cannon-flight",
       targetName,
       actorName,
       null,
@@ -42,7 +42,7 @@
   function heal({ actionName, actorName, actorSide, targetName, targetSide, amount, makeLogEffect }) {
     if (actionName !== REQUIEM_ACTION_NAME) return undefined;
     const effect = makeLogEffect(
-      "zeroven-requiem-ascension",
+      "zetoven-requiem-ascension",
       targetName,
       actorName,
       amount > 0 ? amount : null,
@@ -57,7 +57,7 @@
       return undefined;
     }
     return makeLogEffect(
-      "zeroven-cannon-evocation-circle",
+      "zetoven-cannon-evocation-circle",
       actorName,
       actorName,
       null,
@@ -70,7 +70,7 @@
     if (!OVERHEAT_REASONS.includes(statusName)) return undefined;
     if (!(damage > 0)) return null;
     const effect = makeLogEffect(
-      "zeroven-vengeance-overheat",
+      "zetoven-vengeance-overheat",
       targetName,
       targetName,
       damage,
@@ -87,7 +87,7 @@
     registerTimeout,
     playLogEffect,
   }) {
-    if (effect.type === "zeroven-requiem-ascension") {
+    if (effect.type === "zetoven-requiem-ascension") {
       const targetStage = stageForSide(effect.side);
       if (!targetStage) return false;
       const ghostSettings = [
@@ -97,13 +97,13 @@
       ];
       for (const settings of ghostSettings) {
         const ghost = document.createElement("span");
-        ghost.className = "battle-fx-zeroven-requiem-ghost";
+        ghost.className = "battle-fx-zetoven-requiem-ghost";
         ghost.dataset.characterBattleEffect = CHARACTER_ID;
-        ghost.style.setProperty("--zeroven-requiem-x", settings.x);
-        ghost.style.setProperty("--zeroven-requiem-drift-mid", settings.driftMid);
-        ghost.style.setProperty("--zeroven-requiem-drift", settings.drift);
-        ghost.style.setProperty("--zeroven-requiem-delay", settings.delay);
-        ghost.style.setProperty("--zeroven-requiem-scale", settings.scale);
+        ghost.style.setProperty("--zetoven-requiem-x", settings.x);
+        ghost.style.setProperty("--zetoven-requiem-drift-mid", settings.driftMid);
+        ghost.style.setProperty("--zetoven-requiem-drift", settings.drift);
+        ghost.style.setProperty("--zetoven-requiem-delay", settings.delay);
+        ghost.style.setProperty("--zetoven-requiem-scale", settings.scale);
         const mountedGhost = appendEffectElement(targetStage, ghost);
         registerTimeout(window.setTimeout(
           () => mountedGhost.remove(),
@@ -112,7 +112,7 @@
       }
       return false;
     }
-    if (effect.type !== "zeroven-curse-cannon-flight") return false;
+    if (effect.type !== "zetoven-curse-cannon-flight") return false;
     const sourceStage = stageForSide(effect.sourceSide);
     const targetStage = stageForSide(effect.side);
     if (!arena || !sourceStage || !targetStage) return true;
@@ -130,23 +130,23 @@
     const angle = Math.atan2(endY - startY, Math.abs(endX - startX)) * direction;
 
     const projectile = document.createElement("span");
-    projectile.className = "battle-fx-zeroven-curse-cannon-projectile";
+    projectile.className = "battle-fx-zetoven-curse-cannon-projectile";
     projectile.dataset.characterBattleEffect = CHARACTER_ID;
     projectile.dataset.sourceSide = effect.sourceSide;
     projectile.dataset.targetSide = effect.side;
-    projectile.style.setProperty("--zeroven-curse-start-x", `${startX}px`);
-    projectile.style.setProperty("--zeroven-curse-start-y", `${startY}px`);
-    projectile.style.setProperty("--zeroven-curse-end-x", `${endX}px`);
-    projectile.style.setProperty("--zeroven-curse-end-y", `${endY}px`);
-    projectile.style.setProperty("--zeroven-curse-angle", `${angle}rad`);
-    projectile.style.setProperty("--zeroven-curse-direction", direction);
+    projectile.style.setProperty("--zetoven-curse-start-x", `${startX}px`);
+    projectile.style.setProperty("--zetoven-curse-start-y", `${startY}px`);
+    projectile.style.setProperty("--zetoven-curse-end-x", `${endX}px`);
+    projectile.style.setProperty("--zetoven-curse-end-y", `${endY}px`);
+    projectile.style.setProperty("--zetoven-curse-angle", `${angle}rad`);
+    projectile.style.setProperty("--zetoven-curse-direction", direction);
     const mountedProjectile = appendEffectElement(arena, projectile);
     registerTimeout(window.setTimeout(() => mountedProjectile.remove(), CURSE_CANNON_FLIGHT_MS + 40));
 
     const { impactValue, ...baseEffect } = effect;
     registerTimeout(window.setTimeout(() => playLogEffect({
       ...baseEffect,
-      type: "zeroven-curse-cannon-impact",
+      type: "zetoven-curse-cannon-impact",
       value: impactValue,
       damageValue: true,
     }), CURSE_CANNON_IMPACT_DELAY_MS));
@@ -156,19 +156,19 @@
   registry.register(CHARACTER_ID, {
     statusEffects: OVERHEAT_REASONS,
     effectTypes: [
-      "zeroven-curse-cannon-flight",
-      "zeroven-curse-cannon-impact",
-      "zeroven-requiem-ascension",
-      "zeroven-soul-barrage-impact",
-      "zeroven-cannon-evocation-circle",
-      "zeroven-vengeance-overheat",
+      "zetoven-curse-cannon-flight",
+      "zetoven-curse-cannon-impact",
+      "zetoven-requiem-ascension",
+      "zetoven-soul-barrage-impact",
+      "zetoven-cannon-evocation-circle",
+      "zetoven-vengeance-overheat",
     ],
     sfx: {
-      "zeroven-curse-cannon-impact": "/assets/sfx/hit.wav",
-      "zeroven-requiem-ascension": "/assets/sfx/heal.wav",
-      "zeroven-soul-barrage-impact": "/assets/sfx/hit.wav",
-      "zeroven-cannon-evocation-circle": "/assets/sfx/buff.wav",
-      "zeroven-vengeance-overheat": "/assets/sfx/hit.wav",
+      "zetoven-curse-cannon-impact": "/assets/sfx/hit.wav",
+      "zetoven-requiem-ascension": "/assets/sfx/heal.wav",
+      "zetoven-soul-barrage-impact": "/assets/sfx/hit.wav",
+      "zetoven-cannon-evocation-circle": "/assets/sfx/buff.wav",
+      "zetoven-vengeance-overheat": "/assets/sfx/hit.wav",
     },
     damage,
     heal,

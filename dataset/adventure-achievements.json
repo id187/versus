@@ -205,12 +205,12 @@
     "target": 1
   },
   {
-    "id": "clear_zeroven",
+    "id": "clear_zetoven",
     "category": "adventure",
     "title": "원혼이 잠든 밤",
-    "description": "제로벤으로 Adventure 20 STAGE 클리어",
+    "description": "제토벤으로 Adventure 20 STAGE 클리어",
     "metric": "character_clear",
-    "characterId": "zeroven",
+    "characterId": "zetoven",
     "target": 1
   },
   {
@@ -304,12 +304,21 @@
     "target": 1
   },
   {
-    "id": "clear_xerox",
+    "id": "clear_xenox",
     "category": "adventure",
     "title": "필연 밖의 궤도",
-    "description": "제록스로 Adventure 20 STAGE 클리어",
+    "description": "제녹스로 Adventure 20 STAGE 클리어",
     "metric": "character_clear",
-    "characterId": "xerox",
+    "characterId": "xenox",
+    "target": 1
+  },
+  {
+    "id": "clear_winday",
+    "category": "adventure",
+    "title": "다시 열린 바람길",
+    "description": "윈데이로 Adventure 20 STAGE 클리어",
+    "metric": "character_clear",
+    "characterId": "winday",
     "target": 1
   }
 ]

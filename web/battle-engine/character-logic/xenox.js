@@ -1,6 +1,6 @@
 "use strict";
 
-const CHARACTER_ID = "xerox";
+const CHARACTER_ID = "xenox";
 const ORBIT = "궤도";
 const METEOR_MP = "유성 낙하 예정 MP";
 const METEOR_POWER = "유성 낙하 예정 위력";

@@ -1,6 +1,6 @@
 "use strict";
 
-const CHARACTER_ID = "zeroven";
+const CHARACTER_ID = "zetoven";
 
 function log(battle, message) {
   battle.logs.push(message);

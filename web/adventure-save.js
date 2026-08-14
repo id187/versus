@@ -1,9 +1,9 @@
 "use strict";
 
 (function installAdventureSave(root) {
-  const STORAGE_KEY = "versus.adventure.save.v4";
-  const LEGACY_STORAGE_KEYS = Object.freeze(["versus.adventure.save.v1", "versus.adventure.save.v2", "versus.adventure.save.v3"]);
-  const SAVE_VERSION = 4;
+  const STORAGE_KEY = "versus.adventure.save.v5";
+  const LEGACY_STORAGE_KEYS = Object.freeze(["versus.adventure.save.v1", "versus.adventure.save.v2", "versus.adventure.save.v3", "versus.adventure.save.v4"]);
+  const SAVE_VERSION = 5;
   const MAX_COMMANDS = 5000;
 
   function normalizeAdventureSave(value) {

@@ -1217,7 +1217,7 @@ button:focus-visible {
 .avatar-stage[data-fighter-id="gandrick"] { --fx-head-y: 7%; --fx-body-y: 48%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="charinel"] { --fx-head-y: 5%; --fx-body-y: 48%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="dethus"] { --fx-head-y: 13%; --fx-body-y: 50%; --fx-ground-y: 96%; }
-.avatar-stage[data-fighter-id="zeroven"] { --fx-head-y: 12%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="zetoven"] { --fx-head-y: 12%; --fx-body-y: 50%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="neroko"] { --fx-head-y: 5%; --fx-body-y: 49%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="happyrin"] { --fx-head-y: 4%; --fx-body-y: 50%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="librang"] { --fx-head-y: 5%; --fx-body-y: 50%; --fx-ground-y: 96%; }
@@ -1228,7 +1228,8 @@ button:focus-visible {
 .avatar-stage[data-fighter-id="fimit"] { --fx-head-y: 8%; --fx-body-y: 50%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="emento"] { --fx-head-y: 6%; --fx-body-y: 50%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="necoulomb"] { --fx-head-y: 4%; --fx-body-y: 50%; --fx-ground-y: 96%; }
-.avatar-stage[data-fighter-id="xerox"] { --fx-head-y: 7%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="xenox"] { --fx-head-y: 7%; --fx-body-y: 50%; --fx-ground-y: 96%; }
+.avatar-stage[data-fighter-id="winday"] { --fx-head-y: 14%; --fx-body-y: 58%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="demon_scout_kain"] { --fx-head-y: 4%; --fx-body-y: 48%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="demon_warrior_luke"] { --fx-head-y: 4%; --fx-body-y: 48%; --fx-ground-y: 96%; }
 .avatar-stage[data-fighter-id="demon_mage_zero"] { --fx-head-y: 8%; --fx-body-y: 52%; --fx-ground-y: 96%; }

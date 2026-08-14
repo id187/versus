@@ -152,7 +152,7 @@ const CHARACTER_COLORS = {
   gandrick: "#f3e6a3",
   charinel: "#f05fb8",
   dethus: "#c9a05b",
-  zeroven: "#20d6c7",
+  zetoven: "#20d6c7",
   neroko: "#f4f33a",
   happyrin: "#ff9fba",
   librang: "#7194dc",
@@ -163,7 +163,8 @@ const CHARACTER_COLORS = {
   fimit: "#7894a8",
   emento: "#a686d4",
   necoulomb: "#e0b51b",
-  xerox: "#8371e6",
+  xenox: "#8371e6",
+  winday: "#bcdca4",
 };
 
 const RANDOM_CHARACTER_COLOR = "#ffffff";
@@ -232,7 +233,7 @@ const DEFAULT_INSCRIPTION_OPTIONS = [
   },
 ];
 
-const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zeroven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb", "xerox"]);
+const CHARACTER_SKILL_ICON_IDS = new Set(["toxiche", "cryne", "karossy", "gandrick", "melague", "balef", "plote", "charinel", "nihfle", "ashend", "dethus", "zetoven", "revesha", "serpen", "neroko", "happyrin", "librang", "dracle", "saqua", "queenas", "jitrom", "fimit", "emento", "necoulomb", "xenox", "winday"]);
 const SPRITE_ASSETS = Object.freeze({
   toxiche: "characters",
   cryne: "characters",
@@ -247,7 +248,7 @@ const SPRITE_ASSETS = Object.freeze({
   gandrick: "characters",
   charinel: "characters",
   dethus: "characters",
-  zeroven: "characters",
+  zetoven: "characters",
   neroko: "characters",
   happyrin: "characters",
   librang: "characters",
@@ -258,7 +259,8 @@ const SPRITE_ASSETS = Object.freeze({
   fimit: "characters",
   emento: "characters",
   necoulomb: "characters",
-  xerox: "characters",
+  xenox: "characters",
+  winday: "characters",
   demon_scout_kain: "monsters",
   demon_warrior_luke: "monsters",
   demon_mage_zero: "monsters",
@@ -612,6 +614,7 @@ const ADVENTURE_OPPONENT_SPRITE_PHASES = new Set([
   "final_battle_dialogue",
   "final_battle_ending",
 ]);
+const ADVENTURE_BACKGROUND_HOLD_PHASES = new Set(["reward", "route"]);
 const DEFENSE_ACTION_NAMES = new Set(["일반 방어", "가로막는 불길", "절대영도", "깨져버린 거울", "빠져드는 모래늪"]);
 
 const state = {
@@ -631,6 +634,7 @@ const state = {
   adventureRestartRequested: false,
   adventureRestartConfirmResolve: null,
   adventureSave: null,
+  adventureBackgroundKey: null,
   customSelects: [],
   characterPickers: [],
   activeCharacterPicker: null,
@@ -967,6 +971,7 @@ function resetBattleScreen() {
   stopPvpPolling();
   state.battle = null;
   state.adventure = null;
+  state.adventureBackgroundKey = null;
   state.pvp = null;
   state.busy = false;
   state.adventureRestartRequested = false;
@@ -1648,7 +1653,7 @@ function renderCharacterPickerGrid(api) {
     ...(includeRandom ? [{ value: "random", name: "???", title: "무작위", character: null }] : []),
     ...characters.map((character) => ({
       value: String(combatantPickerValue(character, api)),
-      name: character.name,
+      name: skillDebugCombatantDisplayName(character, api),
       title: character.title,
       character,
     })),
@@ -2014,6 +2019,7 @@ async function startSkillDebugBattle() {
 async function startAdventure() {
   if (state.busy) return;
   state.adventureRestartRequested = false;
+  state.adventureBackgroundKey = null;
   stopPvpPolling();
   state.pvp = null;
   primeAudio();
@@ -2403,6 +2409,21 @@ function battleBackgroundKey(data = state.battle) {
   const totalStages = Number(adventure.totalStages || 20);
   const currentEvent = adventure.currentEvent || {};
 
+  if (phase === "route" && adventure.justCompletedBattle === false) {
+    if (Number(adventure.completedStage || 0) === 2 && adventure.selectedTownMeal) return "village";
+    const currentEventId = String(currentEvent.id || "");
+    if (currentEventId && currentEventId === String(adventure.lastCompletedEventId || "")) {
+      if (currentEvent.relicShop || currentEvent.id === "relic_shop") return "relicShop";
+      return currentEvent.bgm === "village" ? "village" : "event";
+    }
+  }
+
+  if (phase === "route" && adventure.justCompletedBattle === true) {
+    const completedStage = Number(adventure.completedStage || Math.max(1, stage - 1));
+    if (completedStage >= 12 || adventure.isMirrorBattle || adventure.isOfficerBattle) return "monochromeForest";
+    return "forest";
+  }
+
   if (
     adventure.isFinalBattle
     || ["final_battle_dialogue", "final_battle_ending", "complete"].includes(phase)
@@ -2420,7 +2441,14 @@ function battleBackgroundKey(data = state.battle) {
 }
 
 function syncBattleBackground(data = state.battle) {
-  const key = battleBackgroundKey(data);
+  const adventure = data?.adventure || state.adventure;
+  const holdsPreviousBackground = state.battleMode === "adventure"
+    && adventure
+    && ADVENTURE_BACKGROUND_HOLD_PHASES.has(String(adventure.phase || ""));
+  const key = holdsPreviousBackground && state.adventureBackgroundKey
+    ? state.adventureBackgroundKey
+    : battleBackgroundKey(data);
+  state.adventureBackgroundKey = state.battleMode === "adventure" && adventure ? key : null;
   const path = BATTLE_BACKGROUNDS[key] || BATTLE_BACKGROUNDS.neutral;
   els.battleScreen.dataset.battleBackground = key;
   els.battleScreen.style.setProperty("--battle-background-image", `url("${localAssetUrl(path)}")`);
@@ -2586,7 +2614,9 @@ function renderFighter(side, fighter, adventure = null) {
   const battleSpriteSrc = battleSpriteSrcForSubject(fighter, side);
   const fighterVisual = battleSpriteSrc
     ? battleSpriteHtml(fighter, side, battleSpriteSrc)
-    : "";
+    : isSkillDebugDevCandidate(fighter)
+      ? avatarSvg(fighter.name || fighter.id || "?", side)
+      : "";
   avatar.classList.toggle("has-battle-sprite", Boolean(battleSpriteSrc));
   avatar.classList.toggle("is-empty", !fighterVisual);
   avatar.innerHTML = fighterVisual;
@@ -2923,7 +2953,7 @@ function skillIconMeta(action, characterId = currentPlayerCharacterId()) {
 
 function characterSkillIconSrc(characterId, number) {
   if (number >= 1 && number <= 3) return null;
-  if (characterId === "xerox" && number === 8) return null;
+  if (characterId === "xenox" && number === 8) return null;
   const assetGroup = CHARACTER_SKILL_ICON_IDS.has(characterId)
     ? "characters"
     : MONSTER_SKILL_ICON_IDS.has(characterId)
@@ -4826,7 +4856,16 @@ function syncPlayerCombatantOptions(wasSkillDebug = false, isSkillDebug = state.
   if (wasSkillDebug === isSkillDebug && els.playerSelect.options.length) return;
   if (isSkillDebug) {
     const combatants = sortCharacters(skillDebugConfig()?.combatants || []);
-    fillSelect(els.playerSelect, combatants, "id", "name", false);
+    fillSelect(
+      els.playerSelect,
+      combatants.map((combatant) => ({
+        ...combatant,
+        skillDebugDisplayName: combatant.debugLabel || combatant.name,
+      })),
+      "id",
+      "skillDebugDisplayName",
+      false,
+    );
     const requested = state.skillDebugCombatantId;
     els.playerSelect.value = combatants.some((combatant) => combatant.id === requested)
       ? requested
@@ -4852,6 +4891,18 @@ function combatantPickerValue(combatant, api) {
   return state.battleMode === "skill-debug" && api.select === els.playerSelect
     ? combatant.id
     : combatant.index;
+}
+
+function skillDebugCombatantDisplayName(combatant, api) {
+  const isSkillDebugPlayer = state.battleMode === "skill-debug" && api.select === els.playerSelect;
+  return isSkillDebugPlayer ? combatant.debugLabel || combatant.name : combatant.name;
+}
+
+function isSkillDebugDevCandidate(fighter) {
+  if (!(state.battle?.skillDebug || state.battleMode === "skill-debug")) return false;
+  return Boolean(skillDebugConfig()?.combatants?.some((combatant) => (
+    combatant.devCandidate === true && combatant.id === fighter?.id
+  )));
 }
 
 function battleSpriteSrcForSubject(subject, side) {

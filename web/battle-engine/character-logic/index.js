@@ -16,7 +16,7 @@ const LOGICS = Object.assign(Object.create(null), {
   gandrick: require("./gandrick"),
   charinel: require("./charinel"),
   dethus: require("./dethus"),
-  zeroven: require("./zeroven"),
+  zetoven: require("./zetoven"),
   neroko: require("./neroko"),
   happyrin: require("./happyrin"),
   librang: require("./librang"),
@@ -27,7 +27,8 @@ const LOGICS = Object.assign(Object.create(null), {
   fimit: require("./fimit"),
   emento: require("./emento"),
   necoulomb: require("./necoulomb"),
-  xerox: require("./xerox"),
+  xenox: require("./xenox"),
+  winday: require("./winday"),
 });
 
 function registeredLogicFor(id) {
@@ -118,6 +119,9 @@ function callActionLogic(battle, fighter, action, name, args = [], fallback = un
 const hooks = {
   register(id, logic) {
     if (id) LOGICS[id] = logic || EMPTY_LOGIC;
+  },
+  hasOwnLogic(id) {
+    return Boolean(id && Object.prototype.hasOwnProperty.call(LOGICS, String(id)));
   },
   logicFor,
   activeCharacterId(battle, fighter) {
@@ -236,7 +240,7 @@ const hooks = {
   },
   isLegalChoice(battle, fighter, action) {
     if (call("emento", "isLegalChoiceStatus", [battle, fighter, action], null) === false) return false;
-    if (call("xerox", "isLegalChoiceStatus", [battle, fighter, action], null) === false) return false;
+    if (call("xenox", "isLegalChoiceStatus", [battle, fighter, action], null) === false) return false;
     return callActionLogic(battle, fighter, action, "isLegalChoice", [battle, fighter, action], null);
   },
   modifyCost(battle, fighter, action, cost) {

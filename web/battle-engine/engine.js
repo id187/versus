@@ -231,6 +231,7 @@ class TurnRecord {
     this.selected = {};
     this.selectedKey = {};
     this.selectedKind = {};
+    this.selectedPriority = {};
     this.actionSuccess = {};
     this.attackHit = {};
     this.attackDamageTaken = {};
@@ -472,6 +473,7 @@ class Battle {
     this.record.selected[fighter.side] = selectedAction.name;
     this.record.selectedKey[fighter.side] = selectedAction.key;
     this.record.selectedKind[fighter.side] = actionKind(selectedAction);
+    this.record.selectedPriority[fighter.side] = choice.priority;
     fighter.selectedHistory.push(selectedAction.key);
     return choice;
   }
@@ -2250,6 +2252,7 @@ function cloneTurnRecord(source) {
   record.selected = { ...source.selected };
   record.selectedKey = { ...source.selectedKey };
   record.selectedKind = { ...source.selectedKind };
+  record.selectedPriority = { ...source.selectedPriority };
   record.actionSuccess = { ...source.actionSuccess };
   record.attackHit = { ...source.attackHit };
   record.attackDamageTaken = { ...source.attackDamageTaken };

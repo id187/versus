@@ -1,9 +1,9 @@
 "use strict";
 
-(function registerXeroxBattleEffects(registry) {
-  if (!registry) throw new Error("VersusCharacterBattleEffects must load before xerox effects.");
+(function registerXenoxBattleEffects(registry) {
+  if (!registry) throw new Error("VersusCharacterBattleEffects must load before xenox effects.");
 
-  const CHARACTER_ID = "xerox";
+  const CHARACTER_ID = "xenox";
   const ATTRACTED_FATE = "이끌리는 운명";
   const EXTENDED_FATE = "연장되는 운명";
   const FATE_PREVIEW = "운명 맛보기";
@@ -15,7 +15,7 @@
   function action({ actionName, actorName, actorSide, makeLogEffect }) {
     if (actionName === METEOR_FALL) {
       return makeLogEffect(
-        "xerox-orbit-meteor-clock",
+        "xenox-orbit-meteor-clock",
         actorName,
         actorName,
         null,
@@ -29,7 +29,7 @@
   function counterChange({ actionName, targetName, targetSide, before, after, makeLogEffect }) {
     if (actionName !== EXTENDED_FATE || after <= before) return undefined;
     return makeLogEffect(
-      "xerox-extended-fate-clock",
+      "xenox-extended-fate-clock",
       targetName,
       targetName,
       null,
@@ -41,7 +41,7 @@
   function success({ actionName, actorName, actorSide, makeLogEffect }) {
     if (actionName !== UNSTOPPABLE_FATE) return undefined;
     return makeLogEffect(
-      "xerox-unstoppable-clock",
+      "xenox-unstoppable-clock",
       actorName,
       actorName,
       null,
@@ -55,7 +55,7 @@
     if (!(damageValue > 0)) return null;
     if (actionName === FATE_PREVIEW) {
       const effect = makeLogEffect(
-        "xerox-fate-preview-light",
+        "xenox-fate-preview-light",
         targetName,
         actorName,
         damageValue,
@@ -66,7 +66,7 @@
     }
     if (actionName === ATTRACTED_FATE) {
       const effect = makeLogEffect(
-        "xerox-attracted-fate-cast",
+        "xenox-attracted-fate-cast",
         targetName,
         actorName,
         null,
@@ -82,7 +82,7 @@
     }
     if (actionName === METEOR_FALL) {
       const effect = makeLogEffect(
-        "xerox-meteor-cast",
+        "xenox-meteor-cast",
         targetName,
         actorName,
         null,
@@ -143,13 +143,13 @@
     const { arenaRect, targetRect, endX, targetGroundY } = geometry;
     const startY = Math.max(-180, targetRect.top - arenaRect.top - Math.max(250, targetRect.height * 0.72));
     const meteor = document.createElement("span");
-    meteor.className = "battle-fx-xerox-meteor-projectile";
+    meteor.className = "battle-fx-xenox-meteor-projectile";
     meteor.dataset.characterBattleEffect = CHARACTER_ID;
     meteor.dataset.sourceSide = effect.sourceSide;
     meteor.dataset.targetSide = effect.side;
-    meteor.style.setProperty("--xerox-meteor-x", `${endX}px`);
-    meteor.style.setProperty("--xerox-meteor-start-y", `${startY}px`);
-    meteor.style.setProperty("--xerox-meteor-end-y", `${targetGroundY}px`);
+    meteor.style.setProperty("--xenox-meteor-x", `${endX}px`);
+    meteor.style.setProperty("--xenox-meteor-start-y", `${startY}px`);
+    meteor.style.setProperty("--xenox-meteor-end-y", `${targetGroundY}px`);
     const mounted = appendEffectElement(arena, meteor);
     registerTimeout(window.setTimeout(() => mounted.remove(), METEOR_IMPACT_MS + 140));
   }
@@ -168,17 +168,17 @@
     ];
     midpoints.forEach((midY, index) => {
       const orb = document.createElement("span");
-      orb.className = `battle-fx-xerox-attracted-orb battle-fx-xerox-attracted-orb-${index + 1}`;
+      orb.className = `battle-fx-xenox-attracted-orb battle-fx-xenox-attracted-orb-${index + 1}`;
       orb.dataset.characterBattleEffect = CHARACTER_ID;
       orb.dataset.sourceSide = effect.sourceSide;
       orb.dataset.targetSide = effect.side;
-      orb.style.setProperty("--xerox-start-x", `${startX}px`);
-      orb.style.setProperty("--xerox-start-y", `${startY}px`);
-      orb.style.setProperty("--xerox-mid-x", `${midX}px`);
-      orb.style.setProperty("--xerox-mid-y", `${midY}px`);
-      orb.style.setProperty("--xerox-end-x", `${endX}px`);
-      orb.style.setProperty("--xerox-end-y", `${endY}px`);
-      orb.style.setProperty("--xerox-direction", direction);
+      orb.style.setProperty("--xenox-start-x", `${startX}px`);
+      orb.style.setProperty("--xenox-start-y", `${startY}px`);
+      orb.style.setProperty("--xenox-mid-x", `${midX}px`);
+      orb.style.setProperty("--xenox-mid-y", `${midY}px`);
+      orb.style.setProperty("--xenox-end-x", `${endX}px`);
+      orb.style.setProperty("--xenox-end-y", `${endY}px`);
+      orb.style.setProperty("--xenox-direction", direction);
       const mounted = appendEffectElement(arena, orb);
       registerTimeout(window.setTimeout(() => mounted.remove(), ATTRACTED_IMPACT_MS + 140));
     });
@@ -191,14 +191,14 @@
     registerTimeout,
     playLogEffect,
   }) {
-    if (effect.type === "xerox-meteor-cast") {
+    if (effect.type === "xenox-meteor-cast") {
       mountMeteor(effect, arena, stageForSide, appendEffectElement, registerTimeout);
-      scheduleImpact(effect, "xerox-meteor-impact", METEOR_IMPACT_MS, registerTimeout, playLogEffect);
+      scheduleImpact(effect, "xenox-meteor-impact", METEOR_IMPACT_MS, registerTimeout, playLogEffect);
       return true;
     }
-    if (effect.type === "xerox-attracted-fate-cast") {
+    if (effect.type === "xenox-attracted-fate-cast") {
       mountAttractedOrbs(effect, arena, stageForSide, appendEffectElement, registerTimeout);
-      scheduleImpact(effect, "xerox-attracted-impact", ATTRACTED_IMPACT_MS, registerTimeout, playLogEffect);
+      scheduleImpact(effect, "xenox-attracted-impact", ATTRACTED_IMPACT_MS, registerTimeout, playLogEffect);
       return true;
     }
     return false;
@@ -207,22 +207,22 @@
   registry.register(CHARACTER_ID, {
     statusEffects: ["궤도"],
     effectTypes: [
-      "xerox-orbit-meteor-clock",
-      "xerox-extended-fate-clock",
-      "xerox-meteor-cast",
-      "xerox-meteor-impact",
-      "xerox-attracted-fate-cast",
-      "xerox-attracted-impact",
-      "xerox-fate-preview-light",
-      "xerox-unstoppable-clock",
+      "xenox-orbit-meteor-clock",
+      "xenox-extended-fate-clock",
+      "xenox-meteor-cast",
+      "xenox-meteor-impact",
+      "xenox-attracted-fate-cast",
+      "xenox-attracted-impact",
+      "xenox-fate-preview-light",
+      "xenox-unstoppable-clock",
     ],
     sfx: {
-      "xerox-orbit-meteor-clock": "/assets/sfx/buff.wav",
-      "xerox-extended-fate-clock": "/assets/sfx/buff.wav",
-      "xerox-meteor-impact": "/assets/sfx/hit.wav",
-      "xerox-attracted-impact": "/assets/sfx/hit.wav",
-      "xerox-fate-preview-light": "/assets/sfx/hit.wav",
-      "xerox-unstoppable-clock": "/assets/sfx/defense.wav",
+      "xenox-orbit-meteor-clock": "/assets/sfx/buff.wav",
+      "xenox-extended-fate-clock": "/assets/sfx/buff.wav",
+      "xenox-meteor-impact": "/assets/sfx/hit.wav",
+      "xenox-attracted-impact": "/assets/sfx/hit.wav",
+      "xenox-fate-preview-light": "/assets/sfx/hit.wav",
+      "xenox-unstoppable-clock": "/assets/sfx/defense.wav",
     },
     action,
     counterChange,
