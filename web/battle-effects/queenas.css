@@ -44,6 +44,27 @@
     drop-shadow(0 0 9px rgba(74, 7, 63, 0.98));
 }
 
+.queenas-shadow-soldier:not(.is-special).is-attacking .queenas-shadow-soldier-art,
+.queenas-shadow-soldier:not(.is-special).is-hit .queenas-shadow-soldier-art {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.queenas-shadow-soldier:not(.is-special).is-attacking .queenas-shadow-soldier-art {
+  width: 229.3%;
+  height: 65.28%;
+  background: url("../assets/characters/queenas/effects/shadow-soldier-attack.png") center bottom / contain no-repeat;
+}
+
+.queenas-shadow-soldier:not(.is-special).is-hit .queenas-shadow-soldier-art {
+  width: 126.75%;
+  height: 100%;
+  background: url("../assets/characters/queenas/effects/shadow-soldier-hit.png") center bottom / contain no-repeat;
+}
+
 .queenas-shadow-soldier-hp {
   position: absolute;
   top: -9px;
@@ -80,6 +101,10 @@
 
 .queenas-shadow-soldier.is-materializing {
   animation: queenas-soldier-materialize 660ms steps(10, end) forwards;
+}
+
+.queenas-shadow-soldier.is-attacking {
+  animation: queenas-soldier-attack 480ms steps(8, end);
 }
 
 .queenas-shadow-soldier.is-hit {
@@ -123,9 +148,9 @@
 }
 
 .battle-fx-queenas-shadow-charge-runner {
-  width: clamp(72px, 11vw, 112px);
-  aspect-ratio: 157 / 360;
-  background: url("../assets/characters/queenas/effects/shadow-soldier.png") center bottom / contain no-repeat;
+  width: clamp(156px, 24vw, 248px);
+  aspect-ratio: 360 / 235;
+  background: url("../assets/characters/queenas/effects/shadow-soldier-attack.png") center bottom / contain no-repeat;
   filter: brightness(0.76) drop-shadow(0 0 7px rgba(177, 24, 90, 0.98));
   animation: queenas-charge-flight 470ms steps(12, end) forwards;
 }
@@ -221,6 +246,12 @@
   18% { filter: brightness(1.9); transform: translate(-54%, -100%) scaleX(var(--queenas-soldier-flip)); }
   36% { filter: brightness(0.65); transform: translate(-47%, -100%) scaleX(var(--queenas-soldier-flip)); }
   58% { filter: brightness(1.35); transform: translate(-52%, -100%) scaleX(var(--queenas-soldier-flip)); }
+}
+
+@keyframes queenas-soldier-attack {
+  0%, 100% { filter: brightness(1); transform: translate(-50%, -100%) scaleX(var(--queenas-soldier-flip)); }
+  24% { filter: brightness(1.18); transform: translate(-45%, -100%) scaleX(var(--queenas-soldier-flip)); }
+  62% { filter: brightness(1.05); transform: translate(-40%, -100%) scaleX(var(--queenas-soldier-flip)); }
 }
 
 @keyframes queenas-soldier-vanish {

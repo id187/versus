@@ -11,7 +11,6 @@ const FINAL_BATTLE_DIALOGUE_HOLD_MS = 3000;
 const EFFECT_SETTLE_MS = 620;
 const BATTLE_SPRITE_ACTION_HOLD_MS = 1280;
 const BATTLE_SPRITE_HIT_HOLD_MS = 560;
-const BATTLE_SPRITE_RENDER_STATE = "idle";
 const SFX_POOL_SIZE = 3;
 const BGM_FADE_MS = 900;
 const AUDIO_FULLY_READY_STATE = 4;
@@ -277,6 +276,9 @@ const BATTLE_SPRITE_VARIANTS = Object.freeze({
   gandrick: Object.freeze(["iron-bullet", "demonic-bullet"]),
   dracle: Object.freeze(["dragon-stage-4", "dragon-stage-7", "dragon-stage-10"]),
 });
+const BATTLE_SPRITE_STATES = Object.freeze(["idle", "attack", "utility", "hit"]);
+const BATTLE_SPRITE_STATE_ASSET_IDS = new Set(["toxiche", "karossy", "plote", "ashend", "cryne", "balef", "nihfle", "serpen", "melague", "revesha", "gandrick", "zetoven", "neroko", "happyrin", "dethus", "librang", "charinel", "queenas", "saqua", "jitrom", "necoulomb", "emento", "xenox", "fimit", "winday", "dracle", "demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_pawn_opawn", "demon_rook_chatrang", "demon_knight_kaighton", "demon_bishop_eveque", "demon_king_monochrem"]);
+const BATTLE_SPRITE_STATE_VARIANT_KEYS = new Set(["gandrick:iron-bullet", "gandrick:demonic-bullet", "dracle:dragon-stage-4", "dracle:dragon-stage-7", "dracle:dragon-stage-10"]);
 const MONSTER_SKILL_ICON_IDS = new Set(["demon_scout_kain", "demon_warrior_luke", "demon_mage_zero", "demon_archer_robin", "demon_priest_sara", "demon_fighter_gran", "demon_pawn_opawn", "demon_rook_chatrang", "demon_knight_kaighton", "demon_bishop_eveque", "demon_king_monochrem"]);
 const ADVENTURE_DESTINATION_ICONS = Object.freeze({
   start_adventure: `
@@ -3341,7 +3343,10 @@ function effectFromLogLine(line, context) {
     const owner = context.lineSide ? state.battle?.[context.lineSide] : null;
     context.actorName = owner?.name || context.actorName;
     context.actorSide = context.lineSide || context.actorSide;
-    return null;
+    const characterEffect = resolveCharacterBattleEffect("shadowSoldierAction", context, {
+      soldierNumber: context.shadowSoldierNumber,
+    });
+    return characterEffect === undefined ? null : characterEffect;
   }
 
   const actionMatch = line.match(/^(.+?)(?:은|는) (.+?)(?:을|를) 사용했다\.$/);
@@ -3832,6 +3837,23 @@ function makeMissEffect(actorName, preferredActorSide = null) {
   };
 }
 
+function battleSpriteActionCharacterForFighter(fighter, actionName) {
+  const baseCharacter = findCharacterForFighter(fighter);
+  if (fighter?.id !== "fimit" || FIMIT_ACTION_NAMES.has(actionName)) return baseCharacter;
+
+  const candidates = [
+    ...(state.options?.characters || []),
+    state.adventure?.monster,
+    state.options?.tutorial?.opponent,
+    ...(skillDebugConfig()?.combatants || []),
+  ].filter(Boolean);
+  return candidates.find((candidate) => candidate.id === fighter.activeCharacterId)
+    || candidates.find((candidate) => (
+      candidate.id !== "fimit" && candidate.skills?.some((skill) => skill.name === actionName)
+    ))
+    || baseCharacter;
+}
+
 function battleSpriteStateForAction(context) {
   const fighter = state.battle?.[context.actorSide];
   const asset = spriteAssetForSubject(fighter);
@@ -3840,7 +3862,12 @@ function battleSpriteStateForAction(context) {
   if (context.actionName === "일반 방어" || context.actionName === "명상" || DEFENSE_ACTION_NAMES.has(context.actionName)) {
     return "utility";
   }
-  const character = findCharacterForFighter(fighter);
+  const listedAction = context.actorSide === "player"
+    ? state.battle?.actions?.find((action) => action.name === context.actionName)
+    : null;
+  if (typeof listedAction?.isAttack === "boolean") return listedAction.isAttack ? "attack" : "utility";
+
+  const character = battleSpriteActionCharacterForFighter(fighter, context.actionName);
   const skill = character?.skills?.find((candidate) => candidate.name === context.actionName);
   return skill?.power !== null && skill?.power !== undefined && Number.isFinite(Number(skill.power))
     ? "attack"
@@ -4939,29 +4966,59 @@ function spriteAssetForSubject(subject) {
 function battleSpriteStateSrcForSubject(subject, spriteState = "idle") {
   const asset = spriteAssetForSubject(subject);
   if (!asset) return "";
+  const renderState = resolvedBattleSpriteState(subject, spriteState);
   if (asset.variant) {
-    return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/forms/${encodeURIComponent(asset.variant)}.webp`);
+    const fileName = renderState === "idle" ? asset.variant : `${asset.variant}-${renderState}`;
+    return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/forms/${encodeURIComponent(fileName)}.webp`);
   }
-  return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/sprites/${BATTLE_SPRITE_RENDER_STATE}.webp`);
+  return localAssetUrl(`/assets/${asset.assetGroup}/${encodeURIComponent(asset.id)}/sprites/${renderState}.webp`);
+}
+
+function hasBattleSpriteStateAssets(asset) {
+  if (!asset) return false;
+  return asset.variant
+    ? BATTLE_SPRITE_STATE_VARIANT_KEYS.has(`${asset.id}:${asset.variant}`)
+    : BATTLE_SPRITE_STATE_ASSET_IDS.has(asset.id);
+}
+
+function resolvedBattleSpriteState(subject, spriteState = "idle") {
+  const asset = spriteAssetForSubject(subject);
+  if (!asset) return "idle";
+  const requestedState = BATTLE_SPRITE_STATES.includes(spriteState) ? spriteState : "idle";
+  return requestedState === "idle" || hasBattleSpriteStateAssets(asset)
+    ? requestedState
+    : "idle";
 }
 
 function preloadBattleSpriteStates(subject) {
-  const src = battleSpriteStateSrcForSubject(subject, BATTLE_SPRITE_RENDER_STATE);
-  if (!src || state.preloadedSpriteUrls.has(src)) return;
-  state.preloadedSpriteUrls.add(src);
-  const image = new Image();
-  image.src = src;
+  const asset = spriteAssetForSubject(subject);
+  const spriteStates = hasBattleSpriteStateAssets(asset)
+    ? BATTLE_SPRITE_STATES
+    : ["idle"];
+  for (const spriteState of spriteStates) {
+    const src = battleSpriteStateSrcForSubject(subject, spriteState);
+    if (!src || state.preloadedSpriteUrls.has(src)) continue;
+    state.preloadedSpriteUrls.add(src);
+    const image = new Image();
+    image.src = src;
+  }
 }
 
 function setBattleSpriteState(side, spriteState, holdMs = 0) {
   const fighter = state.battle?.[side];
+  const renderState = resolvedBattleSpriteState(fighter, spriteState);
   const src = battleSpriteStateSrcForSubject(fighter, spriteState);
+  const idleSrc = battleSpriteStateSrcForSubject(fighter, "idle");
   const image = document.querySelector(fighterIds[side]?.avatar)?.querySelector(".battle-sprite-side");
   if (!src || !image) return false;
   const token = ++state.spriteStateTokens[side];
-  image.onerror = null;
+  image.onerror = renderState === "idle" ? null : () => {
+    image.onerror = null;
+    image.src = idleSrc;
+    image.dataset.spriteState = "idle";
+  };
   image.src = src;
-  image.dataset.spriteState = BATTLE_SPRITE_RENDER_STATE;
+  image.dataset.spriteState = renderState;
   if (Number(holdMs) > 0) {
     registerEffectTimeout(window.setTimeout(() => {
       if (state.spriteStateTokens[side] !== token) return;

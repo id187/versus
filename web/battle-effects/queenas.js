@@ -59,6 +59,18 @@
     return effect ? { ...effect, soldierNumber, soldierDamage: damage } : null;
   }
 
+  function shadowSoldierAction({ actorName, actorSide, soldierNumber, makeLogEffect }) {
+    const effect = makeLogEffect(
+      "queenas-soldier-attack",
+      actorName,
+      actorName,
+      null,
+      actorSide,
+      actorSide,
+    );
+    return effect ? { ...effect, soldierNumber } : null;
+  }
+
   function log({ line, actionName, actorName, actorSide, makeLogEffect }) {
     let match = String(line || "").match(/^(.+?)(?:은|는) 그림자 병사 (\d+)을 소환했다\. \(HP ([\d.]+) \/ ATK/);
     if (match) {
@@ -265,8 +277,20 @@
       mountPersistentSummon(effect, arena, stageForSide);
       return true;
     }
+    if (effect.type === "queenas-soldier-attack") {
+      const element = arena?.querySelector(
+        `[data-queenas-side="${effect.side}"][data-soldier-number="${effect.soldierNumber}"]`,
+      );
+      if (element) {
+        element.classList.remove("is-attacking");
+        void element.offsetWidth;
+        element.classList.add("is-attacking");
+        registerTimeout(window.setTimeout(() => element.classList.remove("is-attacking"), 520));
+      }
+      return true;
+    }
     if (effect.type === "queenas-soldier-damaged") {
-      const element = arena?.querySelector(`[data-soldier-number="${effect.soldierNumber}"]`);
+      const element = soldierElement(arena, effect.side, effect.soldierNumber);
       if (element) {
         const currentHp = Math.max(0, Number(element.dataset.hp || 0));
         const maxHp = Math.max(1, Number(element.dataset.maxHp || 1));
@@ -285,7 +309,7 @@
       return true;
     }
     if (effect.type === "queenas-soldier-vanish") {
-      const element = arena?.querySelector(`[data-soldier-number="${effect.soldierNumber}"]`);
+      const element = soldierElement(arena, effect.side, effect.soldierNumber);
       if (element) {
         element.classList.add("is-vanishing");
         registerTimeout(window.setTimeout(() => element.remove(), 520));
@@ -293,7 +317,7 @@
       return true;
     }
     if (effect.type === "queenas-soldier-charge-start") {
-      const element = arena?.querySelector(`[data-soldier-number="${effect.soldierNumber}"]`);
+      const element = soldierElement(arena, effect.side, effect.soldierNumber);
       if (element) element.classList.add("is-charging");
       return true;
     }
@@ -306,7 +330,8 @@
       "queenas-shadow-summon", "queenas-warning-summon",
       "queenas-shadow-charge", "queenas-shadow-charge-explosion",
       "queenas-shadow-stab-impact", "queenas-self-stab-impact",
-      "queenas-soldier-damaged", "queenas-soldier-vanish", "queenas-soldier-charge-start",
+      "queenas-soldier-attack", "queenas-soldier-damaged",
+      "queenas-soldier-vanish", "queenas-soldier-charge-start",
     ],
     sfx: {
       "queenas-shadow-spear-impact": "/assets/sfx/hit.wav",
@@ -318,6 +343,7 @@
       "queenas-soldier-damaged": "/assets/sfx/hit.wav",
     },
     damage,
+    shadowSoldierAction,
     soldierDamaged,
     log,
     playEffect,
