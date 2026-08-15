@@ -7196,9 +7196,8 @@ input,
 }
 
 /* Temporary ATK / DEF / SPD multipliers are lifted out of the status copy and
-   live in the same slot as their combatant. The visual stack reserves room only
-   while badges are present, keeping them immediately above the sprite without
-   pushing the HP / MP cards or the action rail. */
+   live in the same slot as their combatant. The visual stack always reserves
+   their vertical band so showing or hiding badges never moves the sprite. */
 .fighter-stat-effects[hidden] {
   display: none !important;
 }
@@ -7210,12 +7209,8 @@ input,
   width: 92%;
   max-width: none;
   height: auto;
-  max-height: 100%;
-  aspect-ratio: 1 / 1;
-}
-
-.battle-screen.is-active .fighter-visual-stack:has(.fighter-stat-effects:not([hidden])) {
   max-height: calc(100% - 40px);
+  aspect-ratio: 1 / 1;
 }
 
 .battle-screen.is-active .fighter-visual-stack > .avatar-stage {
@@ -7324,7 +7319,7 @@ input,
 }
 
 @media (orientation: landscape) and (min-width: 620px) and (max-height: 640px) {
-  .battle-screen.is-active .fighter-visual-stack:has(.fighter-stat-effects:not([hidden])) {
+  .battle-screen.is-active .fighter-visual-stack {
     max-height: calc(100% - 36px);
   }
 
