@@ -861,6 +861,10 @@ class Battle {
     for (const choice of order) {
       this.logs.push(`${choice.actor.name} 선택: ${choice.action.name}`);
     }
+    if (playerChoice.priority !== aiChoice.priority) {
+      const [first, second] = order;
+      this.logs.push(`우선도 판정: ${first.action.name} ${first.priority} > ${second.action.name} ${second.priority} — ${first.actor.name} 선행.`);
+    }
     for (const [index, choice] of order.entries()) {
       if (this.gameOver) break;
       this.turnOrder[choice.actor.side] = index;
@@ -1806,9 +1810,15 @@ function fighterState(battle, fighter, sideOverride = null) {
   const activeData = battle.activeCharacterData(fighter);
   const activeId = activeData?.id || fighter.characterId;
   const transformed = activeId !== fighter.characterId;
-  const stateText = currentStateText(battle, fighter);
+  const hudStatEffectGroups = currentHudStatEffectGroups(fighter);
+  const stateText = currentStateText(battle, fighter, hudStatEffectGroups);
   const adventureStateText = currentAdventureStateText(battle, fighter);
   const hudStateText = currentHudStateText(stateText, adventureStateText);
+  const hudNonStatStateText = currentHudNonStatStateText(
+    stateText,
+    adventureStateText,
+    hudStatEffectGroups,
+  );
   const battleLog = [];
   if (characterLogic.needsBattleLog(battle, fighter)) characterLogic.renderBattleLog(battle, fighter, battleLog);
   return {
@@ -1842,6 +1852,10 @@ function fighterState(battle, fighter, sideOverride = null) {
     adventureStateText,
     hud_state_text: hudStateText,
     hudStateText,
+    hud_non_stat_state_text: hudNonStatStateText,
+    hudNonStatStateText,
+    hud_stat_effect_groups: hudStatEffectGroups,
+    hudStatEffectGroups: hudStatEffectGroups,
     characterEffectState: characterLogic.battleEffectState(battle, fighter),
     defenseText: `${defenseReductionPercentForStreak(
       fighter.defenseStreak + 1,
@@ -1926,7 +1940,8 @@ function actionStatesForFighter(battle, fighter, forceDisabled = false) {
       cost_text: String(cost),
       power: displayedPower,
       basePower: action.power,
-      accuracy: action.accuracy,
+      accuracy: displayedAccuracy,
+      baseAccuracy: action.accuracy,
       priority,
       basePriority: action.priority,
       characterId: action.characterId,
@@ -1943,7 +1958,33 @@ function actionStatesForFighter(battle, fighter, forceDisabled = false) {
   });
 }
 
-function currentStateText(battle, fighter) {
+function currentHudStatEffectGroups(fighter) {
+  const grouped = new Map();
+  for (const effect of fighter.statEffects || []) {
+    const stat = String(effect.stat || "").toLowerCase();
+    const label = { atk: "ATK", def: "DEF", spd: "SPD" }[stat];
+    const multiplier = Number(effect.multiplier);
+    const remaining = Math.trunc(Number(effect.remaining));
+    const source = String(effect.source || "");
+    if (!label || !Number.isFinite(multiplier) || remaining <= 0) continue;
+    const key = `${source}\u0000${multiplier}\u0000${remaining}`;
+    const group = grouped.get(key) || { stats: [], labels: [], multiplier, remaining, source };
+    if (!group.stats.includes(stat)) {
+      group.stats.push(stat);
+      group.labels.push(label);
+    }
+    grouped.set(key, group);
+  }
+  return [...grouped.values()].map((group) => ({
+    stats: [...group.stats],
+    multiplier: roundStat(group.multiplier),
+    remaining: group.remaining,
+    source: group.source,
+    statusText: `${group.labels.join("·")} ×${roundStat(group.multiplier)}(${group.remaining}턴)`,
+  }));
+}
+
+function currentStateText(battle, fighter, hudStatEffectGroups = currentHudStatEffectGroups(fighter)) {
   const parts = [];
   for (const [name, status] of Object.entries(fighter.statuses || {})) {
     if (status.stackable) {
@@ -1969,21 +2010,7 @@ function currentStateText(battle, fighter) {
       parts.push(`${name}: ${typeof value === "object" ? JSON.stringify(value) : value}`);
     }
   }
-  const groupedStatEffects = new Map();
-  for (const effect of fighter.statEffects || []) {
-    const stat = String(effect.stat || "").toLowerCase();
-    const label = { atk: "ATK", def: "DEF", spd: "SPD" }[stat];
-    const multiplier = Number(effect.multiplier);
-    const remaining = Number(effect.remaining);
-    if (!label || !Number.isFinite(multiplier) || remaining <= 0) continue;
-    const key = `${String(effect.source || "")}\u0000${multiplier}\u0000${remaining}`;
-    const group = groupedStatEffects.get(key) || { labels: [], multiplier, remaining };
-    group.labels.push(label);
-    groupedStatEffects.set(key, group);
-  }
-  for (const effect of groupedStatEffects.values()) {
-    parts.push(`${effect.labels.join("·")} ×${roundStat(effect.multiplier)}(${effect.remaining}턴)`);
-  }
+  for (const effect of hudStatEffectGroups) parts.push(effect.statusText);
   for (const effect of fighter.costEffects || []) {
     const multiplier = Number(effect.multiplier);
     const remaining = Number(effect.remaining);
@@ -2064,7 +2091,7 @@ function currentAdventureStateText(battle, fighter) {
   return parts.length ? parts.join(" / ") : "없음";
 }
 
-function currentHudStateText(stateText, adventureStateText = "없음") {
+function currentHudStateParts(stateText, adventureStateText = "없음") {
   const adventureParts = new Set(String(adventureStateText || "")
     .split(" / ")
     .map((part) => part.trim())
@@ -2083,16 +2110,31 @@ function currentHudStateText(stateText, adventureStateText = "없음") {
     "다음 기습 확률",
     "다음 전투",
   ];
-  const parts = String(stateText || "")
+  return String(stateText || "")
     .split(" / ")
     .map((part) => part.trim())
     .filter((part) => part
       && part !== "없음"
       && !adventureParts.has(part)
-      && !hiddenPrefixes.some((prefix) => part.startsWith(prefix)))
-    .map((part) => part
-      .replace(/\((\d+)턴\)/g, " $1T")
-      .replace(/\b(ATK(?:·DEF|·SPD)?|DEF(?:·SPD)?|SPD) ×(\d+(?:\.\d+)?)/g, (_match, label, multiplier) => `${label}${Number(multiplier) >= 1 ? "↑" : "↓"}`));
+      && !hiddenPrefixes.some((prefix) => part.startsWith(prefix)));
+}
+
+function compactHudStatePart(part) {
+  return String(part || "")
+    .replace(/\((\d+)턴\)/g, " $1T")
+    .replace(/\b((?:ATK|DEF|SPD)(?:·(?:ATK|DEF|SPD))*) ×(\d+(?:\.\d+)?)/g, (_match, label, multiplier) => `${label}${Number(multiplier) >= 1 ? "↑" : "↓"}`);
+}
+
+function currentHudStateText(stateText, adventureStateText = "없음") {
+  const parts = currentHudStateParts(stateText, adventureStateText).map(compactHudStatePart);
+  return parts.length ? parts.join(" · ") : "";
+}
+
+function currentHudNonStatStateText(stateText, adventureStateText = "없음", hudStatEffectGroups = []) {
+  const statEffectParts = new Set(hudStatEffectGroups.map((group) => group.statusText));
+  const parts = currentHudStateParts(stateText, adventureStateText)
+    .filter((part) => !statEffectParts.has(part))
+    .map(compactHudStatePart);
   return parts.length ? parts.join(" · ") : "";
 }
 

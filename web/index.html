@@ -76,9 +76,39 @@
           <h1>Play</h1>
         </div>
         <nav class="main-menu play-menu" aria-label="플레이 모드">
-          <button class="menu-button" id="openAdventureButton" type="button">Adventure</button>
-          <button class="menu-button" id="openBattleButton" type="button">PvE</button>
-          <button class="menu-button" id="openPvpButton" type="button">PvP</button>
+          <button
+            class="menu-button play-mode-button is-recommended"
+            id="openAdventureButton"
+            type="button"
+            aria-label="Adventure"
+            aria-describedby="adventureModeDescription"
+          >
+            <span class="play-mode-heading">
+              <strong>Adventure</strong>
+              <span class="play-mode-badge" id="adventureModeBadge">처음이라면 추천</span>
+            </span>
+            <span class="play-mode-description" id="adventureModeDescription">캐릭터를 성장시키며 20개 스테이지를 이어가는 1인 여정</span>
+          </button>
+          <button
+            class="menu-button play-mode-button"
+            id="openBattleButton"
+            type="button"
+            aria-label="PvE"
+            aria-describedby="pveModeDescription"
+          >
+            <span class="play-mode-heading"><strong>PvE</strong></span>
+            <span class="play-mode-description" id="pveModeDescription">캐릭터와 AI 성향을 골라 한 판씩 연습하는 대전</span>
+          </button>
+          <button
+            class="menu-button play-mode-button"
+            id="openPvpButton"
+            type="button"
+            aria-label="PvP"
+            aria-describedby="pvpModeDescription"
+          >
+            <span class="play-mode-heading"><strong>PvP</strong></span>
+            <span class="play-mode-description" id="pvpModeDescription">방 코드 또는 무작위 매칭으로 다른 플레이어와 대전</span>
+          </button>
           <button class="menu-button dev-menu-button" id="openSkillDebugButton" type="button" hidden>Skill Debug · DEV</button>
           <button class="menu-button secondary-menu-button" id="playBackButton" type="button">Back</button>
         </nav>
@@ -86,13 +116,13 @@
     </section>
 
     <section class="screen battle-screen" id="battleScreen" aria-label="전투 화면">
-      <header class="app-header">
+      <header class="app-header" id="battleHeader">
         <button class="ghost-button" id="battleBackButton" type="button">뒤로</button>
         <div class="header-title">
           <strong>전투</strong>
           <span id="matchLabel">대전 준비</span>
         </div>
-        <div class="battle-setup" aria-label="전투 설정">
+        <div class="battle-setup" id="battleSetup" aria-label="전투 설정">
           <div class="setup-field player-setup-field">
             <span class="setup-label" id="playerSetupLabel">내 캐릭터</span>
             <div class="player-select-row">
@@ -115,11 +145,50 @@
             방 코드(선택)
             <input id="pvpRoomInput" autocomplete="off" spellcheck="false" placeholder="비우면 무작위 매칭">
           </label>
+          <button class="ghost-button adventure-continue-button" id="continueAdventureButton" type="button" hidden>이어하기</button>
           <button class="primary-button" id="startButton" type="button">전투 시작</button>
         </div>
       </header>
 
       <div class="battle-grid">
+        <section class="prebattle-guide" id="prebattleGuide" aria-labelledby="prebattleGuideTitle" hidden>
+          <div class="prebattle-guide-copy">
+            <span class="prebattle-guide-kicker">READY</span>
+            <h2 id="prebattleGuideTitle">3단계로 전투를 준비하세요</h2>
+            <p id="prebattleGuideSummary">상단 설정을 왼쪽부터 확인한 뒤 전투를 시작하세요.</p>
+          </div>
+          <ol class="prebattle-steps" aria-label="전투 준비 순서">
+            <li class="prebattle-step">
+              <span class="prebattle-step-number" aria-hidden="true">1</span>
+              <span class="prebattle-step-copy">
+                <strong id="prebattleStep1Title">캐릭터 선택</strong>
+                <small id="prebattleStep1Detail">내 캐릭터를 고릅니다.</small>
+              </span>
+            </li>
+            <li class="prebattle-step">
+              <span class="prebattle-step-number" aria-hidden="true">2</span>
+              <span class="prebattle-step-copy">
+                <strong id="prebattleStep2Title">각인·상대 설정</strong>
+                <small id="prebattleStep2Detail">각인과 대전 조건을 정합니다.</small>
+              </span>
+            </li>
+            <li class="prebattle-step is-final">
+              <span class="prebattle-step-number" aria-hidden="true">3</span>
+              <span class="prebattle-step-copy">
+                <strong id="prebattleStep3Title">전투 시작</strong>
+                <small id="prebattleStep3Detail">노란 전투 시작 버튼을 누릅니다.</small>
+              </span>
+            </li>
+          </ol>
+          <section class="prebattle-setup-panel" aria-labelledby="prebattleSetupTitle">
+            <div class="prebattle-setup-copy">
+              <span>YOUR LOADOUT</span>
+              <h3 id="prebattleSetupTitle">선택을 마치고 시작하세요</h3>
+              <p>캐릭터 이름을 누르면 초상 목록이 열립니다. 각인과 대전 조건을 확인한 뒤 시작 버튼을 누르세요.</p>
+            </div>
+            <div class="prebattle-setup-slot" id="prebattleSetupSlot"></div>
+          </section>
+        </section>
         <aside class="status-column" aria-label="전투 상태">
           <section class="hud-card fighter-card enemy-card">
             <div class="card-head">
@@ -175,37 +244,66 @@
         <section class="arena-panel" aria-label="전장">
           <div class="arena-surface">
             <div class="turn-chip" id="turnChip">TURN -</div>
-            <button
-              class="current-log-box"
-              id="currentLogBox"
-              type="button"
-              aria-label="현재 전투 로그"
-              aria-live="polite"
-              aria-atomic="true"
-              hidden
-            >
-              <strong id="currentLogText">판정 중...</strong>
-              <small id="currentLogSkipHint" hidden>클릭하여 빠르게 보기</small>
-            </button>
             <div class="fighter-slot enemy-slot">
-              <div class="avatar-stage" id="aiAvatar" aria-hidden="true"></div>
+              <div class="fighter-visual-stack">
+                <div
+                  class="fighter-stat-effects enemy-stat-effects"
+                  id="aiStatEffects"
+                  role="list"
+                  aria-label="상대 능력치 배율 효과"
+                  hidden
+                ></div>
+                <div class="avatar-stage" id="aiAvatar" aria-hidden="true"></div>
+              </div>
             </div>
             <div class="fighter-slot player-slot">
-              <div class="avatar-stage" id="playerAvatar" aria-hidden="true"></div>
+              <div class="fighter-visual-stack">
+                <div
+                  class="fighter-stat-effects player-stat-effects"
+                  id="playerStatEffects"
+                  role="list"
+                  aria-label="플레이어 능력치 배율 효과"
+                  hidden
+                ></div>
+                <div class="avatar-stage" id="playerAvatar" aria-hidden="true"></div>
+              </div>
             </div>
             <div class="battle-fx-value-layer" aria-hidden="true"></div>
           </div>
         </section>
 
+        <button
+          class="current-log-box"
+          id="currentLogBox"
+          type="button"
+          aria-label="현재 전투 로그"
+          aria-live="polite"
+          aria-atomic="true"
+          hidden
+        >
+          <strong id="currentLogText">판정 중...</strong>
+          <small id="currentLogSkipHint" hidden>클릭하여 빠르게 보기</small>
+        </button>
+
+        <button
+          class="battle-log-toggle"
+          id="battleLogToggleButton"
+          type="button"
+          aria-expanded="false"
+          aria-controls="battleLogPanel"
+          hidden
+        >전체 로그</button>
+
         <aside class="right-column">
-          <section class="hud-card log-card" aria-label="전투 로그">
+          <section class="hud-card log-card" id="battleLogPanel" aria-label="전체 전투 로그" tabindex="-1" hidden>
             <div class="panel-title">
               <div class="panel-title-left">
-                <h2>전투 로그</h2>
+                <h2>전체 전투 로그</h2>
               </div>
               <div class="log-controls">
                 <button id="prevLogButton" type="button">이전</button>
                 <button id="nextLogButton" type="button">다음</button>
+                <button id="battleLogCloseButton" type="button">닫기</button>
               </div>
             </div>
             <div id="battleLog"></div>
@@ -603,7 +701,7 @@
                 <article class="rules-step-card"><b>2</b><h4>전투 또는 행선지 선택</h4><p>몬스터와 싸우거나 마을·이벤트 같은 행선지를 골라 스테이지를 진행합니다.</p></article>
                 <article class="rules-step-card"><b>3</b><h4>마경·간부와 최종 결전</h4><p>STAGE 12에서는 거울을 대하는 방식을 고른 뒤, 자신의 영구 강화와 전투 능력을 복제해 공격형·동일형·생존형으로 변한 마왕의 마경과 싸웁니다. 이후 STAGE 14~18에서는 마왕군 간부의 기습을 받을 수 있으며, STAGE 20의 최종 결전에서 승리하면 여정을 완료합니다.</p></article>
               </div>
-              <aside class="rules-note"><strong>자동 저장</strong><p>진행 중인 여정은 행동과 선택마다 이 기기에 자동 저장됩니다. 게임을 종료해도 Adventure에 다시 들어오면 이어서 진행하며, 패배하거나 클리어하면 저장이 초기화됩니다. 진행 중 ‘새 여정’을 누르면 현재 저장을 지우고 새 모험을 시작합니다.</p></aside>
+              <aside class="rules-note"><strong>자동 저장</strong><p>진행 중인 여정은 행동과 선택마다 이 기기에 자동 저장됩니다. Adventure에 다시 들어오면 ‘이어하기’와 ‘새 모험’ 중 하나를 고를 수 있으며, ‘이어하기’를 눌러야 저장된 진행을 불러옵니다. 패배하거나 클리어하면 저장이 초기화되고, ‘새 모험’은 확인 후 현재 저장을 덮어씁니다.</p></aside>
             </section>
 
             <section class="rules-section">
@@ -837,12 +935,22 @@
 
     <section class="character-picker-modal" id="characterPickerModal" hidden>
       <button class="modal-scrim" id="characterPickerScrim" type="button" aria-label="닫기"></button>
-      <article class="character-picker-panel" aria-label="캐릭터 선택">
+      <article class="character-picker-panel" role="dialog" aria-modal="true" aria-labelledby="characterPickerTitle">
         <header>
           <h2 id="characterPickerTitle">캐릭터 선택</h2>
           <button class="ghost-button" id="characterPickerCloseButton" type="button">닫기</button>
         </header>
-        <div class="character-picker-grid" id="characterPickerGrid"></div>
+        <div class="character-picker-body">
+          <div class="character-picker-grid" id="characterPickerGrid" aria-label="캐릭터 목록"></div>
+          <aside class="character-picker-preview" id="characterPickerPreview" aria-label="캐릭터 How to Play 미리보기">
+            <div class="character-picker-preview-content" id="characterPickerPreviewContent"></div>
+            <div class="character-picker-preview-actions">
+              <small class="character-picker-touch-hint">타일을 한 번 눌러 살펴본 뒤 아래 버튼으로 확정하세요.</small>
+              <small class="character-picker-fine-hint">타일을 클릭하거나 Enter를 누르면 바로 선택합니다.</small>
+              <button class="primary-button" id="characterPickerConfirmButton" type="button">이 캐릭터 선택</button>
+            </div>
+          </aside>
+        </div>
       </article>
     </section>
 
@@ -850,11 +958,11 @@
       <button class="modal-scrim" id="adventureRestartScrim" type="button" aria-label="취소"></button>
       <article class="adventure-restart-panel" role="dialog" aria-modal="true" aria-labelledby="adventureRestartTitle" aria-describedby="adventureRestartDescription">
         <span>NEW ADVENTURE</span>
-        <h2 id="adventureRestartTitle">새 여정을 시작할까요?</h2>
+        <h2 id="adventureRestartTitle">새 모험을 시작할까요?</h2>
         <p id="adventureRestartDescription">현재 진행 중인 모험은 삭제되며 되돌릴 수 없습니다.</p>
         <div class="adventure-restart-actions">
           <button class="ghost-button" id="adventureRestartCancelButton" type="button">취소</button>
-          <button class="adventure-restart-confirm" id="adventureRestartConfirmButton" type="button">새 여정</button>
+          <button class="adventure-restart-confirm" id="adventureRestartConfirmButton" type="button">새 모험</button>
         </div>
       </article>
     </section>

@@ -1037,10 +1037,10 @@ function indexed(value) {
 
 function previewState(character, side) {
   if (!character) {
-    return { side, id: null, name: "-", title: "캐릭터 선택", label: "- - 캐릭터 선택", hp: 0, max_hp: 0, maxHp: 0, mp: 0, max_mp: 100, maxMp: 100, atk: "-", defense: "-", spd: "-", stats: { atk: "-", def: "-", spd: "-" }, baseStats: { hp: 0, atk: "-", def: "-", spd: "-" }, status_text: "없음", stateText: "없음", defenseText: "0%", battleLog: [], passive: null, uniqueStatuses: [] };
+    return { side, id: null, name: "-", title: "캐릭터 선택", label: "- - 캐릭터 선택", hp: 0, max_hp: 0, maxHp: 0, mp: 0, max_mp: 100, maxMp: 100, atk: "-", defense: "-", spd: "-", stats: { atk: "-", def: "-", spd: "-" }, baseStats: { hp: 0, atk: "-", def: "-", spd: "-" }, status_text: "없음", stateText: "없음", hud_state_text: "", hudStateText: "", hud_non_stat_state_text: "", hudNonStatStateText: "", hud_stat_effect_groups: [], hudStatEffectGroups: [], defenseText: "0%", battleLog: [], passive: null, uniqueStatuses: [] };
   }
   const stats = character.stats || {};
-  return { side, id: character.id, name: character.name || "-", title: character.title || "", label: `${character.name || "-"} - ${character.title || ""}`, hp: Number(stats.hp || 0), max_hp: Number(stats.hp || 0), maxHp: Number(stats.hp || 0), mp: 0, max_mp: 100, maxMp: 100, atk: stats.atk ?? "-", defense: stats.def ?? "-", spd: stats.spd ?? "-", stats: { atk: stats.atk ?? "-", def: stats.def ?? "-", spd: stats.spd ?? "-" }, baseStats: stats, status_text: "없음", stateText: "없음", defenseText: "0%", battleLog: [], passive: character.passive, uniqueStatuses: character.unique_statuses || [] };
+  return { side, id: character.id, name: character.name || "-", title: character.title || "", label: `${character.name || "-"} - ${character.title || ""}`, hp: Number(stats.hp || 0), max_hp: Number(stats.hp || 0), maxHp: Number(stats.hp || 0), mp: 0, max_mp: 100, maxMp: 100, atk: stats.atk ?? "-", defense: stats.def ?? "-", spd: stats.spd ?? "-", stats: { atk: stats.atk ?? "-", def: stats.def ?? "-", spd: stats.spd ?? "-" }, baseStats: stats, status_text: "없음", stateText: "없음", hud_state_text: "", hudStateText: "", hud_non_stat_state_text: "", hudNonStatStateText: "", hud_stat_effect_groups: [], hudStatEffectGroups: [], defenseText: "0%", battleLog: [], passive: character.passive, uniqueStatuses: character.unique_statuses || [] };
 }
 
 function pvpSummary(room, slot, fighter) {
